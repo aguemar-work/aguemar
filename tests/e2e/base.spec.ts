@@ -17,7 +17,7 @@ test("la pantalla de login tiene el campo de correo accesible", async ({ page })
   await expect(correo).toBeVisible();
   await correo.fill("no-es-un-correo");
   await page.getByRole("button", { name: /enviarme el enlace/i }).click();
-  await expect(page.getByRole("alert")).toContainText(/correo/i);
+  await expect(page.locator("#correo-error")).toContainText(/correo/i);
 });
 
 test("el portal es noindex", async ({ page }) => {
