@@ -1,0 +1,136 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------- Tokens de marca agueMar ---------- */
+@theme {
+  --color-ink: #0a0f1a;
+  --color-mint: #1ce783;
+  --color-mint-ink: #0a6b3b;
+  --color-mint-soft: #e3faef;
+  --color-warn: #7a4f00;
+  --color-warn-soft: #fff3dc;
+  --color-danger: #9b1c1c;
+  --color-danger-soft: #fde8e8;
+  --color-muted: #4a5263;
+  --color-line: #e2e5eb;
+  --color-soft: #f5f7fa;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* ---------- Tokens semánticos (claro / oscuro) ---------- */
+:root {
+  --background: #ffffff;
+  --foreground: #0a0f1a;
+  --card: #ffffff;
+  --card-foreground: #0a0f1a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0f1a;
+  --primary: #0a0f1a;
+  --primary-foreground: #ffffff;
+  --accent: #1ce783;
+  --accent-foreground: #0a0f1a;
+  --secondary: #f5f7fa;
+  --secondary-foreground: #0a0f1a;
+  --muted-bg: #f5f7fa;
+  --muted-foreground: #4a5263;
+  --border: #e2e5eb;
+  --input: #e2e5eb;
+  --ring: #1ce783;
+  --sidebar: #0a0f1a;
+  --sidebar-foreground: #e6e9ef;
+  --success-foreground: #0a6b3b;
+  --success-bg: #e3faef;
+  --warning-foreground: #7a4f00;
+  --warning-bg: #fff3dc;
+}
+
+.dark {
+  --background: #0a0f1a;
+  --foreground: #e6e9ef;
+  --card: #111827;
+  --card-foreground: #e6e9ef;
+  --popover: #111827;
+  --popover-foreground: #e6e9ef;
+  --primary: #1ce783;
+  --primary-foreground: #0a0f1a;
+  --accent: #1ce783;
+  --accent-foreground: #0a0f1a;
+  --secondary: #161e2e;
+  --secondary-foreground: #e6e9ef;
+  --muted-bg: #161e2e;
+  --muted-foreground: #9aa3b5;
+  --border: #243044;
+  --input: #243044;
+  --ring: #1ce783;
+  --sidebar: #070b13;
+  --sidebar-foreground: #e6e9ef;
+  --success-foreground: #1ce783;
+  --success-bg: #0f3b26;
+  --warning-foreground: #f2c35b;
+  --warning-bg: #3a2a05;
+}
+
+@theme inline {
+  /* Fuentes de next/font: deben ir en "inline" para que var() se resuelva en el elemento, no en :root. */
+  --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-bg: var(--muted-bg);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-bg: var(--success-bg);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-bg: var(--warning-bg);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  /* Foco visible y consistente para teclado */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+  ::selection {
+    background: #1ce783;
+    color: #0a0f1a;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

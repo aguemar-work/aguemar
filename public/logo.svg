@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4470 12270 12720 5835" role="img" aria-label="agueMar">
+  <!-- PLACEHOLDER: reemplazar con node scripts/crop-logo.mjs cuando exista LOGO.svg -->
+  <g fill="none" stroke="#1CE783" stroke-width="420" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7300 13500 L5700 15190 L7300 16880"/>
+    <path d="M14360 13500 L15960 15190 L14360 16880"/>
+  </g>
+  <text x="10830" y="15900" text-anchor="middle" font-family="Sora, Arial, sans-serif" font-weight="700" font-size="2100" fill="#0A0F1A">agueMar</text>
+</svg>
