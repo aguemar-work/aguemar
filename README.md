@@ -1,6 +1,6 @@
 # agueMar Studio
 
-Sistema de la marca de soporte técnico **agueMar** (Alejandro Guevara Martínez, Perú): landing pública, panel privado para clientes, cotizaciones y fichas técnicas, y portal donde el cliente ve y acepta sus documentos.
+Centro de control personal (ERP pequeño) de **agueMar** (Alejandro Guevara Martínez, Perú) para sus tres áreas: diseño, desarrollo y soporte técnico. Incluye una web de dos caras (portafolio y soporte), un panel privado para clientes, trabajos, cotizaciones, cobros y documentos por área, y un portal donde el cliente ve y acepta sus documentos.
 
 ## Stack
 
@@ -117,10 +117,10 @@ _respaldos         volcados locales (ignorado por git)
 ## Fases
 
 1. ✅ Base: proyecto, tokens, logos, layout del panel, auth y migraciones con RLS.
-2. Clientes, equipos, servicios y Mi marca.
-3. Cotizaciones con vista previa, PDF, numeración y estados.
-4. Fichas técnicas con plantillas, PDF y vínculo con equipos.
-5. Importar diagnóstico (`diagnostico-agueMar.ps1`).
-6. Portal del cliente: tokens, aceptación y QR.
-7. Landing pública, formulario de contacto y leads.
-8. Recordatorios, correo, pulido, tests completos y Vercel.
+2. ✅ Clientes, equipos, servicios y Mi marca.
+3. Trabajos (proyectos por área): lista, tablero y detalle con etapas, tareas y entregables.
+4. Cotizaciones multi-área con PDF, numeración y estados; cobros y saldos.
+5. Documentos por área: ficha técnica (con `diagnostico-agueMar.ps1`), brief y acta de entrega.
+6. Portal del cliente (tokens, aceptación, QR) y portafolio.
+7. Web de dos caras (`/`, `/estudio`, `/soporte`), formulario y leads.
+8. Agenda y recordatorios, correo, pulido, tests completos y Vercel.
