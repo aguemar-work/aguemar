@@ -119,5 +119,5 @@ Responsivo desde 360 px (editores con pestañas en móvil). Accesible (teclado, 
 - Acceso a datos en `src/lib/datos/*` (consultas con sesión, RLS aplica) y Server Actions por módulo en `src/app/panel/<modulo>/acciones.ts` que devuelven `Resultado<T>`; errores de Postgres traducidos en `src/lib/insforge/errores.ts`.
 - Formularios: React Hook Form + Zod (`src/lib/validators/*`), componentes `Campo`/`propsCampo`, `BarraAcciones`, `useAvisoCambios`.
 - Sin variables de InsForge, la app debe compilar y mostrar un aviso, nunca romper.
-- No correr `npm run build` con el dev server activo (comparten `.next`).
+- **El servidor de desarrollo lo arranca y detiene el usuario en su máquina** (`npm run dev` en su terminal). Claude no lo inicia, reinicia ni detiene, ni usa el preview integrado para levantarlo; verifica contra http://localhost:3000 cuando el usuario lo tenga corriendo. Tampoco correr `npm run build` mientras ese servidor esté activo (comparten `.next`): avisar y pedirle que lo detenga antes.
 - Commit al cerrar cada fase.

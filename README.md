@@ -88,7 +88,7 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run test` | tests unitarios (Vitest) |
-| `npm run test:e2e` | flujos con Playwright (levanta `npm run dev` solo) |
+| `npm run test:e2e` | flujos con Playwright (requiere `npm run dev` corriendo en otra terminal) |
 | `npm run db:migrate` | aplica las migraciones pendientes |
 | `npm run db:status` | historial de migraciones remoto |
 | `npm run db:seed -- correo` | carga los datos de ejemplo para ese propietario |

@@ -30,10 +30,5 @@ export default defineConfig({
     { name: "escritorio", use: { ...devices["Desktop Chrome"] } },
     { name: "movil", use: { ...devices["Pixel 7"] } },
   ],
-  webServer: {
-    command: "npm run dev",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  // Sin webServer: los tests usan el servidor que el usuario tiene corriendo en su máquina (npm run dev).
 });
