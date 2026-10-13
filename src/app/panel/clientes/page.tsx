@@ -1,21 +1,93 @@
 import type { Metadata } from "next";
-import { Users } from "lucide-react";
+import Link from "next/link";
+import { Plus, Users } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
 import { EmptyState } from "@/components/panel/empty-state";
+import { Buscador } from "@/components/panel/buscador";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { listarClientes } from "@/lib/datos/clientes";
 
 export const metadata: Metadata = { title: "Clientes" };
 
-export default function ClientesPage() {
+interface Props {
+  searchParams: Promise<{ q?: string }>;
+}
+
+export default async function ClientesPage({ searchParams }: Props) {
+  const { q } = await searchParams;
+  const clientes = await listarClientes(q);
+
   return (
     <>
-      <PageHeader codigo="01" titulo="Clientes" descripcion="Personas y empresas a las que atiendes." />
-      <EmptyState
-        icono={Users}
-        titulo="Aún no hay clientes."
-        descripcion="Crea el primero para empezar a cotizar y registrar sus equipos. Disponible en la Fase 2."
-        accion={<Button variant="mint" disabled>Nuevo cliente</Button>}
+      <PageHeader
+        codigo="01"
+        titulo="Clientes"
+        descripcion="Personas y empresas a las que atiendes."
+        acciones={
+          <Button asChild variant="mint">
+            <Link href="/panel/clientes/nuevo">
+              <Plus /> Nuevo cliente
+            </Link>
+          </Button>
+        }
       />
+
+      <div className="mb-4">
+        <Buscador placeholder="Buscar por nombre, documento o contacto" valorInicial={q} />
+      </div>
+
+      {clientes.length === 0 ? (
+        <EmptyState
+          icono={Users}
+          titulo={q ? `Sin resultados para "${q}".` : "Aún no hay clientes."}
+          descripcion={q ? "Prueba con otro término o crea el cliente." : "Crea el primero para empezar a cotizar y registrar sus equipos."}
+          accion={
+            <Button asChild variant="mint">
+              <Link href="/panel/clientes/nuevo">
+                <Plus /> Nuevo cliente
+              </Link>
+            </Button>
+          }
+        />
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Documento</TableHead>
+              <TableHead className="hidden md:table-cell">Contacto</TableHead>
+              <TableHead className="hidden lg:table-cell">Teléfono</TableHead>
+              <TableHead className="text-right">Equipos</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {clientes.map((c) => (
+              <TableRow key={c.id}>
+                <TableCell>
+                  <Link href={`/panel/clientes/${c.id}`} className="font-medium underline-offset-4 hover:underline">
+                    {c.nombre}
+                  </Link>
+                  <p className="text-xs text-muted-foreground md:hidden">{c.contacto}</p>
+                </TableCell>
+                <TableCell>
+                  {c.num_doc ? (
+                    <Badge variant="mono">
+                      {c.tipo_doc} {c.num_doc}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Sin documento</span>
+                  )}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">{c.contacto ?? "—"}</TableCell>
+                <TableCell className="hidden font-mono text-xs lg:table-cell">{c.telefono ?? "—"}</TableCell>
+                <TableCell className="text-right font-mono tabular">{c.equipos?.[0]?.count ?? 0}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </>
   );
 }
