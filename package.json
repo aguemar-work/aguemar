@@ -11,17 +11,19 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "logo": "node scripts/crop-logo.mjs"
+    "logo": "node scripts/crop-logo.mjs",
+    "db:migrate": "npx -y @insforge/cli db migrations up --all",
+    "db:status": "npx -y @insforge/cli db migrations list",
+    "db:seed": "node scripts/seed.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
+    "@insforge/sdk": "^1.5.2",
     "@radix-ui/react-dialog": "^1.2.0",
     "@radix-ui/react-dropdown-menu": "^2.1.25",
     "@radix-ui/react-label": "^2.1.16",
     "@radix-ui/react-slot": "^1.4.0",
     "@radix-ui/react-tabs": "^1.1.22",
-    "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.117.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.55.0",

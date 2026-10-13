@@ -46,3 +46,24 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /supabase/.temp/
+
+# InsForge (credenciales del proyecto)
+.insforge/
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
+
+# Volcados locales de la base (nunca al repo)
+_respaldos/

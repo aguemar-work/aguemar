@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 
-/** Aviso cuando faltan las variables de Supabase: la app compila pero no hay datos ni sesión. */
-export function AvisoSupabase() {
+/** Aviso cuando faltan las variables de InsForge: la app compila pero no hay datos ni sesión. */
+export function AvisoBackend() {
   return (
     <div
       role="status"
@@ -9,11 +9,11 @@ export function AvisoSupabase() {
     >
       <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
       <div>
-        <p className="font-semibold">Supabase no está configurado.</p>
+        <p className="font-semibold">InsForge no está configurado.</p>
         <p className="mt-0.5">
           Copia <code className="font-mono">.env.example</code> a <code className="font-mono">.env.local</code> con la
-          URL y la anon key de tu proyecto, aplica las migraciones y reinicia el servidor. Mientras tanto puedes revisar
-          la interfaz, pero no habrá sesión ni datos.
+          URL y la anon key del proyecto, aplica las migraciones y reinicia el servidor. Mientras tanto puedes revisar la
+          interfaz, pero no habrá sesión ni datos.
         </p>
       </div>
     </div>

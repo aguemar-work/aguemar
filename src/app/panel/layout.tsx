@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/panel/sidebar";
 import { Topbar } from "@/components/panel/topbar";
-import { AvisoSupabase } from "@/components/panel/aviso-supabase";
-import { obtenerUsuario } from "@/lib/supabase/server";
-import { supabaseConfigurado } from "@/lib/env";
+import { AvisoBackend } from "@/components/panel/aviso-backend";
+import { obtenerUsuario } from "@/lib/insforge/server";
+import { backendConfigurado } from "@/lib/env";
 import { cerrarSesion } from "@/app/(auth)/acciones";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const usuario = await obtenerUsuario();
 
-  if (supabaseConfigurado && !usuario) {
+  if (backendConfigurado && !usuario) {
     redirect("/login?siguiente=/panel");
   }
 
@@ -29,9 +29,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar correo={usuario?.email} cerrarSesion={cerrarSesion} />
         <main id="contenido" className="flex-1 p-4 md:p-6 lg:p-8">
-          {!supabaseConfigurado ? (
+          {!backendConfigurado ? (
             <div className="mb-6">
-              <AvisoSupabase />
+              <AvisoBackend />
             </div>
           ) : null}
           {children}

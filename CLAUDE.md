@@ -12,7 +12,7 @@ Antes de escribir código de una fase, presenta un plan breve y espera confirmac
 
 - Next.js 15 (App Router) + TypeScript estricto.
 - Tailwind CSS v4 (tokens en `src/app/globals.css` con `@theme`). Componentes propios; shadcn/ui solo como base adaptada a la marca.
-- Supabase: Postgres, Auth (correo + enlace mágico) y Storage. RLS en todas las tablas.
+- InsForge (`@insforge/sdk`, entrypoint `@insforge/sdk/ssr`): Postgres, Auth (correo + código OTP de 6 dígitos; InsForge no tiene enlace mágico) y Storage. RLS en todas las tablas. Proyecto `Project_AGUEMAR` vinculado en `.insforge/project.json` (no se commitea).
 - PDF con `@react-pdf/renderer`: A4 vectorial, texto seleccionable, fuentes embebidas.
 - Zod para validar formularios y entradas de API. React Hook Form para formularios.
 - Resend para correos con PDF adjunto (opcional, detrás de variable de entorno).
@@ -71,11 +71,11 @@ Cotización: Para / De → Detalle (#, descripción, cantidad, P.U., importe) �
 
 Archivo: `{NUMERO}_{Cliente}.pdf`.
 
-## Modelo de datos (Supabase)
+## Modelo de datos (InsForge / Postgres)
 
 Tablas con `id uuid`, `owner_id`, `created_at`, `updated_at`: perfil_marca, clientes, equipos, servicios, cotizaciones, cotizacion_items, fichas, ficha_diagnosticos, ficha_trabajos, ficha_incidencias, ficha_recomendaciones, plantillas_checklist, leads, enlaces_publicos (token, tipo, documento_id, revocado, vistas), aceptaciones, contadores (owner_id, tipo, anio, ultimo).
 
-RLS: `owner_id = auth.uid()`. El portal lee con función `security definer` que valida el token. Numeración con bloqueo de fila. Montos en céntimos enteros. Migraciones versionadas en `supabase/migrations` y `supabase/seed.sql` con cliente SGC y ficha FT-2026-001 (Lenovo 83LT, serie PF5Y6DJT, Windows 11 Pro 10.0.26200, BIOS RLCN29WW 14/08/2025, 32 GB RAM, SSD Samsung 1 TB MZAL81T0HFLB, NVIDIA, batería BYD Li-Po 80 000 mWh; SSD 0 % desgaste, batería 99,7 % con 392 ciclos, 0 errores de integridad, 3/3 incidencias: error 0x80073D02 por WhatsApp Beta, imágenes no visibles en Office, Nitro PDF sin aceptar contraseñas por captura de teclado remota).
+RLS: `owner_id = auth.uid()`. El portal lee con función `security definer` que valida el token. Numeración con bloqueo de fila. Montos en céntimos enteros. Migraciones versionadas en `migrations/` (`npx -y @insforge/cli db migrations new <nombre>` y `up --all`; sin `BEGIN/COMMIT`, sin bloques `DO` con `EXECUTE`) y seed en `db/seed.sql` (`npm run db:seed -- correo@propietario`) con cliente SGC y ficha FT-2026-001 (Lenovo 83LT, serie PF5Y6DJT, Windows 11 Pro 10.0.26200, BIOS RLCN29WW 14/08/2025, 32 GB RAM, SSD Samsung 1 TB MZAL81T0HFLB, NVIDIA, batería BYD Li-Po 80 000 mWh; SSD 0 % desgaste, batería 99,7 % con 392 ciclos, 0 errores de integridad, 3/3 incidencias: error 0x80073D02 por WhatsApp Beta, imágenes no visibles en Office, Nitro PDF sin aceptar contraseñas por captura de teclado remota).
 
 ## Calidad
 
@@ -95,6 +95,8 @@ Responsivo desde 360 px (editor con pestañas en móvil). Accesible (teclado, fo
 ## Convenciones del repo
 
 - Código y comentarios en español; identificadores en español salvo APIs externas.
-- Sin Supabase local (no hay Docker): migraciones se aplican con `supabase db push` a un proyecto en la nube o desde el editor SQL.
-- Sin variables de Supabase, la app debe compilar y mostrar un aviso, nunca romper.
+- Backend en InsForge (sin Docker local). Esquema y RLS solo por migraciones; `db query` solo para datos. Las funciones `security definer` fijan `search_path = pg_catalog, public, pg_temp`.
+- Auth SSR: `createServerClient` en Server Components, `createAuthActions` en Server Actions (login/logout), `updateSession` en el middleware y `/api/auth/refresh` con `createRefreshAuthRouter`.
+- Sin variables de InsForge, la app debe compilar y mostrar un aviso, nunca romper.
+- No correr `npm run build` con el dev server activo (comparten `.next`).
 - Commit al cerrar cada fase.

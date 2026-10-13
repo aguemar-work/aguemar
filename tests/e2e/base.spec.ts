@@ -11,13 +11,18 @@ test("la landing carga con el logo y los llamados a la acción", async ({ page }
   await expect(page.getByRole("link", { name: /whatsapp/i })).toBeVisible();
 });
 
-test("la pantalla de login tiene el campo de correo accesible", async ({ page }) => {
+test("la pantalla de login valida el correo antes de enviar el código", async ({ page }) => {
   await page.goto("/login");
   const correo = page.getByLabel("Correo");
   await expect(correo).toBeVisible();
   await correo.fill("no-es-un-correo");
-  await page.getByRole("button", { name: /enviarme el enlace/i }).click();
+  await page.getByRole("button", { name: /enviarme el código/i }).click();
   await expect(page.locator("#correo-error")).toContainText(/correo/i);
+});
+
+test("el panel redirige al login sin sesión", async ({ page }) => {
+  await page.goto("/panel");
+  await expect(page).toHaveURL(/\/login\?siguiente=%2Fpanel|\/login/);
 });
 
 test("el portal es noindex", async ({ page }) => {

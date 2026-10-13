@@ -1,10 +1,9 @@
 -- =====================================================================
--- agueMar Studio · 0001 · Esquema base
+-- agueMar Studio · Esquema base (InsForge / Postgres)
 -- Todas las tablas: id uuid, owner_id (auth.users), created_at, updated_at.
 -- Montos en céntimos enteros. Fechas civiles como date (zona America/Lima).
+-- Se aplica con: npx -y @insforge/cli db migrations up --all
 -- =====================================================================
-
-create extension if not exists pgcrypto;
 
 -- ---------- Tipos ----------
 create type public.tipo_doc as enum ('RUC', 'DNI');
@@ -283,7 +282,7 @@ returns text
 language sql
 volatile
 as $$
-  select translate(encode(gen_random_bytes(32), 'base64'), '+/=', '-_');
+  select translate(encode(public.gen_random_bytes(32), 'base64'), '+/=', '-_');
 $$;
 
 create table public.enlaces_publicos (
@@ -317,19 +316,33 @@ create table public.aceptaciones (
 create index aceptaciones_cot_idx on public.aceptaciones (cotizacion_id);
 
 -- ---------- Triggers updated_at ----------
-do $$
-declare
-  t text;
-begin
-  foreach t in array array[
-    'perfil_marca','clientes','equipos','servicios','cotizaciones','cotizacion_items',
-    'fichas','ficha_diagnosticos','ficha_trabajos','ficha_incidencias','ficha_recomendaciones',
-    'plantillas_checklist','leads','enlaces_publicos','aceptaciones'
-  ] loop
-    execute format(
-      'create trigger %I_updated_at before update on public.%I for each row execute function public.set_updated_at()',
-      t, t
-    );
-  end loop;
-end
-$$;
+create trigger perfil_marca_updated_at before update on public.perfil_marca
+  for each row execute function public.set_updated_at();
+create trigger clientes_updated_at before update on public.clientes
+  for each row execute function public.set_updated_at();
+create trigger equipos_updated_at before update on public.equipos
+  for each row execute function public.set_updated_at();
+create trigger servicios_updated_at before update on public.servicios
+  for each row execute function public.set_updated_at();
+create trigger cotizaciones_updated_at before update on public.cotizaciones
+  for each row execute function public.set_updated_at();
+create trigger cotizacion_items_updated_at before update on public.cotizacion_items
+  for each row execute function public.set_updated_at();
+create trigger fichas_updated_at before update on public.fichas
+  for each row execute function public.set_updated_at();
+create trigger ficha_diagnosticos_updated_at before update on public.ficha_diagnosticos
+  for each row execute function public.set_updated_at();
+create trigger ficha_trabajos_updated_at before update on public.ficha_trabajos
+  for each row execute function public.set_updated_at();
+create trigger ficha_incidencias_updated_at before update on public.ficha_incidencias
+  for each row execute function public.set_updated_at();
+create trigger ficha_recomendaciones_updated_at before update on public.ficha_recomendaciones
+  for each row execute function public.set_updated_at();
+create trigger plantillas_checklist_updated_at before update on public.plantillas_checklist
+  for each row execute function public.set_updated_at();
+create trigger leads_updated_at before update on public.leads
+  for each row execute function public.set_updated_at();
+create trigger enlaces_publicos_updated_at before update on public.enlaces_publicos
+  for each row execute function public.set_updated_at();
+create trigger aceptaciones_updated_at before update on public.aceptaciones
+  for each row execute function public.set_updated_at();

@@ -1,13 +1,11 @@
 -- =====================================================================
 -- agueMar Studio · seed
--- Crea el perfil de marca, los servicios iniciales, la plantilla de
--- mantenimiento preventivo, el cliente SGC, su equipo Lenovo y la
--- ficha FT-2026-001 con datos reales de referencia.
+-- Crea el perfil de marca, los servicios iniciales, las plantillas de
+-- checklist, el cliente SGC, su equipo Lenovo y la ficha FT-2026-001.
 --
--- Uso (editor SQL de Supabase o psql):
---   1. Crea tu usuario en Authentication (correo con enlace mágico).
---   2. Reemplaza el UUID de v_owner por el id de ese usuario, o deja
---      el bloque tal cual para usar el primer usuario registrado.
+-- Uso: npm run db:seed -- tu@correo.com
+--   (el script reemplaza __OWNER_EMAIL__ y ejecuta este archivo con la CLI
+--    de InsForge). El usuario debe existir: inicia sesión una vez en /login.
 -- =====================================================================
 
 do $$
@@ -17,10 +15,12 @@ declare
   v_equipo uuid;
   v_ficha uuid;
 begin
-  -- Propietario: primer usuario de auth.users (cámbialo si tienes varios).
-  select id into v_owner from auth.users order by created_at limit 1;
+  select id into v_owner from auth.users where email = '__OWNER_EMAIL__';
   if v_owner is null then
-    raise exception 'No hay usuarios en auth.users. Crea tu usuario antes de ejecutar el seed.';
+    raise exception 'No existe el usuario __OWNER_EMAIL__ en auth.users. Inicia sesión una vez en /login y vuelve a ejecutar el seed.';
+  end if;
+  if exists (select 1 from public.perfil_marca where owner_id = v_owner) then
+    raise exception 'El seed ya se ejecutó para __OWNER_EMAIL__ (existe perfil_marca).';
   end if;
 
   -- ---------- Mi marca ----------
@@ -31,8 +31,7 @@ begin
           '[PENDIENTE: RUC]', '[PENDIENTE: teléfono]', '[PENDIENTE: correo]', '[PENDIENTE: web]', '[PENDIENTE: dirección]',
           1800, 'PEN', 15,
           E'Precios expresados en soles. Validez según la fecha indicada.\nEl servicio incluye la ficha técnica del trabajo realizado.\nForma de pago: 50 % al aceptar y 50 % al entregar, salvo acuerdo distinto.',
-          '[PENDIENTE: cuenta]', '[PENDIENTE: CCI]', '[PENDIENTE: Yape]', '[PENDIENTE: Plin]')
-  on conflict (owner_id) do nothing;
+          '[PENDIENTE: cuenta]', '[PENDIENTE: CCI]', '[PENDIENTE: Yape]', '[PENDIENTE: Plin]');
 
   -- ---------- Servicios iniciales ([PENDIENTE: confirmar lista y precios]) ----------
   insert into public.servicios (owner_id, nombre, descripcion, precio_base, unidad, visible_landing, orden) values
@@ -43,7 +42,7 @@ begin
     (v_owner, 'Redes', 'Diseño, cableado y configuración de redes para hogar y oficina.', null, 'servicio', true, 5),
     (v_owner, 'Recuperación de información', 'Recuperación de archivos en discos y unidades con fallas.', null, 'servicio', true, 6);
 
-  -- ---------- Plantilla de checklist: mantenimiento preventivo ----------
+  -- ---------- Plantillas de checklist ----------
   insert into public.plantillas_checklist (owner_id, tipo_servicio, items) values
     (v_owner, 'Mantenimiento preventivo', '[
       {"titulo": "Respaldo", "detalle": "Copia de seguridad de documentos y perfiles antes de intervenir."},
@@ -69,8 +68,7 @@ begin
       {"titulo": "Conexión", "detalle": "Sesión remota establecida con autorización del cliente."},
       {"titulo": "Atención", "detalle": "Revisión y solución de las incidencias reportadas."},
       {"titulo": "Cierre", "detalle": "Sesión cerrada y accesos temporales eliminados."}
-    ]'::jsonb)
-  on conflict (owner_id, tipo_servicio) do nothing;
+    ]'::jsonb);
 
   -- ---------- Cliente de referencia: SGC ----------
   insert into public.clientes (owner_id, nombre, tipo_doc, num_doc, contacto, telefono, correo, direccion)
@@ -134,7 +132,5 @@ begin
     (v_owner, v_ficha, 'Usar la versión estable de WhatsApp en lugar de la Beta para evitar errores de actualización.', 2),
     (v_owner, v_ficha, 'Programar el siguiente mantenimiento preventivo en 6 meses (abril de 2027).', 3),
     (v_owner, v_ficha, 'Conservar entre 20 % y 80 % de carga para prolongar la vida útil de la batería.', 4);
-
-  raise notice 'Seed completado para el propietario %', v_owner;
 end
 $$;

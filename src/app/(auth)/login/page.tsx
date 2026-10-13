@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { Brackets } from "@/components/brand/brackets";
-import { AvisoSupabase } from "@/components/panel/aviso-supabase";
-import { supabaseConfigurado } from "@/lib/env";
+import { AvisoBackend } from "@/components/panel/aviso-backend";
+import { backendConfigurado } from "@/lib/env";
 import { FormularioLogin } from "./formulario-login";
 
 export const metadata: Metadata = {
@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 };
 
 interface Props {
-  searchParams: Promise<{ siguiente?: string; error?: string }>;
+  searchParams: Promise<{ siguiente?: string }>;
 }
 
 export default async function LoginPage({ searchParams }: Props) {
-  const { siguiente, error } = await searchParams;
+  const { siguiente } = await searchParams;
 
   return (
     <main className="grid min-h-dvh lg:grid-cols-2">
@@ -29,9 +29,7 @@ export default async function LoginPage({ searchParams }: Props) {
           <h1 className="mt-3 text-3xl font-semibold leading-tight">
             Cotizaciones y fichas técnicas con tu marca, en minutos.
           </h1>
-          <p className="mt-3 text-white/70">
-            Gestiona clientes, equipos y documentos desde un solo lugar.
-          </p>
+          <p className="mt-3 text-white/70">Gestiona clientes, equipos y documentos desde un solo lugar.</p>
         </div>
         <p className="font-mono text-[11px] text-white/50">agueMar · soporte técnico</p>
       </section>
@@ -46,19 +44,11 @@ export default async function LoginPage({ searchParams }: Props) {
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">Ingresa a tu panel</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Escribe tu correo y te enviamos un enlace para entrar sin contraseña.
+              Escribe tu correo y te enviamos un código de 6 dígitos para entrar sin contraseña.
             </p>
           </div>
 
-          {!supabaseConfigurado ? <AvisoSupabase /> : null}
-
-          {error ? (
-            <p role="alert" className="rounded-md border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">
-              {error === "enlace"
-                ? "El enlace no es válido o ya venció. Pide uno nuevo."
-                : "No pudimos iniciar tu sesión. Inténtalo de nuevo."}
-            </p>
-          ) : null}
+          {!backendConfigurado ? <AvisoBackend /> : null}
 
           <FormularioLogin siguiente={siguiente ?? "/panel"} />
 

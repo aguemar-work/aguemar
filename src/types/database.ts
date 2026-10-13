@@ -1,7 +1,7 @@
 /**
- * Tipos de la base de datos, alineados a supabase/migrations.
- * Mantener a mano hasta conectar el proyecto; luego se puede regenerar con
- * `supabase gen types typescript --linked > src/types/database.ts`.
+ * Tipos de las tablas, alineados a migrations/*.sql (InsForge / Postgres).
+ * El SDK de InsForge no es genérico por tabla: estos tipos se aplican al leer
+ * (`as ClienteRow[]`) y al construir los inserts.
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
@@ -33,11 +33,6 @@ type Base = {
   created_at: string;
   updated_at: string;
 };
-
-/** Hace opcionales las columnas con default para los Insert. */
-type ClavesBase = keyof Base;
-type Insertable<Row extends Base, Opcionales extends keyof Row = never> = Omit<Row, ClavesBase | Opcionales> &
-  Partial<Pick<Row, ClavesBase | Opcionales>>;
 
 // ---------- Filas ----------
 export type PerfilMarcaRow = Base & {
@@ -124,7 +119,7 @@ export type CotizacionItemRow = Base & {
   cotizacion_id: string;
   servicio_id: string | null;
   descripcion: string;
-  cantidad: number | string; // numeric(12,3): Supabase lo devuelve como string
+  cantidad: number | string; // numeric(12,3): PostgREST lo devuelve como string
   precio_unitario: number;
   descuento: number;
   importe: number;
@@ -212,121 +207,4 @@ export type AceptacionRow = Base & {
   ip: string | null;
   user_agent: string | null;
   aceptado_en: string;
-};
-
-// ---------- Definición para supabase-js ----------
-type Tabla<Row, Insert, Update = Partial<Insert>> = {
-  Row: Row;
-  Insert: Insert;
-  Update: Update;
-  Relationships: [];
-};
-
-export type Database = {
-  public: {
-    Tables: {
-      perfil_marca: Tabla<
-        PerfilMarcaRow,
-        Insertable<
-          PerfilMarcaRow,
-          | "nombre_comercial" | "responsable" | "cargo" | "ruc" | "telefono" | "correo" | "web" | "direccion"
-          | "igv_pct" | "moneda_default" | "validez_dias_default" | "condiciones_default"
-          | "pago_cuenta" | "pago_cci" | "pago_yape" | "pago_plin"
-        >
-      >;
-      clientes: Tabla<
-        ClienteRow,
-        Insertable<ClienteRow, "tipo_doc" | "num_doc" | "contacto" | "telefono" | "correo" | "direccion" | "notas">
-      >;
-      equipos: Tabla<
-        EquipoRow,
-        Insertable<
-          EquipoRow,
-          "marca" | "modelo" | "sistema_operativo" | "procesador" | "ram" | "almacenamiento" | "grafica" | "bateria" | "bios" | "notas"
-        >
-      >;
-      servicios: Tabla<ServicioRow, Insertable<ServicioRow, "descripcion" | "precio_base" | "unidad" | "visible_landing" | "orden">>;
-      contadores: Tabla<ContadorRow, Partial<ContadorRow> & Pick<ContadorRow, "tipo" | "anio">>;
-      cotizaciones: Tabla<
-        CotizacionRow,
-        Insertable<
-          CotizacionRow,
-          | "numero" | "fecha" | "validez_dias" | "asunto" | "moneda" | "igv_pct" | "igv_modo"
-          | "subtotal" | "igv" | "total" | "condiciones" | "notas" | "estado" | "enviada_en" | "aceptada_en"
-        >
-      >;
-      cotizacion_items: Tabla<
-        CotizacionItemRow,
-        Insertable<CotizacionItemRow, "servicio_id" | "cantidad" | "precio_unitario" | "descuento" | "importe" | "orden">
-      >;
-      fichas: Tabla<
-        FichaRow,
-        Insertable<
-          FichaRow,
-          | "numero" | "equipo_id" | "cotizacion_id" | "fecha" | "tipo_servicio" | "modalidad" | "titular" | "resumen"
-          | "estado_final" | "indicadores" | "proximo_mantenimiento" | "recordatorio_enviado_en"
-        >
-      >;
-      ficha_diagnosticos: Tabla<FichaDiagnosticoRow, Insertable<FichaDiagnosticoRow, "resultado" | "estado" | "orden">>;
-      ficha_trabajos: Tabla<FichaTrabajoRow, Insertable<FichaTrabajoRow, "detalle" | "hecho" | "orden">>;
-      ficha_incidencias: Tabla<FichaIncidenciaRow, Insertable<FichaIncidenciaRow, "causa" | "solucion" | "estado" | "orden">>;
-      ficha_recomendaciones: Tabla<FichaRecomendacionRow, Insertable<FichaRecomendacionRow, "orden">>;
-      plantillas_checklist: Tabla<PlantillaChecklistRow, Insertable<PlantillaChecklistRow, "items">>;
-      leads: Tabla<
-        LeadRow,
-        Omit<LeadRow, "id" | "created_at" | "updated_at" | "owner_id" | "estado" | "ip" | "user_agent" | "cliente_id"> &
-          Partial<Pick<LeadRow, "id" | "created_at" | "updated_at" | "owner_id" | "estado" | "ip" | "user_agent" | "cliente_id">>
-      >;
-      enlaces_publicos: Tabla<EnlacePublicoRow, Insertable<EnlacePublicoRow, "token" | "revocado" | "vistas" | "ultima_vista">>;
-      aceptaciones: Tabla<AceptacionRow, Insertable<AceptacionRow, "ip" | "user_agent" | "aceptado_en">>;
-    };
-    Views: Record<string, never>;
-    Functions: {
-      siguiente_numero: {
-        Args: { p_tipo: string; p_anio: number; p_owner?: string };
-        Returns: string;
-      };
-      vencer_cotizaciones: {
-        Args: { p_owner?: string };
-        Returns: number;
-      };
-      portal_documento: {
-        Args: { p_token: string };
-        Returns: Json;
-      };
-      crear_lead: {
-        Args: {
-          p_nombre: string;
-          p_telefono: string | null;
-          p_correo: string | null;
-          p_servicio: string | null;
-          p_mensaje: string | null;
-          p_ip?: string | null;
-          p_user_agent?: string | null;
-        };
-        Returns: string;
-      };
-      aceptar_cotizacion: {
-        Args: { p_token: string; p_nombre: string; p_dni: string; p_ip?: string | null; p_user_agent?: string | null };
-        Returns: Json;
-      };
-      generar_token: {
-        Args: Record<string, never>;
-        Returns: string;
-      };
-    };
-    Enums: {
-      tipo_doc: TipoDoc;
-      moneda: Moneda;
-      igv_modo: IgvModo;
-      estado_cotizacion: EstadoCotizacion;
-      modalidad_servicio: ModalidadServicio;
-      estado_final_ficha: EstadoFinalFicha;
-      estado_diagnostico: EstadoDiagnostico;
-      estado_incidencia: EstadoIncidencia;
-      estado_lead: EstadoLead;
-      tipo_documento: TipoDocumento;
-    };
-    CompositeTypes: Record<string, never>;
-  };
 };

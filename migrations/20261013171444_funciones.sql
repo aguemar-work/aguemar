@@ -1,5 +1,5 @@
 -- =====================================================================
--- agueMar Studio · 0003 · Funciones
+-- agueMar Studio · Funciones
 -- - siguiente_numero: numeración correlativa por año con bloqueo de fila.
 -- - asignar_numero: trigger en cotizaciones y fichas.
 -- - portal_documento / crear_lead / aceptar_cotizacion: acceso público controlado.
@@ -12,7 +12,7 @@ create or replace function public.siguiente_numero(p_tipo text, p_anio integer, 
 returns text
 language plpgsql
 security invoker
-set search_path = public
+set search_path = pg_catalog, public, pg_temp
 as $$
 declare
   v_ultimo integer;
@@ -38,7 +38,7 @@ create or replace function public.asignar_numero()
 returns trigger
 language plpgsql
 security invoker
-set search_path = public
+set search_path = pg_catalog, public, pg_temp
 as $$
 declare
   v_tipo text;
@@ -63,7 +63,7 @@ create or replace function public.vencer_cotizaciones(p_owner uuid default auth.
 returns integer
 language sql
 security invoker
-set search_path = public
+set search_path = pg_catalog, public, pg_temp
 as $$
   with v as (
     update public.cotizaciones
@@ -83,7 +83,7 @@ create or replace function public.portal_documento(p_token text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = pg_catalog, public, pg_temp
 as $$
 declare
   v_enlace public.enlaces_publicos%rowtype;
@@ -152,7 +152,7 @@ create or replace function public.crear_lead(
 returns uuid
 language plpgsql
 security definer
-set search_path = public
+set search_path = pg_catalog, public, pg_temp
 as $$
 declare
   v_owner uuid;
@@ -197,7 +197,7 @@ create or replace function public.aceptar_cotizacion(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = pg_catalog, public, pg_temp
 as $$
 declare
   v_enlace public.enlaces_publicos%rowtype;
