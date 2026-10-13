@@ -4,7 +4,7 @@ Sistema de la marca de soporte técnico **agueMar** (Alejandro Guevara Martínez
 
 ## Stack
 
-Next.js 15 (App Router) · TypeScript estricto · Tailwind CSS v4 · InsForge (Postgres, Auth con código por correo, Storage, RLS) · `@react-pdf/renderer` · Zod + React Hook Form · Resend (opcional) · Vitest + Playwright · Vercel.
+Next.js 15 (App Router) · TypeScript estricto · Tailwind CSS v4 · InsForge (Postgres, Auth con correo y contraseña, Storage, RLS) · `@react-pdf/renderer` · Zod + React Hook Form · Resend (opcional) · Vitest + Playwright · Vercel.
 
 ## Instalación
 
@@ -55,7 +55,7 @@ npx -y @insforge/cli link --project-id <id-del-proyecto>
 npm run db:migrate
 ```
 
-3. Entra una vez en `/login` con tu correo (el código de 6 dígitos crea tu usuario) y luego carga el seed con ese mismo correo:
+3. Crea tu contraseña en `/login/recuperar` (el correo debe existir como usuario del proyecto), entra en `/login` y luego carga el seed con ese mismo correo:
 
 ```bash
 npm run db:seed -- tu@correo.com
@@ -67,7 +67,7 @@ Convenciones de migraciones: se crean con `npx -y @insforge/cli db migrations ne
 
 ## Autenticación
 
-Acceso sin contraseña: correo → código de 6 dígitos (InsForge no ofrece enlace mágico). El login y el logout se ejecutan en Server Actions con `createAuthActions`; el middleware refresca la sesión con `updateSession` y la ruta `/api/auth/refresh` renueva el token para el cliente de navegador.
+Acceso con correo y contraseña. La primera vez (o si la olvidaste) entra a `/login/recuperar`: InsForge envía un código de 6 dígitos al correo y con él se fija la contraseña. El login y el logout se ejecutan en Server Actions con `createAuthActions`; el middleware refresca la sesión con `updateSession` y la ruta `/api/auth/refresh` renueva el token para el cliente de navegador.
 
 ## Logo
 

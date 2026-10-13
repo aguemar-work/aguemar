@@ -2,83 +2,60 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { crearAccionesAuth } from "@/lib/insforge/server";
+import { crearAccionesAuth, crearClienteServidor } from "@/lib/insforge/server";
 
 const correoSchema = z.string().trim().email("Escribe un correo válido.");
+const contrasenaSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres.");
 const codigoSchema = z
   .string()
   .trim()
   .regex(/^\d{6}$/, "El código tiene 6 dígitos.");
 
+const SIN_BACKEND = "InsForge no está configurado. Completa .env.local para iniciar sesión.";
+
+function rutaSegura(valor: FormDataEntryValue | null): string {
+  const s = String(valor ?? "/panel");
+  return s.startsWith("/") && !s.startsWith("//") ? s : "/panel";
+}
+
+// ---------------------------------------------------------------------------
+// Login con correo y contraseña
+// ---------------------------------------------------------------------------
 export interface EstadoLogin {
-  paso: "correo" | "codigo";
-  correo?: string;
   ok: boolean;
   mensaje?: string;
+  campo?: "correo" | "contrasena";
 }
 
-const SIN_BACKEND: EstadoLogin = {
-  paso: "correo",
-  ok: false,
-  mensaje: "InsForge no está configurado. Completa .env.local para iniciar sesión.",
-};
-
-/** Paso 1: envía el código de 6 dígitos al correo. */
-export async function enviarCodigo(_: EstadoLogin, formData: FormData): Promise<EstadoLogin> {
-  const parsed = correoSchema.safeParse(formData.get("correo"));
-  if (!parsed.success) {
-    return { paso: "correo", ok: false, mensaje: parsed.error.issues[0]?.message ?? "Correo inválido." };
-  }
-
-  const auth = await crearAccionesAuth();
-  if (!auth) return SIN_BACKEND;
-
-  const { error } = await auth.signInWithOtp({ email: parsed.data });
-  if (error) {
-    return {
-      paso: "correo",
-      ok: false,
-      mensaje: `No pudimos enviar el código: ${error.message}. Revisa el correo e inténtalo de nuevo.`,
-    };
-  }
-
-  return {
-    paso: "codigo",
-    correo: parsed.data,
-    ok: true,
-    mensaje: `Te enviamos un código de 6 dígitos a ${parsed.data}. Vence en 5 minutos.`,
-  };
-}
-
-/** Paso 2: verifica el código y crea la sesión (cookies). */
-export async function verificarCodigo(_: EstadoLogin, formData: FormData): Promise<EstadoLogin> {
+export async function iniciarSesion(_: EstadoLogin, formData: FormData): Promise<EstadoLogin> {
   const correo = correoSchema.safeParse(formData.get("correo"));
-  const codigo = codigoSchema.safeParse(formData.get("codigo"));
   if (!correo.success) {
-    return { paso: "correo", ok: false, mensaje: "Vuelve a escribir tu correo." };
+    return { ok: false, campo: "correo", mensaje: correo.error.issues[0]?.message };
   }
-  if (!codigo.success) {
-    return { paso: "codigo", correo: correo.data, ok: false, mensaje: codigo.error.issues[0]?.message };
+  const contrasena = z.string().min(1, "Escribe tu contraseña.").safeParse(formData.get("contrasena"));
+  if (!contrasena.success) {
+    return { ok: false, campo: "contrasena", mensaje: contrasena.error.issues[0]?.message };
   }
 
   const auth = await crearAccionesAuth();
-  if (!auth) return SIN_BACKEND;
+  if (!auth) return { ok: false, mensaje: SIN_BACKEND };
 
-  const { data, error } = await auth.verifyOtp({ email: correo.data, otp: codigo.data });
+  const { data, error } = await auth.signInWithPassword({ email: correo.data, password: contrasena.data });
   if (error || !data?.user) {
-    const vencido = error?.statusCode === 400 || error?.statusCode === 401;
-    return {
-      paso: "codigo",
-      correo: correo.data,
-      ok: false,
-      mensaje: vencido
-        ? "El código no es válido o ya venció. Pide uno nuevo."
-        : `No pudimos iniciar tu sesión: ${error?.message ?? "error desconocido"}.`,
-    };
+    if (error?.statusCode === 401 || error?.statusCode === 400) {
+      return {
+        ok: false,
+        campo: "contrasena",
+        mensaje: "Correo o contraseña incorrectos. Si aún no tienes contraseña, créala desde el enlace de abajo.",
+      };
+    }
+    if (error?.statusCode === 403) {
+      return { ok: false, campo: "correo", mensaje: "Tu correo no está verificado. Crea una contraseña nueva para verificarlo." };
+    }
+    return { ok: false, mensaje: `No pudimos iniciar tu sesión: ${error?.message ?? "error desconocido"}.` };
   }
 
-  const siguiente = String(formData.get("siguiente") ?? "/panel");
-  redirect(siguiente.startsWith("/") && !siguiente.startsWith("//") ? siguiente : "/panel");
+  redirect(rutaSegura(formData.get("siguiente")));
 }
 
 export async function cerrarSesion() {
@@ -87,4 +64,108 @@ export async function cerrarSesion() {
     await auth.signOut();
   }
   redirect("/login");
+}
+
+// ---------------------------------------------------------------------------
+// Crear o recuperar contraseña (código de 6 dígitos por correo)
+// ---------------------------------------------------------------------------
+export interface EstadoRecuperacion {
+  paso: "correo" | "codigo" | "contrasena" | "listo";
+  correo?: string;
+  /** Token obtenido al canjear el código; vence en minutos. */
+  token?: string;
+  ok: boolean;
+  mensaje?: string;
+}
+
+/** Paso 1: envía el código de recuperación al correo. */
+export async function enviarCodigoRecuperacion(
+  _: EstadoRecuperacion,
+  formData: FormData,
+): Promise<EstadoRecuperacion> {
+  const correo = correoSchema.safeParse(formData.get("correo"));
+  if (!correo.success) {
+    return { paso: "correo", ok: false, mensaje: correo.error.issues[0]?.message };
+  }
+
+  const insforge = await crearClienteServidor();
+  if (!insforge) return { paso: "correo", ok: false, mensaje: SIN_BACKEND };
+
+  const { error } = await insforge.auth.sendResetPasswordEmail({ email: correo.data });
+  if (error) {
+    return { paso: "correo", ok: false, mensaje: `No pudimos enviar el código: ${error.message}.` };
+  }
+
+  return {
+    paso: "codigo",
+    correo: correo.data,
+    ok: true,
+    mensaje: `Si ${correo.data} tiene una cuenta, recibirá un código de 6 dígitos en unos segundos.`,
+  };
+}
+
+/** Paso 2: canjea el código por un token temporal. */
+export async function verificarCodigoRecuperacion(
+  _: EstadoRecuperacion,
+  formData: FormData,
+): Promise<EstadoRecuperacion> {
+  const correo = correoSchema.safeParse(formData.get("correo"));
+  const codigo = codigoSchema.safeParse(formData.get("codigo"));
+  if (!correo.success) return { paso: "correo", ok: false, mensaje: "Vuelve a escribir tu correo." };
+  if (!codigo.success) {
+    return { paso: "codigo", correo: correo.data, ok: false, mensaje: codigo.error.issues[0]?.message };
+  }
+
+  const insforge = await crearClienteServidor();
+  if (!insforge) return { paso: "correo", ok: false, mensaje: SIN_BACKEND };
+
+  const { data, error } = await insforge.auth.exchangeResetPasswordToken({ email: correo.data, code: codigo.data });
+  if (error || !data?.token) {
+    return {
+      paso: "codigo",
+      correo: correo.data,
+      ok: false,
+      mensaje: "El código no es válido o ya venció. Pide uno nuevo.",
+    };
+  }
+
+  return { paso: "contrasena", correo: correo.data, token: data.token, ok: true };
+}
+
+/** Paso 3: fija la nueva contraseña con el token. */
+export async function establecerContrasena(
+  _: EstadoRecuperacion,
+  formData: FormData,
+): Promise<EstadoRecuperacion> {
+  const correo = correoSchema.safeParse(formData.get("correo"));
+  const token = z.string().min(1).safeParse(formData.get("token"));
+  const nueva = contrasenaSchema.safeParse(formData.get("contrasena"));
+  const repetida = String(formData.get("contrasena2") ?? "");
+
+  if (!correo.success || !token.success) {
+    return { paso: "correo", ok: false, mensaje: "La sesión de recuperación venció. Empieza de nuevo." };
+  }
+  if (!nueva.success) {
+    return { paso: "contrasena", correo: correo.data, token: token.data, ok: false, mensaje: nueva.error.issues[0]?.message };
+  }
+  if (nueva.data !== repetida) {
+    return { paso: "contrasena", correo: correo.data, token: token.data, ok: false, mensaje: "Las contraseñas no coinciden." };
+  }
+
+  const insforge = await crearClienteServidor();
+  if (!insforge) return { paso: "correo", ok: false, mensaje: SIN_BACKEND };
+
+  const { error } = await insforge.auth.resetPassword({ newPassword: nueva.data, otp: token.data });
+  if (error) {
+    const vencido = error.statusCode === 400 || error.statusCode === 401;
+    return {
+      paso: vencido ? "correo" : "contrasena",
+      correo: correo.data,
+      token: vencido ? undefined : token.data,
+      ok: false,
+      mensaje: vencido ? "El código venció. Pide uno nuevo." : `No pudimos guardar la contraseña: ${error.message}.`,
+    };
+  }
+
+  return { paso: "listo", correo: correo.data, ok: true, mensaje: "Contraseña guardada. Ya puedes entrar." };
 }

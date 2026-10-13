@@ -44,7 +44,7 @@ export default async function LoginPage({ searchParams }: Props) {
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">Ingresa a tu panel</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Escribe tu correo y te enviamos un código de 6 dígitos para entrar sin contraseña.
+              Entra con tu correo y tu contraseña.
             </p>
           </div>
 

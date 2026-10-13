@@ -12,7 +12,7 @@ Antes de escribir código de una fase, presenta un plan breve y espera confirmac
 
 - Next.js 15 (App Router) + TypeScript estricto.
 - Tailwind CSS v4 (tokens en `src/app/globals.css` con `@theme`). Componentes propios; shadcn/ui solo como base adaptada a la marca.
-- InsForge (`@insforge/sdk`, entrypoint `@insforge/sdk/ssr`): Postgres, Auth (correo + código OTP de 6 dígitos; InsForge no tiene enlace mágico) y Storage. RLS en todas las tablas. Proyecto `Project_AGUEMAR` vinculado en `.insforge/project.json` (no se commitea).
+- InsForge (`@insforge/sdk`, entrypoint `@insforge/sdk/ssr`): Postgres, Auth (correo + contraseña; recuperación por código de 6 dígitos en /login/recuperar) y Storage. RLS en todas las tablas. Proyecto `Project_AGUEMAR` vinculado en `.insforge/project.json` (no se commitea).
 - PDF con `@react-pdf/renderer`: A4 vectorial, texto seleccionable, fuentes embebidas.
 - Zod para validar formularios y entradas de API. React Hook Form para formularios.
 - Resend para correos con PDF adjunto (opcional, detrás de variable de entorno).

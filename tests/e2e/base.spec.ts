@@ -11,13 +11,21 @@ test("la landing carga con el logo y los llamados a la acción", async ({ page }
   await expect(page.getByRole("link", { name: /whatsapp/i })).toBeVisible();
 });
 
-test("la pantalla de login valida el correo antes de enviar el código", async ({ page }) => {
+test("la pantalla de login valida el correo antes de entrar", async ({ page }) => {
   await page.goto("/login");
   const correo = page.getByLabel("Correo");
   await expect(correo).toBeVisible();
   await correo.fill("no-es-un-correo");
-  await page.getByRole("button", { name: /enviarme el código/i }).click();
+  await page.getByLabel("Contraseña").fill("cualquiera");
+  await page.getByRole("button", { name: /^entrar$/i }).click();
   await expect(page.locator("#correo-error")).toContainText(/correo/i);
+});
+
+test("la recuperación de contraseña es accesible desde el login", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("link", { name: /olvidaste/i }).click();
+  await expect(page).toHaveURL(/\/login\/recuperar/);
+  await expect(page.getByRole("heading", { name: /recuperar contraseña/i })).toBeVisible();
 });
 
 test("el panel redirige al login sin sesión", async ({ page }) => {
