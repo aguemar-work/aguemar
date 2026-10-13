@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, Plus, Laptop, FileText, ClipboardList } from "lucide-react";
+import { Pencil, Plus, Laptop, FileText, ClipboardList, KanbanSquare } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
 import { EmptyState } from "@/components/panel/empty-state";
 import { ConfirmarEliminar } from "@/components/panel/confirmar-eliminar";
 import { EtiquetaCotizacion, EtiquetaFicha } from "@/components/panel/etiquetas";
+import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta-area";
+import { calcularAvance } from "@/lib/trabajos-util";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +80,51 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
         </Card>
 
         <div className="space-y-6 lg:col-span-2">
+          <section aria-labelledby="trabajos">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 id="trabajos" className="text-base font-semibold">
+                Trabajos <span className="font-mono text-sm text-muted-foreground">({historial.trabajos.length})</span>
+              </h2>
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/panel/trabajos/nuevo?cliente=${id}`}>
+                  <Plus /> Nuevo trabajo
+                </Link>
+              </Button>
+            </div>
+            {historial.trabajos.length === 0 ? (
+              <EmptyState icono={KanbanSquare} titulo="Sin trabajos con este cliente." descripcion="Crea uno para empezar a planificar, cotizar y documentar." className="py-8" />
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Trabajo</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="hidden md:table-cell text-right">Avance</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {historial.trabajos.map((t) => {
+                    const avance = calcularAvance(t.trabajo_tareas ?? []);
+                    return (
+                      <TableRow key={t.id}>
+                        <TableCell>
+                          <EtiquetaArea area={t.area} />
+                          <Link href={`/panel/trabajos/${t.id}`} className="block font-medium underline-offset-4 hover:underline">
+                            {t.titulo}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <EtiquetaEstadoTrabajo estado={t.estado} />
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-right font-mono tabular">{avance.total > 0 ? `${avance.hechas}/${avance.total}` : "—"}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </section>
+
           <section aria-labelledby="equipos">
             <div className="mb-3 flex items-center justify-between">
               <h2 id="equipos" className="text-base font-semibold">

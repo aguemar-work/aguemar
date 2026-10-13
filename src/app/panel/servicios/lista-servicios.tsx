@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ArrowDown, ArrowUp, Loader2, Pencil, Plus, Trash2, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,8 @@ import { EmptyState } from "@/components/panel/empty-state";
 import { ConfirmarEliminar } from "@/components/panel/confirmar-eliminar";
 import { Campo, propsCampo } from "@/components/formulario/campo";
 import { formatearCentimos, formatearMonto } from "@/lib/format";
+import { AREAS } from "@/lib/areas";
+import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { servicioSchema, type ServicioDatos, type ServicioInput } from "@/lib/validators/servicio";
 import type { ServicioRow } from "@/types/database";
 import { cambiarVisibilidadServicio, eliminarServicio, guardarServicio, reordenarServicios } from "./acciones";
@@ -97,6 +100,7 @@ export function ListaServicios({ servicios }: Props) {
                   </div>
                 </TableCell>
                 <TableCell>
+                  <EtiquetaArea area={s.area} />
                   <p className="font-medium">{s.nombre}</p>
                   {s.descripcion ? <p className="line-clamp-1 max-w-md text-xs text-muted-foreground">{s.descripcion}</p> : null}
                 </TableCell>
@@ -162,6 +166,7 @@ function FormularioServicio({ servicio, onListo }: { servicio?: ServicioRow; onL
   const form = useForm<ServicioInput, unknown, ServicioDatos>({
     resolver: zodResolver(servicioSchema),
     defaultValues: {
+      area: servicio?.area ?? "soporte",
       nombre: servicio?.nombre ?? "",
       descripcion: servicio?.descripcion ?? "",
       precio_base_texto: servicio?.precio_base != null ? formatearCentimos(servicio.precio_base).replace(/\s/g, "") : "",
@@ -190,6 +195,15 @@ function FormularioServicio({ servicio, onListo }: { servicio?: ServicioRow; onL
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
+      <Campo id="s-area" etiqueta="Área" requerido error={errores.area?.message}>
+        <Select {...register("area")} {...propsCampo("s-area", errores.area?.message)}>
+          {AREAS.map((a) => (
+            <option key={a.valor} value={a.valor}>
+              {a.etiqueta}
+            </option>
+          ))}
+        </Select>
+      </Campo>
       <Campo id="s-nombre" etiqueta="Nombre" requerido error={errores.nombre?.message}>
         <Input {...register("nombre")} {...propsCampo("s-nombre", errores.nombre?.message)} autoFocus placeholder="Mantenimiento preventivo" />
       </Campo>

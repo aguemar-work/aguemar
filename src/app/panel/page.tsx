@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { FileText, ClipboardList, Inbox, CalendarClock, Users, Laptop, Plus } from "lucide-react";
+import { FileText, ClipboardList, Inbox, CalendarClock, Users, Laptop, Plus, KanbanSquare } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
 import { EmptyState } from "@/components/panel/empty-state";
 import { EtiquetaCotizacion, EtiquetaFicha } from "@/components/panel/etiquetas";
+import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta-area";
+import { textoVencimiento } from "@/lib/trabajos-util";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { conSesionOpcional } from "@/lib/datos/base";
 import { resumenInicio, type ResumenInicio } from "@/lib/datos/inicio";
-import { formatearFecha, formatearMonto } from "@/lib/format";
+import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
@@ -17,7 +19,10 @@ export default async function InicioPanel() {
   const resumen: ResumenInicio | null = sesion ? await resumenInicio() : null;
   const [anio, mes] = (resumen?.mes.inicio ?? new Date().toISOString().slice(0, 10)).split("-").map(Number);
 
+  const hoy = hoyLima();
+  const activos = resumen?.trabajosActivos ?? { propuesta: 0, en_curso: 0, en_revision: 0 };
   const indicadores = [
+    { etiqueta: "Trabajos activos", valor: String(activos.propuesta + activos.en_curso + activos.en_revision), href: "/panel/trabajos" },
     { etiqueta: "Cotizaciones emitidas", valor: String(resumen?.cotizacionesEmitidas ?? 0), href: "/panel/cotizaciones" },
     { etiqueta: "Esperando respuesta", valor: String(resumen?.esperandoRespuesta ?? 0), href: "/panel/cotizaciones" },
     { etiqueta: "Monto aceptado", valor: formatearMonto(resumen?.montoAceptado ?? 0), href: "/panel/cotizaciones" },
@@ -33,6 +38,11 @@ export default async function InicioPanel() {
         descripcion={`Resumen de ${MESES[mes - 1]} de ${anio} · ${resumen?.totalClientes ?? 0} clientes · ${resumen?.totalEquipos ?? 0} equipos`}
         acciones={
           <>
+            <Button asChild variant="mint">
+              <Link href="/panel/trabajos/nuevo">
+                <KanbanSquare /> Nuevo trabajo
+              </Link>
+            </Button>
             <Button asChild variant="outline">
               <Link href="/panel/clientes/nuevo">
                 <Users /> Nuevo cliente
@@ -47,7 +57,7 @@ export default async function InicioPanel() {
         }
       />
 
-      <section aria-label="Indicadores del mes" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <section aria-label="Indicadores del mes" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {indicadores.map((i) => (
           <Link key={i.etiqueta} href={i.href} className="rounded-lg">
             <Card className="h-full transition-colors hover:border-mint-ink/40">
@@ -63,6 +73,62 @@ export default async function InicioPanel() {
       </section>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <section aria-labelledby="entregas" className="lg:col-span-2">
+          <h2 id="entregas" className="mb-3 text-base font-semibold">
+            Entregas comprometidas en 30 días
+            <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
+              {activos.propuesta} propuestas · {activos.en_curso} en curso · {activos.en_revision} en revisión
+            </span>
+          </h2>
+          {!resumen || resumen.entregasProximas.length === 0 ? (
+            <EmptyState
+              icono={KanbanSquare}
+              titulo="Sin entregas comprometidas en los próximos 30 días."
+              descripcion="Cuando un trabajo activo tenga fecha comprometida cercana, aparecerá aquí."
+              className="py-8"
+              accion={
+                <Button asChild variant="outline">
+                  <Link href="/panel/trabajos?vista=tablero">Ver tablero</Link>
+                </Button>
+              }
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Vence</TableHead>
+                  <TableHead>Trabajo</TableHead>
+                  <TableHead className="hidden md:table-cell">Cliente</TableHead>
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {resumen.entregasProximas.map((t) => {
+                  const venc = textoVencimiento(t.fecha_compromiso, hoy);
+                  return (
+                    <TableRow key={t.id}>
+                      <TableCell>
+                        {t.fecha_compromiso ? formatearFecha(t.fecha_compromiso) : "—"}
+                        <span className={`block text-xs ${venc.tono === "danger" ? "text-danger" : venc.tono === "warn" ? "text-warn dark:text-warning-foreground" : "text-muted-foreground"}`}>{venc.texto}</span>
+                      </TableCell>
+                      <TableCell>
+                        <EtiquetaArea area={t.area} />
+                        <Link href={`/panel/trabajos/${t.id}`} className="block font-medium underline-offset-4 hover:underline">
+                          {t.titulo}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{t.clientes?.nombre ?? "—"}</TableCell>
+                      <TableCell>
+                        <EtiquetaEstadoTrabajo estado={t.estado} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </section>
+
         <section aria-labelledby="ultimas-cotizaciones">
           <h2 id="ultimas-cotizaciones" className="mb-3 text-base font-semibold">
             Últimas cotizaciones

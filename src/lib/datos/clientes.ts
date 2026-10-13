@@ -1,4 +1,4 @@
-import type { ClienteRow, EquipoRow, FichaRow, CotizacionRow } from "@/types/database";
+import type { ClienteRow, EquipoRow, FichaRow, CotizacionRow, TrabajoRow } from "@/types/database";
 import { conSesion } from "./base";
 
 export interface ClienteResumen extends ClienteRow {
@@ -29,6 +29,7 @@ export async function obtenerCliente(id: string): Promise<ClienteRow | null> {
 }
 
 export interface HistorialCliente {
+  trabajos: (TrabajoRow & { trabajo_tareas: { hecha: boolean }[] })[];
   equipos: EquipoRow[];
   fichas: FichaRow[];
   cotizaciones: CotizacionRow[];
@@ -36,15 +37,17 @@ export interface HistorialCliente {
 
 export async function historialCliente(id: string): Promise<HistorialCliente> {
   const { db } = await conSesion();
-  const [equipos, fichas, cotizaciones] = await Promise.all([
+  const [trabajos, equipos, fichas, cotizaciones] = await Promise.all([
+    db.from("trabajos").select("*, trabajo_tareas(hecha)").eq("cliente_id", id).order("created_at", { ascending: false }).limit(50),
     db.from("equipos").select("*").eq("cliente_id", id).order("created_at", { ascending: false }),
     db.from("fichas").select("*").eq("cliente_id", id).order("fecha", { ascending: false }).limit(50),
     db.from("cotizaciones").select("*").eq("cliente_id", id).order("fecha", { ascending: false }).limit(50),
   ]);
-  for (const r of [equipos, fichas, cotizaciones]) {
+  for (const r of [trabajos, equipos, fichas, cotizaciones]) {
     if (r.error) throw r.error;
   }
   return {
+    trabajos: (trabajos.data ?? []) as HistorialCliente["trabajos"],
     equipos: (equipos.data ?? []) as EquipoRow[],
     fichas: (fichas.data ?? []) as FichaRow[],
     cotizaciones: (cotizaciones.data ?? []) as CotizacionRow[],

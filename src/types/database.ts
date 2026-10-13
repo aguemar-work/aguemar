@@ -16,6 +16,10 @@ export type EstadoDiagnostico = "optimo" | "mejorable" | "atendido" | "critico";
 export type EstadoIncidencia = "resuelta" | "pendiente" | "observacion";
 export type EstadoLead = "nuevo" | "contactado" | "convertido";
 export type TipoDocumento = "cotizacion" | "ficha";
+export type Area = "diseno" | "desarrollo" | "soporte";
+export type EstadoTrabajo = "propuesta" | "en_curso" | "en_revision" | "entregado" | "cerrado" | "cancelado";
+export type Prioridad = "baja" | "media" | "alta";
+export type TipoEntregable = "enlace" | "archivo" | "acceso" | "otro";
 
 export interface Indicador {
   valor: string;
@@ -81,6 +85,7 @@ export type EquipoRow = Base & {
 };
 
 export type ServicioRow = Base & {
+  area: Area;
   nombre: string;
   descripcion: string | null;
   precio_base: number | null;
@@ -207,4 +212,45 @@ export type AceptacionRow = Base & {
   ip: string | null;
   user_agent: string | null;
   aceptado_en: string;
+};
+
+export type TrabajoRow = Base & {
+  area: Area;
+  cliente_id: string | null;
+  titulo: string;
+  descripcion: string | null;
+  estado: EstadoTrabajo;
+  prioridad: Prioridad;
+  fecha_inicio: string | null;
+  fecha_compromiso: string | null;
+  fecha_entrega: string | null;
+  monto_estimado: number | null;
+  moneda: Moneda;
+  notas: string | null;
+  orden: number;
+};
+
+export type TrabajoEtapaRow = Base & {
+  trabajo_id: string;
+  titulo: string;
+  hecha: boolean;
+  orden: number;
+};
+
+export type TrabajoTareaRow = Base & {
+  trabajo_id: string;
+  etapa_id: string | null;
+  titulo: string;
+  hecha: boolean;
+  fecha_limite: string | null;
+  orden: number;
+};
+
+export type TrabajoEntregableRow = Base & {
+  trabajo_id: string;
+  nombre: string;
+  tipo: TipoEntregable;
+  url: string | null;
+  nota: string | null;
+  orden: number;
 };

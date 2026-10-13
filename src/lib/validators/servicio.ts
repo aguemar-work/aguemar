@@ -2,6 +2,7 @@ import { z } from "zod";
 import { aCentimos } from "@/lib/format";
 
 export const servicioSchema = z.object({
+  area: z.enum(["diseno", "desarrollo", "soporte"], { message: "Elige el área." }),
   nombre: z.string().trim().min(2, "Escribe el nombre del servicio.").max(150),
   descripcion: z
     .string()

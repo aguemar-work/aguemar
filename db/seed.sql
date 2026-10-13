@@ -34,17 +34,17 @@ begin
           '[PENDIENTE: cuenta]', '[PENDIENTE: CCI]', '[PENDIENTE: Yape]', '[PENDIENTE: Plin]');
 
   -- ---------- Servicios iniciales ([PENDIENTE: confirmar lista y precios]) ----------
-  insert into public.servicios (owner_id, nombre, descripcion, precio_base, unidad, visible_landing, orden) values
-    (v_owner, 'Mantenimiento preventivo', 'Limpieza, integridad del sistema, optimización, actualizaciones y ficha técnica del estado del equipo.', null, 'equipo', true, 1),
-    (v_owner, 'Mantenimiento correctivo', 'Diagnóstico y solución de fallas de software o hardware.', null, 'equipo', true, 2),
-    (v_owner, 'Soporte remoto', 'Atención en línea para resolver incidencias sin salir de tu oficina.', null, 'hora', true, 3),
-    (v_owner, 'Instalación y configuración', 'Sistema operativo, programas, impresoras y periféricos listos para usar.', null, 'servicio', true, 4),
-    (v_owner, 'Redes', 'Diseño, cableado y configuración de redes para hogar y oficina.', null, 'servicio', true, 5),
-    (v_owner, 'Recuperación de información', 'Recuperación de archivos en discos y unidades con fallas.', null, 'servicio', true, 6);
+  insert into public.servicios (owner_id, area, nombre, descripcion, precio_base, unidad, visible_landing, orden) values
+    (v_owner, 'soporte', 'Mantenimiento preventivo', 'Limpieza, integridad del sistema, optimización, actualizaciones y ficha técnica del estado del equipo.', null, 'equipo', true, 1),
+    (v_owner, 'soporte', 'Mantenimiento correctivo', 'Diagnóstico y solución de fallas de software o hardware.', null, 'equipo', true, 2),
+    (v_owner, 'soporte', 'Soporte remoto', 'Atención en línea para resolver incidencias sin salir de tu oficina.', null, 'hora', true, 3),
+    (v_owner, 'soporte', 'Instalación y configuración', 'Sistema operativo, programas, impresoras y periféricos listos para usar.', null, 'servicio', true, 4),
+    (v_owner, 'soporte', 'Redes', 'Diseño, cableado y configuración de redes para hogar y oficina.', null, 'servicio', true, 5),
+    (v_owner, 'soporte', 'Recuperación de información', 'Recuperación de archivos en discos y unidades con fallas.', null, 'servicio', true, 6);
 
   -- ---------- Plantillas de checklist ----------
   insert into public.plantillas_checklist (owner_id, tipo_servicio, items) values
-    (v_owner, 'Mantenimiento preventivo', '[
+    (v_owner, 'soporte', 'Mantenimiento preventivo', '[
       {"titulo": "Respaldo", "detalle": "Copia de seguridad de documentos y perfiles antes de intervenir."},
       {"titulo": "Integridad", "detalle": "DISM, SFC y CHKDSK sin errores."},
       {"titulo": "Limpieza", "detalle": "Archivos temporales, caché y papelera."},
@@ -58,13 +58,13 @@ begin
       {"titulo": "Idioma y teclado", "detalle": "Configuración regional y distribución de teclado correctas."},
       {"titulo": "Soporte del fabricante", "detalle": "Controladores y BIOS según el soporte del fabricante."}
     ]'::jsonb),
-    (v_owner, 'Mantenimiento correctivo', '[
+    (v_owner, 'soporte', 'Mantenimiento correctivo', '[
       {"titulo": "Diagnóstico", "detalle": "Identificación de la causa de la falla."},
       {"titulo": "Respaldo", "detalle": "Copia de seguridad si el caso lo permite."},
       {"titulo": "Corrección", "detalle": "Reparación o reemplazo del componente afectado."},
       {"titulo": "Verificación", "detalle": "Pruebas de funcionamiento tras la corrección."}
     ]'::jsonb),
-    (v_owner, 'Soporte remoto', '[
+    (v_owner, 'soporte', 'Soporte remoto', '[
       {"titulo": "Conexión", "detalle": "Sesión remota establecida con autorización del cliente."},
       {"titulo": "Atención", "detalle": "Revisión y solución de las incidencias reportadas."},
       {"titulo": "Cierre", "detalle": "Sesión cerrada y accesos temporales eliminados."}
