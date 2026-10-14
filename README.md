@@ -98,12 +98,12 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 
 1. Importa el repositorio en Vercel.
 2. Configura las variables de entorno (las mismas de `.env.local`, con `NEXT_PUBLIC_SITE_URL` apuntando al dominio final).
-3. Despliega. Las tareas programadas (vencimiento de cotizaciones, recordatorios) se configuran en la Fase 8 con Vercel Cron o con las schedules de InsForge.
+3. Despliega. Las tareas programadas (vencimiento de cotizaciones, recordatorios) se configuran en la fase 11 con Vercel Cron o con las schedules de InsForge.
 
 ## Estructura
 
 ```
-src/app            rutas (landing, login, api/auth/refresh, panel/*, d/[token])
+src/app            rutas (landing, login, api/auth/refresh, panel/* con @modal para el panel lateral, w/[slug], d/[token])
 src/components     ui (base shadcn adaptada), panel, brand
 src/lib            insforge (server, client, middleware), format (es-PE, America/Lima), validators, env
 src/types          tipos de las tablas
@@ -120,8 +120,10 @@ _respaldos         volcados locales (ignorado por git)
 2. ✅ Empresas (clientes), equipos, servicios, marca.
 3. ✅ Trabajos: lista, tablero, etapas, tareas, entregables.
 4. ✅ Empresas y workspaces: acceso por empresa, módulos, `/w/[slug]`, proyectos, comentarios, bandeja.
-5. Calendario (actividades) y solicitudes.
-6. Informes y documentos (fichas con `diagnostico-agueMar.ps1`, briefs, actas), PDF, portal por token.
-7. Cotizaciones y cobros.
-8. Landing de una página con servicios por área, contacto (leads) y SEO.
-9. Notificaciones por correo, pulido, tests completos y Vercel.
+5. ✅ Velocidad y fluidez: panel lateral, cambios al instante, inicio con lo que pide atención, Mi marca con vista previa.
+6. Cotizaciones y cobros (ítems desde servicios; al aceptarse crean el trabajo).
+7. Fichas técnicas y documentos (`diagnostico-agueMar.ps1`, briefs, actas), PDF, portal por token.
+8. Calendario (actividades) y solicitudes.
+9. Informes de avance.
+10. Landing de una página con servicios por área, contacto (leads) y SEO.
+11. Notificaciones por correo, pulido, tests completos y despliegue en Vercel con aguemar.com.

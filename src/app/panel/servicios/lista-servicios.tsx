@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -29,7 +28,6 @@ interface Props {
 }
 
 export function ListaServicios({ servicios }: Props) {
-  const router = useRouter();
   const [editando, setEditando] = useState<ServicioRow | null | "nuevo">(null);
   const [pendiente, iniciar] = useTransition();
 
@@ -41,7 +39,6 @@ export function ListaServicios({ servicios }: Props) {
     iniciar(async () => {
       const r = await reordenarServicios(ids);
       if (!r.ok) toast.error(r.error);
-      router.refresh();
     });
   };
 
@@ -50,7 +47,6 @@ export function ListaServicios({ servicios }: Props) {
       const r = await cambiarVisibilidadServicio(s.id, !s.visible_landing);
       if (!r.ok) toast.error(r.error);
       else toast.success(!s.visible_landing ? "Visible en la landing." : "Oculto en la landing.");
-      router.refresh();
     });
 
   return (
@@ -160,7 +156,6 @@ function DialogoServicio({ abierto, servicio, onCerrar }: { abierto: boolean; se
 }
 
 function FormularioServicio({ servicio, onListo }: { servicio?: ServicioRow; onListo: () => void }) {
-  const router = useRouter();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
   const form = useForm<ServicioInput, unknown, ServicioDatos>({
@@ -189,7 +184,6 @@ function FormularioServicio({ servicio, onListo }: { servicio?: ServicioRow; onL
       }
       toast.success(servicio ? "Servicio actualizado." : "Servicio creado.");
       onListo();
-      router.refresh();
     }),
   );
 

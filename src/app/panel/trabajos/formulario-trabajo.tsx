@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Campo, propsCampo } from "@/components/formulario/campo";
 import { BarraAcciones } from "@/components/formulario/barra-acciones";
 import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
+import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { AREAS, ESTADOS_TRABAJO, PRIORIDADES } from "@/lib/areas";
 import { formatearCentimos } from "@/lib/format";
 import { trabajoSchema, type TrabajoDatos, type TrabajoInput } from "@/lib/validators/trabajo";
@@ -27,6 +28,7 @@ interface Props {
 
 export function FormularioTrabajo({ trabajo, clientes, clienteInicial, areaInicial }: Props) {
   const router = useRouter();
+  const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
 
@@ -61,8 +63,10 @@ export function FormularioTrabajo({ trabajo, clientes, clienteInicial, areaInici
       }
       toast.success(trabajo ? "Trabajo actualizado." : "Trabajo creado.");
       form.reset(datos as TrabajoInput, { keepValues: true });
-      router.push(`/panel/trabajos/${r.data.id}`);
-      router.refresh();
+      // En el panel lateral, un trabajo nuevo se abre en el mismo panel; al editar, se vuelve al detalle.
+      if (panel && trabajo) panel.cerrar(true);
+      else if (panel) router.replace(`/panel/trabajos/${r.data.id}`);
+      else router.push(`/panel/trabajos/${r.data.id}`);
     }),
   );
 
@@ -71,7 +75,7 @@ export function FormularioTrabajo({ trabajo, clientes, clienteInicial, areaInici
       <Card>
         <CardHeader>
           <CardTitle>Qué es</CardTitle>
-          <CardDescription>Área, cliente y un título claro. La descripción es para ti; el brief para el cliente llega en la Fase 5.</CardDescription>
+          <CardDescription>Área, cliente y un título claro. La descripción es para ti; lo que verá la empresa se decide con el interruptor Visible en el workspace.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Campo id="area" etiqueta="Área" requerido error={errores.area?.message}>

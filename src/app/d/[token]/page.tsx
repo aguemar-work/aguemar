@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
-/** Portal del cliente: se implementa en la Fase 6. Página noindex. */
+/** Portal del cliente: se implementa en la fase 7. Página noindex. */
 export default async function PortalDocumento({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   return (
@@ -17,7 +17,7 @@ export default async function PortalDocumento({ params }: { params: Promise<{ to
         <p className="font-mono text-xs text-muted-foreground">{"// portal del cliente"}</p>
         <h1 className="mt-2 text-xl font-semibold">Este documento estará disponible pronto.</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Enlace <span className="font-mono">{token.slice(0, 8)}…</span> · portal disponible en la Fase 6.
+          Enlace <span className="font-mono">{token.slice(0, 8)}…</span> · portal disponible en la fase 7.
         </p>
       </div>
     </main>

@@ -17,9 +17,8 @@ export const metadata: Metadata = { title: "Equipo" };
 
 export default async function EquipoDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const equipo = await obtenerEquipo(id);
+  const [equipo, fichas] = await Promise.all([obtenerEquipo(id), fichasDeEquipo(id)]);
   if (!equipo) notFound();
-  const fichas = await fichasDeEquipo(id);
   const nombre = [equipo.marca, equipo.modelo].filter(Boolean).join(" ") || "Equipo sin nombre";
 
   const specs: [string, string | null][] = [

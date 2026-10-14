@@ -1,259 +1,328 @@
 import Link from "next/link";
-import { FileText, ClipboardList, Inbox, CalendarClock, Users, Laptop, Plus, KanbanSquare } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { AlarmClock, CalendarClock, CheckCircle2, FileText, Inbox, KanbanSquare, ListTodo, MessageSquare, PauseCircle, Plus, Users, Wallet } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
-import { EmptyState } from "@/components/panel/empty-state";
-import { EtiquetaCotizacion, EtiquetaFicha } from "@/components/panel/etiquetas";
-import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta-area";
-import { textoVencimiento } from "@/lib/trabajos-util";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { conSesionOpcional } from "@/lib/datos/base";
 import { resumenInicio, type ResumenInicio } from "@/lib/datos/inicio";
+import { AREAS } from "@/lib/areas";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
+import { diasHasta, textoVencimiento } from "@/lib/trabajos-util";
+import { cn } from "@/lib/utils";
 
-const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const FECHA_LARGA = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+
+function fechaLarga(iso: string): string {
+  const [a, m, d] = iso.split("-").map(Number);
+  const texto = FECHA_LARGA.format(new Date(Date.UTC(a, m - 1, d)));
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+const TONO_TEXTO = {
+  danger: "text-danger dark:text-red-300",
+  warn: "text-warn dark:text-warning-foreground",
+  ok: "text-muted-foreground",
+  muted: "text-muted-foreground",
+} as const;
 
 export default async function InicioPanel() {
   const sesion = await conSesionOpcional();
-  const resumen: ResumenInicio | null = sesion ? await resumenInicio() : null;
-  const [anio, mes] = (resumen?.mes.inicio ?? new Date().toISOString().slice(0, 10)).split("-").map(Number);
+  const r: ResumenInicio | null = sesion ? await resumenInicio() : null;
+  const hoy = r?.hoy ?? hoyLima();
+  const activos = r ? r.por_estado.propuesta + r.por_estado.en_curso + r.por_estado.en_revision : 0;
 
-  const hoy = hoyLima();
-  const activos = resumen?.trabajosActivos ?? { propuesta: 0, en_curso: 0, en_revision: 0 };
-  const indicadores = [
-    { etiqueta: "Trabajos activos", valor: String(activos.propuesta + activos.en_curso + activos.en_revision), href: "/panel/trabajos" },
-    { etiqueta: "Cotizaciones emitidas", valor: String(resumen?.cotizacionesEmitidas ?? 0), href: "/panel/cotizaciones" },
-    { etiqueta: "Esperando respuesta", valor: String(resumen?.esperandoRespuesta ?? 0), href: "/panel/cotizaciones" },
-    { etiqueta: "Monto aceptado", valor: formatearMonto(resumen?.montoAceptado ?? 0), href: "/panel/cotizaciones" },
-    { etiqueta: "Fichas emitidas", valor: String(resumen?.fichasEmitidas ?? 0), href: "/panel/fichas" },
-    { etiqueta: "Leads nuevos", valor: String(resumen?.leadsNuevos ?? 0), href: "/panel/leads" },
+  const alertas: Alerta[] = [
+    { etiqueta: "Entregas vencidas", valor: r?.entregas_vencidas ?? 0, tono: "danger", icono: AlarmClock, href: "/panel/trabajos" },
+    { etiqueta: "Entregan esta semana", valor: r?.entregas_semana ?? 0, tono: "warn", icono: CalendarClock, href: "/panel/trabajos" },
+    { etiqueta: "Tareas vencidas", valor: r?.tareas_vencidas ?? 0, tono: "warn", icono: ListTodo, href: "/panel/trabajos" },
+    { etiqueta: "Comentarios sin leer", valor: r?.comentarios_sin_leer ?? 0, tono: "info", icono: MessageSquare, href: "/panel/bandeja" },
+    { etiqueta: "Cotizaciones sin respuesta", valor: r?.cotizaciones_sin_respuesta ?? 0, tono: "info", icono: FileText, href: "/panel/cotizaciones" },
+    { etiqueta: "Por cobrar", valor: null, tono: "info", icono: Wallet, href: "/panel/cotizaciones", nota: "Con cobros, en la fase 6" },
   ];
+  const todoAlDia = alertas.every((a) => !a.valor) && (r?.detenidos.length ?? 0) === 0;
 
   return (
     <>
       <PageHeader
         codigo="00"
-        titulo="Inicio"
-        descripcion={`Resumen de ${MESES[mes - 1]} de ${anio} · ${resumen?.totalClientes ?? 0} clientes · ${resumen?.totalEquipos ?? 0} equipos`}
+        titulo={fechaLarga(hoy)}
+        descripcion={
+          r
+            ? `${activos} ${activos === 1 ? "trabajo activo" : "trabajos activos"} · ${r.empresas} ${r.empresas === 1 ? "empresa" : "empresas"} · ${r.empresas_con_acceso} con workspace`
+            : "Resumen de lo que pide tu atención."
+        }
         acciones={
           <>
             <Button asChild variant="mint">
               <Link href="/panel/trabajos/nuevo">
-                <KanbanSquare /> Nuevo trabajo
+                <Plus /> Nuevo trabajo
               </Link>
             </Button>
             <Button asChild variant="outline">
               <Link href="/panel/clientes/nuevo">
-                <Users /> Nuevo cliente
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/panel/equipos/nuevo">
-                <Laptop /> Nuevo equipo
+                <Users /> Nueva empresa
               </Link>
             </Button>
           </>
         }
       />
 
-      <section aria-label="Indicadores del mes" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        {indicadores.map((i) => (
-          <Link key={i.etiqueta} href={i.href} className="rounded-lg">
-            <Card className="h-full transition-colors hover:border-mint-ink/40">
-              <CardHeader className="p-4 pb-1">
-                <CardTitle className="text-xs font-medium text-muted-foreground">{i.etiqueta}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <p className="font-mono text-2xl font-semibold tabular">{i.valor}</p>
-              </CardContent>
-            </Card>
-          </Link>
+      <section aria-label="Lo que pide atención" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        {alertas.map((a) => (
+          <TarjetaAlerta key={a.etiqueta} alerta={a} />
         ))}
       </section>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section aria-labelledby="entregas" className="lg:col-span-2">
-          <h2 id="entregas" className="mb-3 text-base font-semibold">
-            Entregas comprometidas en 30 días
-            <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
-              {activos.propuesta} propuestas · {activos.en_curso} en curso · {activos.en_revision} en revisión
-            </span>
-          </h2>
-          {!resumen || resumen.entregasProximas.length === 0 ? (
-            <EmptyState
-              icono={KanbanSquare}
-              titulo="Sin entregas comprometidas en los próximos 30 días."
-              descripcion="Cuando un trabajo activo tenga fecha comprometida cercana, aparecerá aquí."
-              className="py-8"
-              accion={
-                <Button asChild variant="outline">
-                  <Link href="/panel/trabajos?vista=tablero">Ver tablero</Link>
-                </Button>
-              }
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Vence</TableHead>
-                  <TableHead>Trabajo</TableHead>
-                  <TableHead className="hidden md:table-cell">Cliente</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {resumen.entregasProximas.map((t) => {
-                  const venc = textoVencimiento(t.fecha_compromiso, hoy);
-                  return (
-                    <TableRow key={t.id}>
-                      <TableCell>
-                        {t.fecha_compromiso ? formatearFecha(t.fecha_compromiso) : "—"}
-                        <span className={`block text-xs ${venc.tono === "danger" ? "text-danger" : venc.tono === "warn" ? "text-warn dark:text-warning-foreground" : "text-muted-foreground"}`}>{venc.texto}</span>
-                      </TableCell>
-                      <TableCell>
-                        <EtiquetaArea area={t.area} />
-                        <Link href={`/panel/trabajos/${t.id}`} className="block font-medium underline-offset-4 hover:underline">
-                          {t.titulo}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">{t.clientes?.nombre ?? "—"}</TableCell>
-                      <TableCell>
-                        <EtiquetaEstadoTrabajo estado={t.estado} />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </section>
+      {todoAlDia ? (
+        <p className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-success-bg px-4 py-3 text-sm text-success-foreground">
+          <CheckCircle2 className="size-4 shrink-0" aria-hidden /> Todo al día: nada vencido ni sin responder.
+        </p>
+      ) : null}
 
-        <section aria-labelledby="ultimas-cotizaciones">
-          <h2 id="ultimas-cotizaciones" className="mb-3 text-base font-semibold">
-            Últimas cotizaciones
-          </h2>
-          {!resumen || resumen.ultimasCotizaciones.length === 0 ? (
-            <EmptyState
-              icono={FileText}
-              titulo="Aún no hay cotizaciones."
-              descripcion="Crea la primera y aparecerá aquí con su estado. Disponible en la Fase 3."
-              className="py-8"
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Número</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {resumen.ultimasCotizaciones.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-mono text-xs">{c.numero}</TableCell>
-                    <TableCell>{c.clientes?.nombre ?? "—"}</TableCell>
-                    <TableCell className="text-right font-mono tabular">{formatearMonto(c.total, c.moneda)}</TableCell>
-                    <TableCell>
-                      <EtiquetaCotizacion estado={c.estado} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </section>
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <CardHeader className="flex-row items-center justify-between gap-3 pb-2">
+              <CardTitle>Entregas de las próximas dos semanas</CardTitle>
+              <Link href="/panel/trabajos?vista=tablero" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+                Ver tablero
+              </Link>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {!r || r.entregas.length === 0 ? (
+                <Vacio icono={KanbanSquare} texto="Sin entregas comprometidas en los próximos 14 días." />
+              ) : (
+                <ul className="divide-y divide-border">
+                  {r.entregas.map((t) => {
+                    const venc = textoVencimiento(t.fecha_compromiso, hoy);
+                    const pct = t.tareas_total ? Math.round((t.tareas_hechas / t.tareas_total) * 100) : 0;
+                    return (
+                      <li key={t.id} className="flex items-center gap-4 py-3">
+                        <div className="w-24 shrink-0">
+                          <p className="font-mono text-xs tabular">{formatearFecha(t.fecha_compromiso)}</p>
+                          <p className={cn("text-xs", TONO_TEXTO[venc.tono])}>{venc.texto}</p>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <Link href={`/panel/trabajos/${t.id}`} className="block truncate font-medium underline-offset-4 hover:underline">
+                            {t.titulo}
+                          </Link>
+                          <p className="truncate text-xs text-muted-foreground">
+                            <EtiquetaArea area={t.area} /> {t.empresa ? `· ${t.empresa}` : ""}
+                          </p>
+                        </div>
+                        <div className="hidden w-28 shrink-0 sm:block" aria-label={`Avance ${pct} %`}>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+                            <div className="h-full rounded-full bg-mint-ink dark:bg-mint" style={{ width: `${pct}%` }} />
+                          </div>
+                          <p className="mt-1 text-right font-mono text-[11px] text-muted-foreground">
+                            {t.tareas_total ? `${t.tareas_hechas}/${t.tareas_total}` : "sin tareas"}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
 
-        <section aria-labelledby="ultimas-fichas">
-          <h2 id="ultimas-fichas" className="mb-3 text-base font-semibold">
-            Últimas fichas técnicas
-          </h2>
-          {!resumen || resumen.ultimasFichas.length === 0 ? (
-            <EmptyState icono={ClipboardList} titulo="Aún no hay fichas técnicas." descripcion="Registra un servicio y entrega la ficha a tu cliente." className="py-8" />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Número</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead className="hidden md:table-cell">Equipo</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {resumen.ultimasFichas.map((f) => (
-                  <TableRow key={f.id}>
-                    <TableCell className="font-mono text-xs">{f.numero}</TableCell>
-                    <TableCell>{f.clientes?.nombre ?? "—"}</TableCell>
-                    <TableCell className="hidden md:table-cell">{f.equipos ? `${f.equipos.modelo ?? ""} · ${f.equipos.serie}` : "—"}</TableCell>
-                    <TableCell>
-                      <EtiquetaFicha estado={f.estado_final} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </section>
+          {r && r.detenidos.length > 0 ? (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2">
+                  <PauseCircle className="size-4 text-warn dark:text-warning-foreground" aria-hidden /> Sin movimiento
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ul className="divide-y divide-border">
+                  {r.detenidos.map((t) => {
+                    const dias = -(diasHasta(t.ultima_actividad.slice(0, 10), hoy) ?? 0);
+                    return (
+                      <li key={t.id} className="flex items-center justify-between gap-3 py-2.5">
+                        <div className="min-w-0">
+                          <Link href={`/panel/trabajos/${t.id}`} className="block truncate text-sm font-medium underline-offset-4 hover:underline">
+                            {t.titulo}
+                          </Link>
+                          <p className="text-xs text-muted-foreground">
+                            <EtiquetaArea area={t.area} /> {t.empresa ? `· ${t.empresa}` : ""}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-xs text-warn dark:text-warning-foreground">{dias} días quieto</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          ) : null}
 
-        <section aria-labelledby="mantenimientos" className="lg:col-span-2">
-          <h2 id="mantenimientos" className="mb-3 text-base font-semibold">
-            Mantenimientos próximos a vencer
-          </h2>
-          {!resumen || resumen.proximosMantenimientos.length === 0 ? (
-            <EmptyState
-              icono={CalendarClock}
-              titulo="Nada por vencer en los próximos 30 días."
-              descripcion="Cuando una ficha tenga fecha de próximo mantenimiento cercana, te avisaremos aquí."
-              className="py-8"
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Vence</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead className="hidden md:table-cell">Equipo</TableHead>
-                  <TableHead>Ficha</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {resumen.proximosMantenimientos.map((f) => (
-                  <TableRow key={f.id}>
-                    <TableCell>{f.proximo_mantenimiento ? formatearFecha(f.proximo_mantenimiento) : "—"}</TableCell>
-                    <TableCell>{f.clientes?.nombre ?? "—"}</TableCell>
-                    <TableCell className="hidden md:table-cell">{f.equipos ? `${f.equipos.modelo ?? ""} · ${f.equipos.serie}` : "—"}</TableCell>
-                    <TableCell className="font-mono text-xs">{f.numero}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </section>
+          <Card>
+            <CardHeader className="flex-row items-center justify-between gap-3 pb-2">
+              <CardTitle>Cotizaciones esperando respuesta</CardTitle>
+              {r && r.aceptado_mes > 0 ? (
+                <span className="font-mono text-xs text-muted-foreground">Aceptado este mes: {formatearMonto(r.aceptado_mes)}</span>
+              ) : null}
+            </CardHeader>
+            <CardContent className="pt-0">
+              {!r || r.cotizaciones.length === 0 ? (
+                <Vacio icono={FileText} texto="Nada esperando respuesta. Las cotizaciones llegan en la fase 6; al aceptarse crearán el trabajo." />
+              ) : (
+                <ul className="divide-y divide-border">
+                  {r.cotizaciones.map((c) => {
+                    const venc = textoVencimiento(c.vence, hoy);
+                    return (
+                      <li key={c.id} className="flex items-center justify-between gap-3 py-2.5">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            <span className="font-mono text-xs text-muted-foreground">{c.numero}</span> {c.asunto || c.empresa}
+                          </p>
+                          <p className={cn("text-xs", TONO_TEXTO[venc.tono])}>
+                            {c.empresa} · {venc.texto.replace("Vence", "Validez vence").replace("Vencido", "Validez vencida")}
+                          </p>
+                        </div>
+                        <span className="shrink-0 font-mono text-sm tabular">{formatearMonto(c.total, c.moneda)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-        <section aria-labelledby="leads" className="lg:col-span-2">
-          <h2 id="leads" className="mb-3 text-base font-semibold">
-            Leads recientes
-          </h2>
-          <EmptyState
-            icono={Inbox}
-            titulo={resumen && resumen.leadsNuevos > 0 ? `${resumen.leadsNuevos} mensajes nuevos.` : "Sin mensajes nuevos."}
-            descripcion="Los mensajes del formulario de la landing llegan a la bandeja de leads (Fase 7)."
-            className="py-8"
-            accion={
-              resumen && resumen.leadsNuevos > 0 ? (
-                <Button asChild variant="outline">
-                  <Link href="/panel/leads">
-                    <Plus /> Ver leads
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle>En qué estás</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {AREAS.map((a) => {
+                const n = r?.por_area[a.valor] ?? 0;
+                const pct = activos ? Math.round((n / activos) * 100) : 0;
+                return (
+                  <Link key={a.valor} href={`/panel/trabajos?area=${a.valor}`} className="block rounded-md p-1 -m-1 hover:bg-soft/70 dark:hover:bg-secondary/40">
+                    <div className="flex items-baseline justify-between text-sm">
+                      <span>{a.etiqueta}</span>
+                      <span className="font-mono tabular">{n}</span>
+                    </div>
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary">
+                      <div className="h-full rounded-full bg-mint-ink dark:bg-mint" style={{ width: `${pct}%` }} />
+                    </div>
                   </Link>
-                </Button>
-              ) : undefined
-            }
-          />
-        </section>
+                );
+              })}
+              {r ? (
+                <p className="pt-1 font-mono text-[11px] text-muted-foreground">
+                  {r.por_estado.propuesta} propuesta · {r.por_estado.en_curso} en curso · {r.por_estado.en_revision} en revisión
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex-row items-center justify-between gap-3 pb-2">
+              <CardTitle>Sin leer</CardTitle>
+              <Link href="/panel/bandeja" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+                Bandeja
+              </Link>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {!r || r.comentarios.length === 0 ? (
+                <Vacio icono={Inbox} texto="Las empresas no te han escrito nada nuevo." />
+              ) : (
+                <ul className="space-y-3">
+                  {r.comentarios.map((c) => (
+                    <li key={c.id}>
+                      <Link
+                        href={c.entidad === "trabajo" ? `/panel/trabajos/${c.entidad_id}#comentarios` : "/panel/bandeja"}
+                        className="block rounded-md p-2 -m-2 hover:bg-soft/70 dark:hover:bg-secondary/40"
+                      >
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">{c.empresa}</span>
+                          {c.titulo ? ` · ${c.titulo}` : ""}
+                        </p>
+                        <p className="line-clamp-2 text-sm">{c.texto}</p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          {r && r.mantenimientos.length > 0 ? (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle>Mantenimientos en 30 días</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ul className="divide-y divide-border">
+                  {r.mantenimientos.map((m) => (
+                    <li key={m.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                      <div className="min-w-0">
+                        <p className="truncate">{m.empresa}</p>
+                        <p className="truncate font-mono text-[11px] text-muted-foreground">
+                          {m.modelo ?? "Equipo"} · {m.serie ?? "—"}
+                        </p>
+                      </div>
+                      <span className="shrink-0 font-mono text-xs">{formatearFecha(m.proximo_mantenimiento)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {r && r.leads_nuevos > 0 ? (
+            <Link href="/panel/leads" className="block rounded-lg border border-border p-4 text-sm hover:border-mint-ink/40">
+              <span className="font-mono font-semibold">{r.leads_nuevos}</span> {r.leads_nuevos === 1 ? "mensaje nuevo" : "mensajes nuevos"} desde la web.
+            </Link>
+          ) : null}
+        </div>
       </div>
     </>
+  );
+}
+
+interface Alerta {
+  etiqueta: string;
+  valor: number | null;
+  tono: "danger" | "warn" | "info";
+  icono: LucideIcon;
+  href: string;
+  nota?: string;
+}
+
+function TarjetaAlerta({ alerta: a }: { alerta: Alerta }) {
+  const activa = (a.valor ?? 0) > 0;
+  const Icono = a.icono;
+  return (
+    <Link
+      href={a.href}
+      className={cn(
+        "flex flex-col justify-between gap-3 rounded-lg border p-4 transition-colors",
+        !activa && "border-border text-muted-foreground hover:border-mint-ink/40",
+        activa && a.tono === "danger" && "border-danger/30 bg-danger-soft text-danger dark:bg-danger/20 dark:text-red-200",
+        activa && a.tono === "warn" && "border-transparent bg-warning-bg text-warning-foreground",
+        activa && a.tono === "info" && "border-mint-ink/30 bg-success-bg text-success-foreground",
+      )}
+    >
+      <Icono className="size-4" aria-hidden />
+      <div>
+        <p className={cn("font-mono text-2xl font-semibold tabular", !activa && "text-foreground/40")}>{a.valor ?? "—"}</p>
+        <p className="text-xs font-medium">{a.etiqueta}</p>
+        {a.nota ? <p className="mt-0.5 text-[11px] opacity-80">{a.nota}</p> : null}
+      </div>
+    </Link>
+  );
+}
+
+function Vacio({ icono: Icono, texto }: { icono: LucideIcon; texto: string }) {
+  return (
+    <p className="flex items-center gap-3 rounded-md border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
+      <Icono className="size-4 shrink-0" aria-hidden /> {texto}
+    </p>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -45,7 +44,6 @@ export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario }: Pro
 }
 
 function Crear({ clienteId }: { clienteId: string }) {
-  const router = useRouter();
   const [pendiente, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
   const { register, handleSubmit, formState, setError } = useForm<AccesoEmpresaInput>({
@@ -64,7 +62,6 @@ function Crear({ clienteId }: { clienteId: string }) {
         return;
       }
       toast.success("Acceso creado. Comparte el correo y la contraseña con la empresa.");
-      router.refresh();
     }),
   );
 
@@ -91,7 +88,6 @@ function Crear({ clienteId }: { clienteId: string }) {
 }
 
 function Restablecer({ clienteId, usuarioId, correo }: { clienteId: string; usuarioId: string; correo: string | null }) {
-  const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [pendiente, iniciar] = useTransition();
   const { register, handleSubmit, formState, reset } = useForm<NuevaContrasenaInput>({
@@ -109,7 +105,6 @@ function Restablecer({ clienteId, usuarioId, correo }: { clienteId: string; usua
       toast.success("Contraseña actualizada. Compártela con la empresa.");
       reset();
       setAbierto(false);
-      router.refresh();
     }),
   );
 

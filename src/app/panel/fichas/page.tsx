@@ -13,7 +13,7 @@ export default function FichasPage() {
       <EmptyState
         icono={ClipboardList}
         titulo="Aún no hay fichas técnicas."
-        descripcion="Registra un servicio y entrega la ficha a tu cliente. Disponible en la Fase 4."
+        descripcion="Registra un servicio y entrega la ficha a tu cliente. Llega en la fase 7, con el diagnóstico importado desde diagnostico-agueMar.ps1."
         accion={<Button variant="mint" disabled>Nueva ficha</Button>}
       />
     </>

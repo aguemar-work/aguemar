@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Campo, propsCampo } from "@/components/formulario/campo";
 import { BarraAcciones } from "@/components/formulario/barra-acciones";
 import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
+import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { equipoSchema, type EquipoDatos, type EquipoInput } from "@/lib/validators/equipo";
 import type { EquipoRow } from "@/types/database";
 import { guardarEquipo } from "./acciones";
@@ -34,6 +35,7 @@ const CAMPOS_SPEC: { nombre: keyof EquipoInput; etiqueta: string; placeholder?: 
 
 export function FormularioEquipo({ equipo, clientes, clienteInicial }: Props) {
   const router = useRouter();
+  const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
 
@@ -69,8 +71,9 @@ export function FormularioEquipo({ equipo, clientes, clienteInicial }: Props) {
       }
       toast.success(equipo ? "Equipo actualizado." : "Equipo registrado.");
       form.reset(datos as EquipoInput, { keepValues: true });
-      router.push(`/panel/equipos/${r.data.id}`);
-      router.refresh();
+      if (panel && equipo) panel.cerrar(true);
+      else if (panel) router.replace(`/panel/equipos/${r.data.id}`);
+      else router.push(`/panel/equipos/${r.data.id}`);
     }),
   );
 
@@ -107,7 +110,7 @@ export function FormularioEquipo({ equipo, clientes, clienteInicial }: Props) {
       <Card>
         <CardHeader>
           <CardTitle>Especificaciones</CardTitle>
-          <CardDescription>Se rellenan solas al importar un diagnóstico (Fase 5). Mientras tanto, escríbelas.</CardDescription>
+          <CardDescription>Se rellenan solas al importar un diagnóstico (fase 7). Mientras tanto, escríbelas.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           {CAMPOS_SPEC.map((c) => (

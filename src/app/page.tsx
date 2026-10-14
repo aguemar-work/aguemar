@@ -4,7 +4,7 @@ import { Logo } from "@/components/brand/logo";
 import { Brackets } from "@/components/brand/brackets";
 import { Button } from "@/components/ui/button";
 
-/** Landing provisional: la versión completa llega en la Fase 7. */
+/** Landing provisional: la versión completa llega en la fase 10. */
 export default function Inicio() {
   return (
     <main className="relative flex min-h-dvh flex-col overflow-hidden bg-ink text-white">
@@ -35,7 +35,7 @@ export default function Inicio() {
           </Button>
         </div>
         <p className="mt-10 font-mono text-[11px] text-white/40">
-          Landing completa en la Fase 7 · [PENDIENTE: zona de atención, WhatsApp]
+          Landing completa en la fase 10 · [PENDIENTE: zona de atención, WhatsApp]
         </p>
       </section>
     </main>

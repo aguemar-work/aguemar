@@ -21,10 +21,10 @@ async function iniciarSesion(page: Page) {
   await expect(page).toHaveURL(/\/panel/);
 }
 
-test("inicia sesión y ve el inicio con indicadores", async ({ page }) => {
+test("inicia sesión y ve el inicio con lo que pide atención", async ({ page }) => {
   await iniciarSesion(page);
-  await expect(page.getByRole("heading", { name: "Inicio" })).toBeVisible();
-  await expect(page.getByText("Cotizaciones emitidas")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Lo que pide atención" })).toBeVisible();
+  await expect(page.getByText("Entregas vencidas")).toBeVisible();
 });
 
 test("crea un cliente con RUC válido y lo ve en el detalle", async ({ page }) => {
@@ -34,7 +34,7 @@ test("crea un cliente con RUC válido y lo ve en el detalle", async ({ page }) =
   await page.getByLabel(/tipo de documento/i).selectOption("RUC");
   await page.getByLabel(/número de ruc/i).fill("20131312955");
   await page.getByLabel(/persona de contacto/i).fill("Contacto E2E");
-  await page.getByRole("button", { name: /crear cliente/i }).click();
+  await page.getByRole("button", { name: /crear empresa/i }).click();
   await expect(page).toHaveURL(/\/panel\/clientes\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name: `Cliente ${SUFIJO}` })).toBeVisible();
   await expect(page.getByText("RUC 20131312955")).toBeVisible();
@@ -45,7 +45,7 @@ test("rechaza un RUC inválido sin salir del formulario", async ({ page }) => {
   await page.goto("/panel/clientes/nuevo");
   await page.getByLabel(/razón social/i).fill("Inválido");
   await page.getByLabel(/número de ruc/i).fill("20131312956");
-  await page.getByRole("button", { name: /crear cliente/i }).click();
+  await page.getByRole("button", { name: /crear empresa/i }).click();
   await expect(page.locator("#num_doc-error")).toContainText(/RUC/);
   await expect(page).toHaveURL(/\/panel\/clientes\/nuevo/);
 });

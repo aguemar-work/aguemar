@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -47,7 +46,6 @@ export function EditorPlantillas({ plantillas }: Props) {
 }
 
 function TarjetaPlantilla({ plantilla, onListo, abiertaInicial }: { plantilla?: PlantillaChecklistRow; onListo?: () => void; abiertaInicial?: boolean }) {
-  const router = useRouter();
   const [abierta, setAbierta] = useState(abiertaInicial ?? false);
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
@@ -75,7 +73,6 @@ function TarjetaPlantilla({ plantilla, onListo, abiertaInicial }: { plantilla?: 
       toast.success(plantilla ? "Plantilla guardada." : "Plantilla creada.");
       reset(datos as PlantillaInput, { keepValues: true });
       onListo?.();
-      router.refresh();
     }),
   );
 

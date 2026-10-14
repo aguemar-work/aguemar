@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,6 @@ interface HiloProps {
 
 /** Hilo de comentarios entre el propietario y la empresa sobre un elemento. */
 export function Hilo({ comentarios, vista, nombrePropietario, nombreEmpresa, enviar, titulo = "Comentarios", descripcion }: HiloProps) {
-  const router = useRouter();
   const [texto, setTexto] = useState("");
   const [pendiente, iniciar] = useTransition();
 
@@ -46,7 +44,6 @@ export function Hilo({ comentarios, vista, nombrePropietario, nombreEmpresa, env
         return;
       }
       setTexto("");
-      router.refresh();
     });
   };
 

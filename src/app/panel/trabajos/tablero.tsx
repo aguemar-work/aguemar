@@ -2,7 +2,6 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,14 +17,12 @@ import { cambiarEstadoTrabajo } from "./acciones";
 const COLUMNAS: EstadoTrabajo[] = ["propuesta", "en_curso", "en_revision", "entregado", "cerrado"];
 
 export function Tablero({ trabajos, hoy }: { trabajos: TrabajoResumen[]; hoy: string }) {
-  const router = useRouter();
   const [pendiente, iniciar] = useTransition();
 
   const mover = (id: string, estado: EstadoTrabajo) =>
     iniciar(async () => {
       const r = await cambiarEstadoTrabajo(id, estado);
       if (!r.ok) toast.error(r.error);
-      router.refresh();
     });
 
   return (

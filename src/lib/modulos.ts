@@ -24,18 +24,18 @@ export interface Modulo {
 
 export const MODULOS: Modulo[] = [
   { clave: "proyectos", etiqueta: "Proyectos", descripcion: "Trabajos visibles con estado, etapas, tareas y entregables.", icono: KanbanSquare, ruta: "proyectos", fase: 4 },
-  { clave: "calendario", etiqueta: "Calendario", descripcion: "Actividades planificadas: reuniones, publicaciones, mantenimientos, entregas.", icono: CalendarDays, ruta: "calendario", fase: 5 },
-  { clave: "solicitudes", etiqueta: "Solicitudes", descripcion: "La empresa pide trabajos y sigue su estado.", icono: Inbox, ruta: "solicitudes", fase: 5 },
-  { clave: "informes", etiqueta: "Informes", descripcion: "Informes de avance publicados, con PDF.", icono: FileBarChart, ruta: "informes", fase: 6 },
-  { clave: "documentos", etiqueta: "Documentos", descripcion: "Fichas técnicas, briefs y actas publicadas.", icono: FileText, ruta: "documentos", fase: 6 },
-  { clave: "cotizaciones", etiqueta: "Cotizaciones y cobros", descripcion: "Cotizaciones enviadas, aceptación, cobros y saldo.", icono: Receipt, ruta: "cotizaciones", fase: 7 },
-  { clave: "equipos", etiqueta: "Equipos", descripcion: "Inventario de equipos con historial de fichas (soporte técnico).", icono: Laptop, ruta: "equipos", fase: 6 },
+  { clave: "calendario", etiqueta: "Calendario", descripcion: "Actividades planificadas: reuniones, publicaciones, mantenimientos, entregas.", icono: CalendarDays, ruta: "calendario", fase: 8 },
+  { clave: "solicitudes", etiqueta: "Solicitudes", descripcion: "La empresa pide trabajos y sigue su estado.", icono: Inbox, ruta: "solicitudes", fase: 8 },
+  { clave: "informes", etiqueta: "Informes", descripcion: "Informes de avance publicados, con PDF.", icono: FileBarChart, ruta: "informes", fase: 9 },
+  { clave: "documentos", etiqueta: "Documentos", descripcion: "Fichas técnicas, briefs y actas publicadas.", icono: FileText, ruta: "documentos", fase: 7 },
+  { clave: "cotizaciones", etiqueta: "Cotizaciones y cobros", descripcion: "Cotizaciones enviadas, aceptación, cobros y saldo.", icono: Receipt, ruta: "cotizaciones", fase: 6 },
+  { clave: "equipos", etiqueta: "Equipos", descripcion: "Inventario de equipos con historial de fichas (soporte técnico).", icono: Laptop, ruta: "equipos", fase: 7 },
 ];
 
 export const CLAVES_MODULO = MODULOS.map((m) => m.clave) as [ClaveModulo, ...ClaveModulo[]];
 
 /** Fase actual del producto: los módulos con fase mayor se muestran como "pronto". */
-export const FASE_ACTUAL = 4;
+export const FASE_ACTUAL = 5;
 
 export function infoModulo(clave: string): Modulo | undefined {
   return MODULOS.find((m) => m.clave === clave);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -19,7 +18,6 @@ import type { TrabajoEntregableRow } from "@/types/database";
 import { eliminarEntregable, guardarEntregable } from "../acciones";
 
 export function Entregables({ trabajoId, entregables }: { trabajoId: string; entregables: TrabajoEntregableRow[] }) {
-  const router = useRouter();
   const [editando, setEditando] = useState<TrabajoEntregableRow | "nuevo" | null>(null);
   const [pendiente, iniciar] = useTransition();
 
@@ -68,7 +66,6 @@ export function Entregables({ trabajoId, entregables }: { trabajoId: string; ent
                     iniciar(async () => {
                       const r = await eliminarEntregable(e.id, trabajoId);
                       if (!r.ok) toast.error(r.error);
-                      router.refresh();
                     })
                   }
                 >
@@ -101,7 +98,6 @@ export function Entregables({ trabajoId, entregables }: { trabajoId: string; ent
 }
 
 function FormularioEntregable({ trabajoId, entregable, onListo }: { trabajoId: string; entregable?: TrabajoEntregableRow; onListo: () => void }) {
-  const router = useRouter();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
   const form = useForm<EntregableInput, unknown, EntregableDatos>({
@@ -127,7 +123,6 @@ function FormularioEntregable({ trabajoId, entregable, onListo }: { trabajoId: s
       }
       toast.success(entregable ? "Entregable actualizado." : "Entregable agregado.");
       onListo();
-      router.refresh();
     }),
   );
 

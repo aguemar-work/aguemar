@@ -53,7 +53,6 @@ export function ConfirmarEliminar({
       toast.success(textoExito);
       setAbierto(false);
       if (irA) router.push(irA);
-      router.refresh();
     });
 
   return (

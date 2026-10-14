@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Campo, propsCampo } from "@/components/formulario/campo";
 import { BarraAcciones } from "@/components/formulario/barra-acciones";
 import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
+import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { clienteSchema, type ClienteDatos, type ClienteInput } from "@/lib/validators/cliente";
 import type { ClienteRow } from "@/types/database";
 import { guardarCliente } from "./acciones";
@@ -24,6 +25,7 @@ interface Props {
 
 export function FormularioCliente({ cliente, volverA }: Props) {
   const router = useRouter();
+  const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
 
@@ -60,8 +62,9 @@ export function FormularioCliente({ cliente, volverA }: Props) {
       }
       toast.success(cliente ? "Empresa actualizada." : "Empresa creada.");
       form.reset(datos as ClienteInput, { keepValues: true });
-      router.push(volverA ?? `/panel/clientes/${r.data.id}`);
-      router.refresh();
+      if (panel && cliente) panel.cerrar(true);
+      else if (panel) router.replace(`/panel/clientes/${r.data.id}`);
+      else router.push(volverA ?? `/panel/clientes/${r.data.id}`);
     }),
   );
 

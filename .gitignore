@@ -67,3 +67,6 @@ next-env.d.ts
 
 # Volcados locales de la base (nunca al repo)
 _respaldos/
+
+# build de verificación en paralelo al dev server
+/.next-verify/

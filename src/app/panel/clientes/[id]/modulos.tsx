@@ -1,7 +1,6 @@
 "use client";
 
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -10,7 +9,6 @@ import { FASE_ACTUAL, MODULOS, type ClaveModulo } from "@/lib/modulos";
 import { actualizarModulosEmpresa } from "../acciones";
 
 export function ModulosEmpresa({ clienteId, modulos }: { clienteId: string; modulos: string[] }) {
-  const router = useRouter();
   const [pendiente, iniciar] = useTransition();
 
   const alternar = (clave: ClaveModulo, activo: boolean) =>
@@ -18,7 +16,6 @@ export function ModulosEmpresa({ clienteId, modulos }: { clienteId: string; modu
       const nuevos = activo ? [...modulos.filter((m) => m !== clave), clave] : modulos.filter((m) => m !== clave);
       const r = await actualizarModulosEmpresa(clienteId, nuevos as ClaveModulo[]);
       if (!r.ok) toast.error(r.error);
-      router.refresh();
     });
 
   return (

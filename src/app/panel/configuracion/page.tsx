@@ -10,12 +10,14 @@ export default async function ConfiguracionPage() {
   const [perfil, plantillas] = await Promise.all([obtenerPerfilMarca(), listarPlantillas()]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-10">
+    <div className="mx-auto max-w-6xl space-y-10">
       <div>
-        <PageHeader codigo="07" titulo="Mi marca" descripcion="Datos que aparecen en tus documentos: responsable, RUC, contacto, IGV y pagos." />
+        <PageHeader codigo="07" titulo="Mi marca" descripcion="Tus datos en cotizaciones, fichas e informes. A la derecha ves cómo quedan mientras escribes." />
         <FormularioMarca perfil={perfil} />
       </div>
-      <EditorPlantillas plantillas={plantillas} />
+      <section id="plantillas" className="scroll-mt-20 lg:max-w-[calc(100%-352px)]">
+        <EditorPlantillas plantillas={plantillas} />
+      </section>
     </div>
   );
 }

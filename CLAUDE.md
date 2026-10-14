@@ -67,9 +67,10 @@ Módulos activables por empresa (`clientes.modulos text[]`); la navegación del 
 - **Calendario**: actividades por empresa (tipo, fecha, horas, estado, visible, vínculo a trabajo). Vista mes y lista.
 - **Informes**: `INF-AAAA-NNN`, por empresa y periodo; resumen, indicadores (≤4), contenido en secciones; borrador → publicado; PDF.
 - **Documentos**: ficha técnica `FT-AAAA-NNN` (equipo, diagnóstico importado de `diagnostico-agueMar.ps1`, checklist por plantilla, incidencias, recomendaciones, próximo mantenimiento), brief `BR-AAAA-NNN`, acta de entrega `AE-AAAA-NNN`; `publicado` los muestra en el workspace; portal por token `/d/[token]` para compartir sin login (noindex, QR).
-- **Cotizaciones y cobros**: `COT-AAAA-NNN`, IGV configurable en céntimos enteros, PDF con vista previa, estados, aceptación con nombre y DNI; cobros con medio y referencia; saldo.
+- **Cotizaciones y cobros**: `COT-AAAA-NNN`; ítems elegidos del catálogo de **servicios** (descripción, unidad y precio se llenan solos y se pueden editar) o líneas libres; IGV configurable en céntimos enteros, PDF con vista previa, estados, aceptación con nombre y DNI. **Al aceptarse (en el panel o en el workspace) crea el trabajo** con empresa, área, título y monto, vinculado a la cotización. Cobros con medio y referencia; saldo por empresa (alimenta "por cobrar" del inicio).
+- **Inicio** (dashboard): solo lo que pide atención, en una sola llamada (`panel_resumen()`): entregas vencidas y de la semana, tareas vencidas, comentarios sin leer, cotizaciones sin respuesta, por cobrar, trabajos sin movimiento, carga por área, mantenimientos.
 - **Bandeja**: comentarios sin leer y solicitudes de todas las empresas; responder en línea; convertir solicitud en trabajo.
-- **Mi marca**: nombre comercial, responsable y cargo, RUC, contacto, IGV, moneda, validez, condiciones, datos de pago, plantillas de checklist.
+- **Mi marca**: vista previa en vivo de la portada y el cierre de los documentos; nombre comercial, responsable y cargo, RUC, contacto, IGV, moneda, validez, condiciones, datos de pago, plantillas de checklist.
 
 ## Documentos PDF
 
@@ -90,12 +91,14 @@ Responsivo desde 360 px. Accesible (teclado, foco visible, etiquetas, AA). Estad
 1. ✅ Base, auth, migraciones.
 2. ✅ Clientes (empresas), equipos, servicios, marca.
 3. ✅ Trabajos: lista, tablero, etapas, tareas, entregables.
-4. Empresas y workspaces: slug, acceso, módulos; login por rol; `/w/[slug]` con navegación por módulos; inicio; módulo Proyectos; comentarios; bandeja.
-5. Calendario (actividades) y solicitudes.
-6. Informes y documentos (fichas con `diagnostico-agueMar.ps1`, briefs, actas), PDF, portal por token.
-7. Cotizaciones y cobros.
-8. Landing de una página con servicios por área, contacto (leads) y SEO.
-9. Notificaciones por correo, pulido, tests completos y Vercel.
+4. ✅ Empresas y workspaces: slug, acceso, módulos; login por rol; `/w/[slug]`; inicio; módulo Proyectos; comentarios; bandeja.
+5. ✅ Velocidad y fluidez: identidad sin red, consultas en paralelo, `panel_resumen()`, panel lateral (crear, editar y ver sin cambiar de página), cambios optimistas, esqueletos de carga, inicio como dashboard de atención, Mi marca con vista previa, favicon.
+6. Cotizaciones y cobros: ítems desde servicios, IGV, PDF, aceptación que crea el trabajo, cobros y saldo; módulo Cotizaciones del workspace.
+7. Fichas técnicas y documentos (`diagnostico-agueMar.ps1`, briefs, actas), PDF, portal por token; módulos Documentos y Equipos.
+8. Calendario (actividades) y solicitudes (una solicitud se convierte en cotización o en trabajo).
+9. Informes de avance con PDF.
+10. Landing de una página con servicios por área, contacto (leads) y SEO.
+11. Notificaciones por correo, pulido, tests completos y despliegue (Vercel con el dominio aguemar.com).
 
 ## Convenciones del repo
 
@@ -106,4 +109,6 @@ Responsivo desde 360 px. Accesible (teclado, foco visible, etiquetas, AA). Estad
 - Formularios: React Hook Form + Zod (`src/lib/validators/*`), `Campo`/`propsCampo`, `BarraAcciones`, `useAvisoCambios`.
 - Sin variables de InsForge, la app compila y muestra un aviso.
 - **El servidor de desarrollo lo arranca y detiene el usuario en su máquina** (`npm run dev`). Claude no lo inicia, reinicia ni detiene, ni usa el preview integrado para levantarlo; verifica contra http://localhost:3000 cuando esté corriendo. No correr `npm run build` con ese servidor activo (comparten `.next`): pedirle que lo detenga antes.
+- **Velocidad** (InsForge está en us-east: cada ida y vuelta cuesta 0,35–0,6 s desde Perú): la identidad sale de los claims del token (`obtenerUsuario`, sin red) y `obtenerRol` se calcula una vez por petición (`cache` de React); las consultas de una página van en un solo `Promise.all`; los resúmenes se arman en una función SQL (`panel_resumen()`); después de una Server Action que revalida **no** se llama `router.refresh()` (la respuesta ya trae la página nueva); checks e interruptores con `useOptimistic`; `loading.tsx` con esqueletos (`src/components/panel/esqueleto.tsx`). `npm run dev` usa Turbopack.
+- **Panel lateral**: crear, editar y ver se abre sobre la lista con rutas interceptadas en `src/app/panel/@modal/(.)<módulo>/…`, que re-exportan la página completa (recargar o compartir el enlace abre la página completa). `PanelLateral` + `usePanelLateral()`; dentro del panel los formularios cierran con `panel.cerrar(true)` o pasan a otra ruta con `router.replace`. `@modal/[...resto]` cierra el panel al navegar a otra parte.
 - Commit al cerrar cada fase.

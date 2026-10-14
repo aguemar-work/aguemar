@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { ClienteRow, EquipoRow, FichaRow, CotizacionRow, TrabajoRow } from "@/types/database";
 import { conSesion } from "./base";
 
@@ -21,12 +22,12 @@ export async function listarClientes(busqueda?: string): Promise<ClienteResumen[
   return (data ?? []) as ClienteResumen[];
 }
 
-export async function obtenerCliente(id: string): Promise<ClienteRow | null> {
+export const obtenerCliente = cache(async function obtenerCliente(id: string): Promise<ClienteRow | null> {
   const { db } = await conSesion();
   const { data, error } = await db.from("clientes").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as ClienteRow | null) ?? null;
-}
+});
 
 export interface HistorialCliente {
   trabajos: (TrabajoRow & { trabajo_tareas: { hecha: boolean }[] })[];
@@ -63,9 +64,9 @@ export async function correoDeUsuario(usuarioId: string | null): Promise<string 
 }
 
 /** Lista corta para selects: id y nombre. */
-export async function opcionesClientes(): Promise<{ id: string; nombre: string }[]> {
+export const opcionesClientes = cache(async function opcionesClientes(): Promise<{ id: string; nombre: string }[]> {
   const { db } = await conSesion();
   const { data, error } = await db.from("clientes").select("id, nombre").order("nombre").limit(500);
   if (error) throw error;
   return (data ?? []) as { id: string; nombre: string }[];
-}
+});

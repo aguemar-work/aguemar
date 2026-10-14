@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function PanelLayout({ children }: { children: React.ReactNode }) {
+export default async function PanelLayout({ children, modal }: { children: React.ReactNode; modal: React.ReactNode }) {
   const rol = await obtenerRol();
   const usuario = rol.tipo === "anonimo" ? null : rol.usuario;
 
@@ -39,6 +39,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           {children}
         </main>
       </div>
+      {/* Panel lateral de las rutas interceptadas (@modal): crear, editar y ver sin salir de la lista. */}
+      {modal}
     </div>
   );
 }

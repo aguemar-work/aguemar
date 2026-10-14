@@ -13,7 +13,7 @@ export default function CotizacionesPage() {
       <EmptyState
         icono={FileText}
         titulo="Aún no hay cotizaciones."
-        descripcion="Crea la primera y compártela por WhatsApp o correo. Disponible en la Fase 3."
+        descripcion="Crea la primera y compártela por WhatsApp o correo. Llega en la fase 6: ítems desde tus servicios, PDF y, al aceptarse, el trabajo se crea solo."
         accion={<Button variant="mint" disabled>Nueva cotización</Button>}
       />
     </>

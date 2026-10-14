@@ -22,9 +22,9 @@ export const metadata: Metadata = { title: "Cliente" };
 
 export default async function ClienteDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const cliente = await obtenerCliente(id);
+  const [cliente, historial] = await Promise.all([obtenerCliente(id), historialCliente(id)]);
   if (!cliente) notFound();
-  const [historial, correoAcceso] = await Promise.all([historialCliente(id), correoDeUsuario(cliente.usuario_id)]);
+  const correoAcceso = await correoDeUsuario(cliente.usuario_id);
 
   const datos: [string, string | null][] = [
     ["Documento", cliente.num_doc ? `${cliente.tipo_doc} ${cliente.num_doc}` : null],
@@ -181,7 +181,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
               Fichas técnicas <span className="font-mono text-sm text-muted-foreground">({historial.fichas.length})</span>
             </h2>
             {historial.fichas.length === 0 ? (
-              <EmptyState icono={ClipboardList} titulo="Sin fichas técnicas todavía." descripcion="Las fichas se crean en la Fase 4." className="py-8" />
+              <EmptyState icono={ClipboardList} titulo="Sin fichas técnicas todavía." descripcion="Las fichas técnicas llegan en la fase 7." className="py-8" />
             ) : (
               <Table>
                 <TableHeader>
@@ -213,7 +213,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
               Cotizaciones <span className="font-mono text-sm text-muted-foreground">({historial.cotizaciones.length})</span>
             </h2>
             {historial.cotizaciones.length === 0 ? (
-              <EmptyState icono={FileText} titulo="Sin cotizaciones todavía." descripcion="Las cotizaciones se crean en la Fase 3." className="py-8" />
+              <EmptyState icono={FileText} titulo="Sin cotizaciones todavía." descripcion="Las cotizaciones llegan en la fase 6." className="py-8" />
             ) : (
               <Table>
                 <TableHeader>

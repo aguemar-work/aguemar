@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { EquipoRow, FichaRow } from "@/types/database";
 import { conSesion } from "./base";
 
@@ -21,7 +22,7 @@ export async function listarEquipos(opciones?: { clienteId?: string; busqueda?: 
   return (data ?? []) as EquipoConCliente[];
 }
 
-export async function obtenerEquipo(id: string): Promise<EquipoConCliente | null> {
+export const obtenerEquipo = cache(async function obtenerEquipo(id: string): Promise<EquipoConCliente | null> {
   const { db } = await conSesion();
   const { data, error } = await db
     .from("equipos")
@@ -30,7 +31,7 @@ export async function obtenerEquipo(id: string): Promise<EquipoConCliente | null
     .maybeSingle();
   if (error) throw error;
   return (data as EquipoConCliente | null) ?? null;
-}
+});
 
 export async function fichasDeEquipo(id: string): Promise<FichaRow[]> {
   const { db } = await conSesion();

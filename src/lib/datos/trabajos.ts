@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Area, EstadoTrabajo, TrabajoEntregableRow, TrabajoEtapaRow, TrabajoRow, TrabajoTareaRow } from "@/types/database";
 import { conSesion } from "./base";
 
@@ -38,12 +39,12 @@ export interface TrabajoDetalle extends TrabajoRow {
   clientes: { id: string; nombre: string; contacto: string | null; telefono: string | null } | null;
 }
 
-export async function obtenerTrabajo(id: string): Promise<TrabajoDetalle | null> {
+export const obtenerTrabajo = cache(async function obtenerTrabajo(id: string): Promise<TrabajoDetalle | null> {
   const { db } = await conSesion();
   const { data, error } = await db.from("trabajos").select("*, clientes(id, nombre, contacto, telefono)").eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as TrabajoDetalle | null) ?? null;
-}
+});
 
 export interface PlanTrabajo {
   etapas: TrabajoEtapaRow[];
@@ -51,7 +52,7 @@ export interface PlanTrabajo {
   entregables: TrabajoEntregableRow[];
 }
 
-export async function planTrabajo(id: string): Promise<PlanTrabajo> {
+export const planTrabajo = cache(async function planTrabajo(id: string): Promise<PlanTrabajo> {
   const { db } = await conSesion();
   const [etapas, tareas, entregables] = await Promise.all([
     db.from("trabajo_etapas").select("*").eq("trabajo_id", id).order("orden").order("created_at"),
@@ -64,7 +65,7 @@ export async function planTrabajo(id: string): Promise<PlanTrabajo> {
     tareas: (tareas.data ?? []) as TrabajoTareaRow[],
     entregables: (entregables.data ?? []) as TrabajoEntregableRow[],
   };
-}
+});
 
 export async function trabajosDeCliente(clienteId: string): Promise<TrabajoResumen[]> {
   const { db } = await conSesion();

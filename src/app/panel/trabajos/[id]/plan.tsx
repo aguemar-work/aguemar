@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { createContext, useContext, useOptimistic, useState, useTransition, type FormEvent } from "react";
 import { toast } from "sonner";
 import { ArrowDown, ArrowUp, Check, ListChecks, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,18 +30,43 @@ interface Props {
 }
 
 /** Etapas con sus tareas, editables en línea. Las tareas sin etapa van en "General". */
-export function Plan({ trabajoId, etapas, tareas, hoy }: Props) {
-  const router = useRouter();
+/** Marcar etapas y tareas se ve al instante (optimista); si falla, vuelve atrás y avisa. */
+const Alternar = createContext<{ tarea: (id: string, hecha: boolean) => void; etapa: (id: string, hecha: boolean) => void }>({
+  tarea: () => {},
+  etapa: () => {},
+});
+
+type Cambio = { id: string; hecha: boolean };
+const aplicar = <T extends { id: string; hecha: boolean }>(lista: T[], c: Cambio) => lista.map((x) => (x.id === c.id ? { ...x, hecha: c.hecha } : x));
+
+export function Plan({ trabajoId, etapas: etapasServidor, tareas: tareasServidor, hoy }: Props) {
   const [pendiente, iniciar] = useTransition();
+  const [, iniciarMarca] = useTransition();
+  const [tareas, marcarTareaOptimista] = useOptimistic(tareasServidor, aplicar<TrabajoTareaRow>);
+  const [etapas, marcarEtapaOptimista] = useOptimistic(etapasServidor, aplicar<TrabajoEtapaRow>);
   const [nuevaEtapa, setNuevaEtapa] = useState("");
   const avance = calcularAvance(tareas);
+
+  const alternar = {
+    tarea: (id: string, hecha: boolean) =>
+      iniciarMarca(async () => {
+        marcarTareaOptimista({ id, hecha });
+        const r = await marcarTarea(id, trabajoId, hecha);
+        if (!r.ok) toast.error(r.error ?? "No se pudo marcar la tarea.");
+      }),
+    etapa: (id: string, hecha: boolean) =>
+      iniciarMarca(async () => {
+        marcarEtapaOptimista({ id, hecha });
+        const r = await marcarEtapa(id, trabajoId, hecha);
+        if (!r.ok) toast.error(r.error ?? "No se pudo marcar la etapa.");
+      }),
+  };
 
   const ejecutar = (fn: () => Promise<{ ok: boolean; error?: string }>, exitoMsg?: string) =>
     iniciar(async () => {
       const r = await fn();
       if (!r.ok) toast.error(r.error ?? "No se pudo completar.");
       else if (exitoMsg) toast.success(exitoMsg);
-      router.refresh();
     });
 
   const crearEtapa = (e: FormEvent) => {
@@ -67,57 +91,59 @@ export function Plan({ trabajoId, etapas, tareas, hoy }: Props) {
   const sinEtapa = tareas.filter((t) => !t.etapa_id || !etapas.some((e) => e.id === t.etapa_id));
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-start justify-between gap-3">
-        <div>
-          <CardTitle>Plan de trabajo</CardTitle>
-          <CardDescription>Etapas y tareas. Marca lo hecho; el avance se calcula solo.</CardDescription>
-        </div>
-        <Badge variant={avance.total > 0 && avance.porcentaje === 100 ? "ok" : "outline"} className="font-mono">
-          {avance.hechas}/{avance.total} · {avance.porcentaje} %
-        </Badge>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        {etapas.length === 0 && tareas.length === 0 ? (
-          <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
-            <ListChecks className="size-5 shrink-0" aria-hidden />
-            Sin plan todavía. Crea una etapa, por ejemplo Diagnóstico o Diseño, y agrégale tareas.
+    <Alternar.Provider value={alternar}>
+      <Card>
+        <CardHeader className="flex-row items-start justify-between gap-3">
+          <div>
+            <CardTitle>Plan de trabajo</CardTitle>
+            <CardDescription>Etapas y tareas. Marca lo hecho; el avance se calcula solo.</CardDescription>
           </div>
-        ) : null}
+          <Badge variant={avance.total > 0 && avance.porcentaje === 100 ? "ok" : "outline"} className="font-mono">
+            {avance.hechas}/{avance.total} · {avance.porcentaje} %
+          </Badge>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {etapas.length === 0 && tareas.length === 0 ? (
+            <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+              <ListChecks className="size-5 shrink-0" aria-hidden />
+              Sin plan todavía. Crea una etapa, por ejemplo Diagnóstico o Diseño, y agrégale tareas.
+            </div>
+          ) : null}
 
-        {etapas.map((etapa, i) => (
-          <Etapa
-            key={etapa.id}
-            etapa={etapa}
-            tareas={tareas.filter((t) => t.etapa_id === etapa.id)}
-            hoy={hoy}
-            trabajoId={trabajoId}
-            pendiente={pendiente}
-            ejecutar={ejecutar}
-            onSubir={i > 0 ? () => moverEtapa(i, -1) : undefined}
-            onBajar={i < etapas.length - 1 ? () => moverEtapa(i, 1) : undefined}
-          />
-        ))}
+          {etapas.map((etapa, i) => (
+            <Etapa
+              key={etapa.id}
+              etapa={etapa}
+              tareas={tareas.filter((t) => t.etapa_id === etapa.id)}
+              hoy={hoy}
+              trabajoId={trabajoId}
+              pendiente={pendiente}
+              ejecutar={ejecutar}
+              onSubir={i > 0 ? () => moverEtapa(i, -1) : undefined}
+              onBajar={i < etapas.length - 1 ? () => moverEtapa(i, 1) : undefined}
+            />
+          ))}
 
-        {sinEtapa.length > 0 ? (
-          <section>
-            <h4 className="mb-2 text-sm font-semibold">General</h4>
-            <ListaTareas tareas={sinEtapa} hoy={hoy} trabajoId={trabajoId} pendiente={pendiente} ejecutar={ejecutar} />
-          </section>
-        ) : null}
+          {sinEtapa.length > 0 ? (
+            <section>
+              <h4 className="mb-2 text-sm font-semibold">General</h4>
+              <ListaTareas tareas={sinEtapa} hoy={hoy} trabajoId={trabajoId} pendiente={pendiente} ejecutar={ejecutar} />
+            </section>
+          ) : null}
 
-        {etapas.length === 0 ? (
-          <NuevaTarea trabajoId={trabajoId} etapaId={null} pendiente={pendiente} ejecutar={ejecutar} />
-        ) : null}
+          {etapas.length === 0 ? (
+            <NuevaTarea trabajoId={trabajoId} etapaId={null} pendiente={pendiente} ejecutar={ejecutar} />
+          ) : null}
 
-        <form onSubmit={crearEtapa} className="flex gap-2 border-t border-border pt-4">
-          <Input value={nuevaEtapa} onChange={(e) => setNuevaEtapa(e.target.value)} placeholder="Nueva etapa, p. ej. Diagnóstico" aria-label="Nueva etapa" />
-          <Button type="submit" variant="outline" disabled={pendiente || !nuevaEtapa.trim()}>
-            <Plus /> Etapa
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+          <form onSubmit={crearEtapa} className="flex gap-2 border-t border-border pt-4">
+            <Input value={nuevaEtapa} onChange={(e) => setNuevaEtapa(e.target.value)} placeholder="Nueva etapa, p. ej. Diagnóstico" aria-label="Nueva etapa" />
+            <Button type="submit" variant="outline" disabled={pendiente || !nuevaEtapa.trim()}>
+              <Plus /> Etapa
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </Alternar.Provider>
   );
 }
 
@@ -142,6 +168,7 @@ function Etapa({
   onSubir?: () => void;
   onBajar?: () => void;
 }) {
+  const alternar = useContext(Alternar);
   const [editando, setEditando] = useState(false);
   const [titulo, setTitulo] = useState(etapa.titulo);
   const avance = calcularAvance(tareas);
@@ -154,9 +181,8 @@ function Etapa({
           type="checkbox"
           className="size-4 accent-mint-ink dark:accent-mint"
           checked={etapa.hecha}
-          disabled={pendiente}
           aria-label={`Marcar etapa ${etapa.titulo} como hecha`}
-          onChange={(e) => ejecutar(() => marcarEtapa(etapa.id, trabajoId, e.target.checked))}
+          onChange={(e) => alternar.etapa(etapa.id, e.target.checked)}
         />
         {editando ? (
           <form
@@ -229,6 +255,7 @@ function ListaTareas({ tareas, hoy, trabajoId, pendiente, ejecutar }: { tareas: 
 }
 
 function Tarea({ tarea, hoy, trabajoId, pendiente, ejecutar }: { tarea: TrabajoTareaRow; hoy: string; trabajoId: string; pendiente: boolean; ejecutar: Ejecutar }) {
+  const alternar = useContext(Alternar);
   const [editando, setEditando] = useState(false);
   const [titulo, setTitulo] = useState(tarea.titulo);
   const [fecha, setFecha] = useState(tarea.fecha_limite ?? "");
@@ -269,9 +296,8 @@ function Tarea({ tarea, hoy, trabajoId, pendiente, ejecutar }: { tarea: TrabajoT
         type="checkbox"
         className="size-4 accent-mint-ink dark:accent-mint"
         checked={tarea.hecha}
-        disabled={pendiente}
         aria-label={`Marcar tarea ${tarea.titulo}`}
-        onChange={(e) => ejecutar(() => marcarTarea(tarea.id, trabajoId, e.target.checked))}
+        onChange={(e) => alternar.tarea(tarea.id, e.target.checked)}
       />
       <span className={`flex-1 text-sm ${tarea.hecha ? "text-muted-foreground line-through" : ""}`}>{tarea.titulo}</span>
       {tarea.fecha_limite && !tarea.hecha ? (

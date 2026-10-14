@@ -13,7 +13,7 @@ export default function LeadsPage() {
       <EmptyState
         icono={Inbox}
         titulo="Sin mensajes todavía."
-        descripcion="Cuando alguien escriba desde la landing, lo verás aquí. Disponible en la Fase 7."
+        descripcion="Cuando alguien escriba desde la landing, lo verás aquí. Llega con la landing, en la fase 10."
         accion={<Button variant="mint" disabled>Crear cotización</Button>}
       />
     </>
