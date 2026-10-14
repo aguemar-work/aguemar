@@ -20,6 +20,7 @@ export type Area = "diseno" | "desarrollo" | "soporte";
 export type EstadoTrabajo = "propuesta" | "en_curso" | "en_revision" | "entregado" | "cerrado" | "cancelado";
 export type Prioridad = "baja" | "media" | "alta";
 export type TipoEntregable = "enlace" | "archivo" | "acceso" | "otro";
+export type EntidadComentario = "trabajo" | "actividad" | "informe" | "documento" | "cotizacion";
 
 export interface Indicador {
   valor: string;
@@ -59,6 +60,10 @@ export type PerfilMarcaRow = Base & {
 };
 
 export type ClienteRow = Base & {
+  slug: string | null;
+  usuario_id: string | null;
+  modulos: string[];
+  activa: boolean;
   nombre: string;
   tipo_doc: TipoDoc;
   num_doc: string | null;
@@ -228,6 +233,17 @@ export type TrabajoRow = Base & {
   moneda: Moneda;
   notas: string | null;
   orden: number;
+  visible_empresa: boolean;
+};
+
+export type ComentarioRow = Base & {
+  cliente_id: string;
+  entidad: EntidadComentario;
+  entidad_id: string;
+  autor_uid: string;
+  es_propietario: boolean;
+  texto: string;
+  leido: boolean;
 };
 
 export type TrabajoEtapaRow = Base & {

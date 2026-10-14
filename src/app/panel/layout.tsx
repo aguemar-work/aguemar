@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/panel/sidebar";
 import { Topbar } from "@/components/panel/topbar";
 import { AvisoBackend } from "@/components/panel/aviso-backend";
-import { obtenerUsuario } from "@/lib/insforge/server";
+import { obtenerRol, rutaInicio } from "@/lib/insforge/server";
 import { backendConfigurado } from "@/lib/env";
 import { cerrarSesion } from "@/app/(auth)/acciones";
 
@@ -15,10 +15,12 @@ export const metadata: Metadata = {
 };
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
-  const usuario = await obtenerUsuario();
+  const rol = await obtenerRol();
+  const usuario = rol.tipo === "anonimo" ? null : rol.usuario;
 
-  if (backendConfigurado && !usuario) {
-    redirect("/login?siguiente=/panel");
+  if (backendConfigurado) {
+    if (rol.tipo === "anonimo") redirect("/login?siguiente=/panel");
+    if (rol.tipo !== "propietario") redirect(rutaInicio(rol));
   }
 
   return (

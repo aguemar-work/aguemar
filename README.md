@@ -1,6 +1,6 @@
 # agueMar Studio
 
-Centro de control personal (ERP pequeño) de **agueMar** (Alejandro Guevara Martínez, Perú) para sus tres áreas: diseño, desarrollo y soporte técnico. Incluye una web de dos caras (portafolio y soporte), un panel privado para clientes, trabajos, cotizaciones, cobros y documentos por área, y un portal donde el cliente ve y acepta sus documentos.
+Sistema de **agueMar** (Alejandro Guevara Martínez, Perú) para sus tres áreas: diseño, desarrollo y soporte técnico. Tres piezas: una landing que presenta sus servicios, un panel privado donde administra empresas, trabajos, documentos y cobros, y un **workspace por empresa** (`/w/[slug]`) donde cada empresa entra con su usuario a ver sus proyectos, calendario, informes y cotizaciones según los módulos que él le active.
 
 ## Stack
 
@@ -116,11 +116,12 @@ _respaldos         volcados locales (ignorado por git)
 
 ## Fases
 
-1. ✅ Base: proyecto, tokens, logos, layout del panel, auth y migraciones con RLS.
-2. ✅ Clientes, equipos, servicios y Mi marca.
-3. Trabajos (proyectos por área): lista, tablero y detalle con etapas, tareas y entregables.
-4. Cotizaciones multi-área con PDF, numeración y estados; cobros y saldos.
-5. Documentos por área: ficha técnica (con `diagnostico-agueMar.ps1`), brief y acta de entrega.
-6. Portal del cliente (tokens, aceptación, QR) y portafolio.
-7. Web de dos caras (`/`, `/estudio`, `/soporte`), formulario y leads.
-8. Agenda y recordatorios, correo, pulido, tests completos y Vercel.
+1. ✅ Base, auth, migraciones.
+2. ✅ Empresas (clientes), equipos, servicios, marca.
+3. ✅ Trabajos: lista, tablero, etapas, tareas, entregables.
+4. ✅ Empresas y workspaces: acceso por empresa, módulos, `/w/[slug]`, proyectos, comentarios, bandeja.
+5. Calendario (actividades) y solicitudes.
+6. Informes y documentos (fichas con `diagnostico-agueMar.ps1`, briefs, actas), PDF, portal por token.
+7. Cotizaciones y cobros.
+8. Landing de una página con servicios por área, contacto (leads) y SEO.
+9. Notificaciones por correo, pulido, tests completos y Vercel.

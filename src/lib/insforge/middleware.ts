@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@insforge/sdk/ssr/middleware";
 import { envPublico } from "@/lib/env";
 
-const RUTAS_PROTEGIDAS = ["/panel"];
+const RUTAS_PROTEGIDAS = ["/panel", "/w", "/sin-acceso"];
 const RUTAS_SOLO_INVITADO = ["/login"];
 
 /**

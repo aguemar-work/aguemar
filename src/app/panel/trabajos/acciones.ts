@@ -66,6 +66,18 @@ export async function cambiarEstadoTrabajo(id: string, estado: EstadoTrabajo): P
   }
 }
 
+export async function cambiarVisibilidadTrabajo(id: string, visible: boolean): Promise<Resultado<void>> {
+  try {
+    const { db } = await conSesion();
+    const { data, error } = await db.from("trabajos").update({ visible_empresa: visible }).eq("id", id).select("cliente_id").single();
+    if (error) return fallo(traducirError(error).mensaje);
+    revalidar(id, (data as { cliente_id: string | null }).cliente_id);
+    return exito(undefined);
+  } catch (e) {
+    return fallo(traducirError(e).mensaje);
+  }
+}
+
 export async function eliminarTrabajo(id: string): Promise<Resultado<void>> {
   try {
     const { db } = await conSesion();

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { crearAccionesAuth, crearClienteServidor } from "@/lib/insforge/server";
+import { crearAccionesAuth, crearClienteServidor, obtenerRol, rutaInicio } from "@/lib/insforge/server";
 
 const correoSchema = z.string().trim().email("Escribe un correo válido.");
 const contrasenaSchema = z.string().min(8, "La contraseña debe tener al menos 8 caracteres.");
@@ -55,7 +55,13 @@ export async function iniciarSesion(_: EstadoLogin, formData: FormData): Promise
     return { ok: false, mensaje: `No pudimos iniciar tu sesión: ${error?.message ?? "error desconocido"}.` };
   }
 
-  redirect(rutaSegura(formData.get("siguiente")));
+  // Según el rol: propietario → /panel, empresa → /w/[slug]. Si pidió una ruta concreta y le corresponde, se respeta.
+  const rol = await obtenerRol();
+  const inicio = rutaInicio(rol);
+  const pedida = rutaSegura(formData.get("siguiente"));
+  const permitida =
+    (rol.tipo === "propietario" && pedida.startsWith("/panel")) || (rol.tipo === "empresa" && pedida.startsWith(`/w/${rol.slug}`));
+  redirect(permitida ? pedida : inicio);
 }
 
 export async function cerrarSesion() {

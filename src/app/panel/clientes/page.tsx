@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listarClientes } from "@/lib/datos/clientes";
 
-export const metadata: Metadata = { title: "Clientes" };
+export const metadata: Metadata = { title: "Empresas" };
 
 interface Props {
   searchParams: Promise<{ q?: string }>;
@@ -23,12 +23,12 @@ export default async function ClientesPage({ searchParams }: Props) {
     <>
       <PageHeader
         codigo="01"
-        titulo="Clientes"
-        descripcion="Personas y empresas a las que atiendes."
+        titulo="Empresas"
+        descripcion="Las empresas y personas que atiendes. Cada una puede tener su workspace."
         acciones={
           <Button asChild variant="mint">
             <Link href="/panel/clientes/nuevo">
-              <Plus /> Nuevo cliente
+              <Plus /> Nueva empresa
             </Link>
           </Button>
         }
@@ -41,12 +41,12 @@ export default async function ClientesPage({ searchParams }: Props) {
       {clientes.length === 0 ? (
         <EmptyState
           icono={Users}
-          titulo={q ? `Sin resultados para "${q}".` : "Aún no hay clientes."}
-          descripcion={q ? "Prueba con otro término o crea el cliente." : "Crea el primero para empezar a cotizar y registrar sus equipos."}
+          titulo={q ? `Sin resultados para "${q}".` : "Aún no hay empresas."}
+          descripcion={q ? "Prueba con otro término o crea la empresa." : "Crea la primera para planificar trabajos y darle su workspace."}
           accion={
             <Button asChild variant="mint">
               <Link href="/panel/clientes/nuevo">
-                <Plus /> Nuevo cliente
+                <Plus /> Nueva empresa
               </Link>
             </Button>
           }
@@ -55,10 +55,11 @@ export default async function ClientesPage({ searchParams }: Props) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
+              <TableHead>Empresa</TableHead>
               <TableHead>Documento</TableHead>
               <TableHead className="hidden md:table-cell">Contacto</TableHead>
               <TableHead className="hidden lg:table-cell">Teléfono</TableHead>
+              <TableHead className="hidden md:table-cell">Workspace</TableHead>
               <TableHead className="text-right">Equipos</TableHead>
             </TableRow>
           </TableHeader>
@@ -82,6 +83,15 @@ export default async function ClientesPage({ searchParams }: Props) {
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{c.contacto ?? "—"}</TableCell>
                 <TableCell className="hidden font-mono text-xs lg:table-cell">{c.telefono ?? "—"}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {c.usuario_id ? (
+                    <Badge variant="ok" dot>
+                      Activo · {(c.modulos ?? []).length} módulos
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Sin acceso</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right font-mono tabular">{c.equipos?.[0]?.count ?? 0}</TableCell>
               </TableRow>
             ))}

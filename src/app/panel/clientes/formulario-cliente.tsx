@@ -58,7 +58,7 @@ export function FormularioCliente({ cliente, volverA }: Props) {
         }
         return;
       }
-      toast.success(cliente ? "Cliente actualizado." : "Cliente creado.");
+      toast.success(cliente ? "Empresa actualizada." : "Empresa creada.");
       form.reset(datos as ClienteInput, { keepValues: true });
       router.push(volverA ?? `/panel/clientes/${r.data.id}`);
       router.refresh();
@@ -125,7 +125,7 @@ export function FormularioCliente({ cliente, volverA }: Props) {
 
       <BarraAcciones
         guardando={guardando}
-        textoGuardar={cliente ? "Guardar cambios" : "Crear cliente"}
+        textoGuardar={cliente ? "Guardar cambios" : "Crear empresa"}
         hrefCancelar={cliente ? `/panel/clientes/${cliente.id}` : "/panel/clientes"}
         error={errorGeneral}
       />

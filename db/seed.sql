@@ -71,8 +71,8 @@ begin
     ]'::jsonb);
 
   -- ---------- Cliente de referencia: SGC ----------
-  insert into public.clientes (owner_id, nombre, tipo_doc, num_doc, contacto, telefono, correo, direccion)
-  values (v_owner, 'SGC', 'RUC', null, '[PENDIENTE: contacto]', '[PENDIENTE: teléfono]', '[PENDIENTE: correo]', '[PENDIENTE: dirección]')
+  insert into public.clientes (owner_id, nombre, slug, modulos, tipo_doc, num_doc, contacto, telefono, correo, direccion)
+  values (v_owner, 'SGC', 'sgc', '{proyectos,calendario,solicitudes,documentos,equipos}', 'RUC', null, '[PENDIENTE: contacto]', '[PENDIENTE: teléfono]', '[PENDIENTE: correo]', '[PENDIENTE: dirección]')
   returning id into v_cliente;
 
   -- ---------- Equipo: Lenovo 83LT ----------

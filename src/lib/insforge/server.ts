@@ -47,3 +47,37 @@ export async function obtenerUsuario(): Promise<UsuarioSesion | null> {
   const perfil = data.user.profile as { name?: string } | null;
   return { id: data.user.id, email: data.user.email, nombre: perfil?.name ?? null };
 }
+
+export type Rol =
+  | { tipo: "propietario"; usuario: UsuarioSesion }
+  | { tipo: "empresa"; usuario: UsuarioSesion; slug: string; nombre: string }
+  | { tipo: "sin_acceso"; usuario: UsuarioSesion }
+  | { tipo: "anonimo" };
+
+/**
+ * Rol del usuario actual: propietario (tiene perfil de marca), usuario de una
+ * empresa (clientes.usuario_id) o sin acceso.
+ */
+export async function obtenerRol(): Promise<Rol> {
+  const insforge = await crearClienteServidor();
+  if (!insforge) return { tipo: "anonimo" };
+  const usuario = await obtenerUsuario();
+  if (!usuario) return { tipo: "anonimo" };
+
+  const marca = await insforge.database.from("perfil_marca").select("id").limit(1).maybeSingle();
+  if (!marca.error && marca.data) return { tipo: "propietario", usuario };
+
+  const { data } = await insforge.database.rpc("ws_mi_empresa");
+  const empresa = data as { slug?: string; nombre?: string } | null;
+  if (empresa?.slug) return { tipo: "empresa", usuario, slug: empresa.slug, nombre: empresa.nombre ?? "" };
+
+  return { tipo: "sin_acceso", usuario };
+}
+
+/** Ruta de inicio según el rol. */
+export function rutaInicio(rol: Rol): string {
+  if (rol.tipo === "propietario") return "/panel";
+  if (rol.tipo === "empresa") return `/w/${rol.slug}`;
+  if (rol.tipo === "sin_acceso") return "/sin-acceso";
+  return "/login";
+}

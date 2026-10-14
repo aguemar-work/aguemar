@@ -16,6 +16,11 @@ import { eliminarTrabajo } from "../acciones";
 import { CambiarEstado } from "./cambiar-estado";
 import { Plan } from "./plan";
 import { Entregables } from "./entregables";
+import { VisibilidadTrabajo } from "./visibilidad";
+import { Hilo } from "@/components/comentarios/hilo";
+import { comentariosDe } from "@/lib/datos/comentarios";
+import { obtenerPerfilMarca } from "@/lib/datos/marca";
+import { comentarPropietario } from "@/app/panel/bandeja/acciones";
 
 export const metadata: Metadata = { title: "Trabajo" };
 
@@ -23,7 +28,7 @@ export default async function TrabajoDetallePage({ params }: { params: Promise<{
   const { id } = await params;
   const trabajo = await obtenerTrabajo(id);
   if (!trabajo) notFound();
-  const plan = await planTrabajo(id);
+  const [plan, comentarios, marca] = await Promise.all([planTrabajo(id), comentariosDe("trabajo", id), obtenerPerfilMarca()]);
   const hoy = hoyLima();
   const venc = textoVencimiento(trabajo.fecha_compromiso, hoy);
   const prioridad = PRIORIDADES.find((p) => p.valor === trabajo.prioridad)?.etiqueta ?? trabajo.prioridad;
@@ -66,6 +71,7 @@ export default async function TrabajoDetallePage({ params }: { params: Promise<{
         descripcion={<EtiquetaArea area={trabajo.area} />}
         acciones={
           <>
+            <VisibilidadTrabajo id={id} visible={trabajo.visible_empresa} tieneEmpresa={Boolean(trabajo.cliente_id)} />
             <CambiarEstado id={id} estado={trabajo.estado} />
             <Button asChild variant="outline">
               <Link href={`/panel/trabajos/${id}/editar`}>
@@ -134,6 +140,18 @@ export default async function TrabajoDetallePage({ params }: { params: Promise<{
         <div className="space-y-6 lg:col-span-2">
           <Plan trabajoId={id} etapas={plan.etapas} tareas={plan.tareas} hoy={hoy} />
           <Entregables trabajoId={id} entregables={plan.entregables} />
+          {trabajo.cliente_id ? (
+            <div id="comentarios">
+              <Hilo
+                comentarios={comentarios}
+                vista="propietario"
+                nombrePropietario={marca?.responsable ?? "Tú"}
+                nombreEmpresa={trabajo.clientes?.nombre ?? "Empresa"}
+                enviar={comentarPropietario.bind(null, "trabajo", id, trabajo.cliente_id)}
+                descripcion="Lo que escribas aquí lo ve la empresa en su workspace."
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </>

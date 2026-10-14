@@ -54,6 +54,14 @@ export async function historialCliente(id: string): Promise<HistorialCliente> {
   };
 }
 
+/** Correo del usuario de acceso de una empresa (lectura directa de auth.users no está expuesta; se guarda en ws_mi_empresa). */
+export async function correoDeUsuario(usuarioId: string | null): Promise<string | null> {
+  if (!usuarioId) return null;
+  const { db } = await conSesion();
+  const { data } = await db.rpc("ws_correo_usuario", { p_usuario: usuarioId });
+  return (data as string | null) ?? null;
+}
+
 /** Lista corta para selects: id y nombre. */
 export async function opcionesClientes(): Promise<{ id: string; nombre: string }[]> {
   const { db } = await conSesion();

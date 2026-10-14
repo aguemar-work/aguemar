@@ -1,0 +1,33 @@
+"use client";
+
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { cambiarVisibilidadTrabajo } from "../acciones";
+
+export function VisibilidadTrabajo({ id, visible, tieneEmpresa }: { id: string; visible: boolean; tieneEmpresa: boolean }) {
+  const router = useRouter();
+  const [pendiente, iniciar] = useTransition();
+  if (!tieneEmpresa) return null;
+  return (
+    <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+      {visible ? <Eye className="size-4" aria-hidden /> : <EyeOff className="size-4" aria-hidden />}
+      Visible en el workspace
+      <Switch
+        checked={visible}
+        disabled={pendiente}
+        aria-label="Visible para la empresa"
+        onCheckedChange={(v) =>
+          iniciar(async () => {
+            const r = await cambiarVisibilidadTrabajo(id, v);
+            if (!r.ok) toast.error(r.error);
+            else toast.success(v ? "La empresa ya puede ver este trabajo." : "Oculto para la empresa.");
+            router.refresh();
+          })
+        }
+      />
+    </label>
+  );
+}

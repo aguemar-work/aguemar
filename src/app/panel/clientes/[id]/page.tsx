@@ -12,7 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { historialCliente, obtenerCliente } from "@/lib/datos/clientes";
+import { correoDeUsuario, historialCliente, obtenerCliente } from "@/lib/datos/clientes";
+import { AccesoEmpresa } from "./acceso";
+import { ModulosEmpresa } from "./modulos";
 import { formatearFecha, formatearMonto } from "@/lib/format";
 import { eliminarCliente } from "../acciones";
 
@@ -22,7 +24,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
   const { id } = await params;
   const cliente = await obtenerCliente(id);
   if (!cliente) notFound();
-  const historial = await historialCliente(id);
+  const [historial, correoAcceso] = await Promise.all([historialCliente(id), correoDeUsuario(cliente.usuario_id)]);
 
   const datos: [string, string | null][] = [
     ["Documento", cliente.num_doc ? `${cliente.tipo_doc} ${cliente.num_doc}` : null],
@@ -37,7 +39,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
       <PageHeader
         codigo="01"
         titulo={cliente.nombre}
-        descripcion={`Cliente desde ${formatearFecha(cliente.created_at)}`}
+        descripcion={`Empresa desde ${formatearFecha(cliente.created_at)}${cliente.slug ? ` · /w/${cliente.slug}` : ""}`}
         acciones={
           <>
             <Button asChild variant="outline">
@@ -46,11 +48,11 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
               </Link>
             </Button>
             <ConfirmarEliminar
-              titulo={`¿Eliminar a ${cliente.nombre}?`}
+              titulo={`¿Eliminar la empresa ${cliente.nombre}?`}
               descripcion="Se eliminarán también sus equipos sin fichas. Si tiene cotizaciones o fichas, no se podrá eliminar."
               accion={eliminarCliente.bind(null, id)}
               irA="/panel/clientes"
-              textoExito="Cliente eliminado."
+              textoExito="Empresa eliminada."
             />
           </>
         }
@@ -80,6 +82,9 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
         </Card>
 
         <div className="space-y-6 lg:col-span-2">
+          <AccesoEmpresa clienteId={id} slug={cliente.slug} usuarioId={cliente.usuario_id} correoUsuario={correoAcceso} />
+          <ModulosEmpresa clienteId={id} modulos={cliente.modulos ?? []} />
+
           <section aria-labelledby="trabajos">
             <div className="mb-3 flex items-center justify-between">
               <h2 id="trabajos" className="text-base font-semibold">
@@ -92,7 +97,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
               </Button>
             </div>
             {historial.trabajos.length === 0 ? (
-              <EmptyState icono={KanbanSquare} titulo="Sin trabajos con este cliente." descripcion="Crea uno para empezar a planificar, cotizar y documentar." className="py-8" />
+              <EmptyState icono={KanbanSquare} titulo="Sin trabajos con esta empresa." descripcion="Crea uno para empezar a planificar, cotizar y documentar." className="py-8" />
             ) : (
               <Table>
                 <TableHeader>
@@ -139,7 +144,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
             {historial.equipos.length === 0 ? (
               <EmptyState
                 icono={Laptop}
-                titulo="Este cliente aún no tiene equipos."
+                titulo="Esta empresa aún no tiene equipos."
                 descripcion="Registra la laptop o PC que atiendes para llevar su historial de fichas."
                 className="py-8"
               />
