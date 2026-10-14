@@ -1,0 +1,75 @@
+import { test, expect, type Page } from "@playwright/test";
+
+/**
+ * Fase 6: cotización → envío → aceptación (crea el trabajo) → cobro → saldo.
+ * Requiere E2E_EMAIL / E2E_PASSWORD en .env.local y al menos una empresa y un servicio con precio.
+ */
+const EMAIL = process.env.E2E_EMAIL;
+const PASSWORD = process.env.E2E_PASSWORD;
+const SUFIJO = `E2E ${Date.now().toString(36)}`;
+
+test.describe.configure({ mode: "serial" });
+test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
+
+async function iniciarSesion(page: Page) {
+  await page.goto("/login");
+  await page.getByLabel("Correo").fill(EMAIL!);
+  await page.getByLabel("Contraseña").fill(PASSWORD!);
+  await page.getByRole("button", { name: /^entrar$/i }).click();
+  await expect(page).toHaveURL(/\/panel/);
+}
+
+let urlCotizacion = "";
+
+test("arma una cotización con una línea libre y ve el total con IGV", async ({ page }) => {
+  await iniciarSesion(page);
+  await page.goto("/panel/cotizaciones/nueva");
+  await page.getByLabel("Empresa").selectOption({ index: 1 });
+  await page.getByLabel(/^asunto/i).fill(`Cotización ${SUFIJO}`);
+  await page.getByRole("button", { name: /línea libre/i }).click();
+  await page.getByLabel("Descripción").first().fill("Desarrollo de landing");
+  await page.getByLabel("Precio unit.").first().fill("1000");
+  // 1000 + 18 % = 1180
+  await expect(page.getByText("S/ 1 180,00")).toBeVisible();
+  await page.getByRole("button", { name: /guardar borrador/i }).click();
+  await expect(page).toHaveURL(/\/panel\/cotizaciones\/[0-9a-f-]{36}$/);
+  urlCotizacion = page.url();
+  await expect(page.getByRole("heading", { name: `Cotización ${SUFIJO}` })).toBeVisible();
+});
+
+test("el PDF se genera", async ({ page, request }) => {
+  await iniciarSesion(page);
+  const r = await page.request.get(`${urlCotizacion}/pdf`);
+  expect(r.status()).toBe(200);
+  expect(r.headers()["content-type"]).toContain("application/pdf");
+  expect((await r.body()).subarray(0, 5).toString()).toBe("%PDF-");
+  void request;
+});
+
+test("envía, acepta (crea el trabajo) y registra un cobro parcial", async ({ page }) => {
+  await iniciarSesion(page);
+  await page.goto(urlCotizacion);
+  await page.getByRole("button", { name: /^enviar$/i }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /marcar aceptada/i }).click();
+  await page.getByLabel("Quién acepta").fill("Persona de prueba");
+  await page.getByRole("button", { name: /aceptar y crear trabajo/i }).click();
+  await expect(page.getByText("Trabajo creado")).toBeVisible();
+  await page.getByRole("button", { name: /registrar cobro/i }).click();
+  await page.getByLabel("Monto").fill("500");
+  await page.getByRole("button", { name: /^registrar$/i }).click();
+  await expect(page.getByText("S/ 680,00")).toBeVisible(); // saldo 1180 − 500
+});
+
+test("limpieza: elimina el cobro y el trabajo de prueba (la cotización aceptada queda como registro)", async ({ page }) => {
+  await iniciarSesion(page);
+  await page.goto(urlCotizacion);
+  // Una cotización aceptada no se elimina desde la app: queda con el sufijo E2E para identificarla.
+  page.on("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: /eliminar cobro/i }).click({ force: true });
+  await page.getByText("Trabajo creado").click();
+  await page.getByRole("button", { name: /^eliminar$/i }).first().click();
+  await page.getByRole("button", { name: /sí, eliminar/i }).click();
+  await expect(page).toHaveURL(/\/panel\/trabajos$/);
+});

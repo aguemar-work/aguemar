@@ -6,13 +6,15 @@ import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ws } from "@/lib/datos/workspace";
-import { formatearFecha, formatearFechaHora, hoyLima } from "@/lib/format";
+import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
+import { saldo } from "@/lib/cotizacion";
 import { moduloActivo } from "@/lib/modulos";
 import { textoVencimiento } from "@/lib/trabajos-util";
 
 export default async function InicioWorkspace({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [empresa, inicio] = await Promise.all([ws.miEmpresa(), ws.inicio()]);
+  // ws_cotizaciones devuelve null si la empresa no tiene el módulo: no hace falta esperar a saberlo.
+  const [empresa, inicio, cot] = await Promise.all([ws.miEmpresa(), ws.inicio(), ws.cotizaciones().catch(() => null)]);
   const hoy = hoyLima();
   const tieneProyectos = moduloActivo(empresa?.modulos, "proyectos");
 
@@ -41,6 +43,30 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
             <p className="font-mono text-2xl font-semibold tabular">{inicio?.entregados ?? 0}</p>
           </CardContent>
         </Card>
+        {cot ? (
+          <>
+            <Link href={`/w/${slug}/cotizaciones`} className="rounded-lg">
+              <Card className="h-full transition-colors hover:border-mint-ink/40">
+                <CardHeader className="p-4 pb-1">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">Por responder</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <p className="font-mono text-2xl font-semibold tabular">{cot.cotizaciones.filter((c) => c.estado === "enviada").length}</p>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href={`/w/${slug}/cotizaciones`} className="rounded-lg">
+              <Card className="h-full transition-colors hover:border-mint-ink/40">
+                <CardHeader className="p-4 pb-1">
+                  <CardTitle className="text-xs font-medium text-muted-foreground">Saldo pendiente</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <p className="font-mono text-lg font-semibold tabular">{formatearMonto(saldo(cot.total_aceptado, cot.total_cobrado))}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          </>
+        ) : null}
       </section>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">

@@ -46,6 +46,9 @@ export function traducirError(error: unknown): ErrorTraducido {
     return { mensaje: "Ya existe un registro con esos datos." };
   }
   if (e.code === "23503") {
+    if (/cobros/.test(texto)) {
+      return { mensaje: "No se puede eliminar: la empresa tiene cobros registrados." };
+    }
     if (/cotizaciones|fichas/.test(texto)) {
       return { mensaje: "No se puede eliminar: tiene cotizaciones o fichas asociadas." };
     }
@@ -59,6 +62,10 @@ export function traducirError(error: unknown): ErrorTraducido {
   }
   if (e.code === "42501" || e.statusCode === 403) {
     return { mensaje: "No tienes permiso para esta acción. Vuelve a iniciar sesión." };
+  }
+  // Mensajes propios de nuestras funciones SQL (raise exception ... using errcode): ya vienen en español.
+  if ((e.code === "22023" || e.code === "P0002") && e.message) {
+    return { mensaje: e.message };
   }
   if (e.code === "PGRST116") {
     return { mensaje: "No encontramos el registro. Puede que haya sido eliminado." };

@@ -20,11 +20,18 @@ import { Hilo } from "@/components/comentarios/hilo";
 import { comentariosDe } from "@/lib/datos/comentarios";
 import { obtenerPerfilMarca } from "@/lib/datos/marca";
 import { comentarPropietario } from "@/app/panel/bandeja/acciones";
+import { cotizacionDeTrabajo } from "@/lib/datos/cotizaciones";
 
 /** Detalle de un trabajo. Se usa en la página completa y en el panel lateral (@modal). */
 export async function DetalleTrabajo({ id }: { id: string }) {
   // Todo en paralelo: una sola espera a InsForge.
-  const [trabajo, plan, comentarios, marca] = await Promise.all([obtenerTrabajo(id), planTrabajo(id), comentariosDe("trabajo", id), obtenerPerfilMarca()]);
+  const [trabajo, plan, comentarios, marca, cotizacion] = await Promise.all([
+    obtenerTrabajo(id),
+    planTrabajo(id),
+    comentariosDe("trabajo", id),
+    obtenerPerfilMarca(),
+    cotizacionDeTrabajo(id),
+  ]);
   if (!trabajo) notFound();
   const hoy = hoyLima();
   const venc = textoVencimiento(trabajo.fecha_compromiso, hoy);
@@ -121,12 +128,24 @@ export async function DetalleTrabajo({ id }: { id: string }) {
               <CardTitle>Dinero y documentos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p className="flex items-center gap-2">
-                <FileText className="size-4" aria-hidden /> Cotización que lo originó: en la fase 6.
-              </p>
-              <p className="flex items-center gap-2">
-                <Wallet className="size-4" aria-hidden /> Cobros y saldo: en la fase 6.
-              </p>
+              {cotizacion ? (
+                <>
+                  <Link href={`/panel/cotizaciones/${cotizacion.id}`} className="flex items-center gap-2 text-foreground underline-offset-4 hover:underline">
+                    <FileText className="size-4" aria-hidden /> Viene de <span className="font-mono">{cotizacion.numero}</span> · {formatearMonto(cotizacion.total, cotizacion.moneda)}
+                  </Link>
+                  <p className="flex items-center gap-2">
+                    <Wallet className="size-4" aria-hidden /> Cobrado {formatearMonto(cotizacion.cobrado, cotizacion.moneda)}
+                    {cotizacion.total > cotizacion.cobrado ? <span className="text-warn dark:text-warning-foreground">· saldo {formatearMonto(cotizacion.total - cotizacion.cobrado, cotizacion.moneda)}</span> : <span className="text-mint-ink dark:text-mint">· pagado</span>}
+                  </p>
+                </>
+              ) : (
+                <Link
+                  href={trabajo.cliente_id ? `/panel/cotizaciones/nueva?cliente=${trabajo.cliente_id}` : "/panel/cotizaciones/nueva"}
+                  className="flex items-center gap-2 underline-offset-4 hover:underline"
+                >
+                  <FileText className="size-4" aria-hidden /> Sin cotización. Crear una
+                </Link>
+              )}
               <p className="flex items-center gap-2">
                 <FileSignature className="size-4" aria-hidden /> Brief, acta o ficha técnica: en la fase 7.
               </p>

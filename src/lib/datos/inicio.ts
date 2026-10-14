@@ -27,6 +27,8 @@ export interface ResumenInicio {
   cotizaciones_borrador: number;
   cotizaciones: { id: string; numero: string | null; asunto: string; total: number; moneda: Moneda; fecha: string; vence: string; empresa: string }[];
   aceptado_mes: number;
+  por_cobrar: number;
+  deudores: { cliente_id: string; empresa: string; moneda: Moneda; aceptado: number; cobrado: number; saldo: number }[];
   mantenimientos: { id: string; numero: string | null; proximo_mantenimiento: string; empresa: string; modelo: string | null; serie: string | null }[];
   leads_nuevos: number;
   empresas: number;

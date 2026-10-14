@@ -39,7 +39,7 @@ export default async function InicioPanel() {
     { etiqueta: "Tareas vencidas", valor: r?.tareas_vencidas ?? 0, tono: "warn", icono: ListTodo, href: "/panel/trabajos" },
     { etiqueta: "Comentarios sin leer", valor: r?.comentarios_sin_leer ?? 0, tono: "info", icono: MessageSquare, href: "/panel/bandeja" },
     { etiqueta: "Cotizaciones sin respuesta", valor: r?.cotizaciones_sin_respuesta ?? 0, tono: "info", icono: FileText, href: "/panel/cotizaciones" },
-    { etiqueta: "Por cobrar", valor: null, tono: "info", icono: Wallet, href: "/panel/cotizaciones", nota: "Con cobros, en la fase 6" },
+    { etiqueta: "Por cobrar", valor: r?.por_cobrar ?? 0, tono: "warn", icono: Wallet, href: "/panel/cotizaciones?estado=aceptada", monto: true },
   ];
   const todoAlDia = alertas.every((a) => !a.valor) && (r?.detenidos.length ?? 0) === 0;
 
@@ -56,8 +56,13 @@ export default async function InicioPanel() {
         acciones={
           <>
             <Button asChild variant="mint">
+              <Link href="/panel/cotizaciones/nueva">
+                <Plus /> Nueva cotización
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link href="/panel/trabajos/nuevo">
-                <Plus /> Nuevo trabajo
+                <KanbanSquare /> Nuevo trabajo
               </Link>
             </Button>
             <Button asChild variant="outline">
@@ -167,7 +172,7 @@ export default async function InicioPanel() {
             </CardHeader>
             <CardContent className="pt-0">
               {!r || r.cotizaciones.length === 0 ? (
-                <Vacio icono={FileText} texto="Nada esperando respuesta. Las cotizaciones llegan en la fase 6; al aceptarse crearán el trabajo." />
+                <Vacio icono={FileText} texto="Nada esperando respuesta. Cuando envíes una cotización, aquí sabrás si sigue vigente." />
               ) : (
                 <ul className="divide-y divide-border">
                   {r.cotizaciones.map((c) => {
@@ -176,7 +181,9 @@ export default async function InicioPanel() {
                       <li key={c.id} className="flex items-center justify-between gap-3 py-2.5">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">
-                            <span className="font-mono text-xs text-muted-foreground">{c.numero}</span> {c.asunto || c.empresa}
+                            <Link href={`/panel/cotizaciones/${c.id}`} className="underline-offset-4 hover:underline">
+                              <span className="font-mono text-xs text-muted-foreground">{c.numero}</span> {c.asunto || c.empresa}
+                            </Link>
                           </p>
                           <p className={cn("text-xs", TONO_TEXTO[venc.tono])}>
                             {c.empresa} · {venc.texto.replace("Vence", "Validez vence").replace("Vencido", "Validez vencida")}
@@ -220,6 +227,32 @@ export default async function InicioPanel() {
               ) : null}
             </CardContent>
           </Card>
+
+          {r && r.deudores.length > 0 ? (
+            <Card>
+              <CardHeader className="flex-row items-center justify-between gap-3 pb-2">
+                <CardTitle>Te deben</CardTitle>
+                <span className="font-mono text-xs text-muted-foreground">{formatearMonto(r.por_cobrar)}</span>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ul className="divide-y divide-border">
+                  {r.deudores.map((d) => (
+                    <li key={`${d.cliente_id}-${d.moneda}`}>
+                      <Link href={`/panel/clientes/${d.cliente_id}#cobros`} className="flex items-center justify-between gap-3 py-2 text-sm hover:text-foreground">
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">{d.empresa}</span>
+                          <span className="font-mono text-[11px] text-muted-foreground">
+                            pagó {formatearMonto(d.cobrado, d.moneda)} de {formatearMonto(d.aceptado, d.moneda)}
+                          </span>
+                        </span>
+                        <span className="shrink-0 font-mono tabular text-warn dark:text-warning-foreground">{formatearMonto(d.saldo, d.moneda)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader className="flex-row items-center justify-between gap-3 pb-2">
@@ -293,6 +326,8 @@ interface Alerta {
   icono: LucideIcon;
   href: string;
   nota?: string;
+  /** El valor es un monto en céntimos. */
+  monto?: boolean;
 }
 
 function TarjetaAlerta({ alerta: a }: { alerta: Alerta }) {
@@ -311,7 +346,9 @@ function TarjetaAlerta({ alerta: a }: { alerta: Alerta }) {
     >
       <Icono className="size-4" aria-hidden />
       <div>
-        <p className={cn("font-mono text-2xl font-semibold tabular", !activa && "text-foreground/40")}>{a.valor ?? "—"}</p>
+        <p className={cn("font-mono font-semibold tabular", a.monto ? "text-lg" : "text-2xl", !activa && "text-foreground/40")}>
+          {a.valor == null ? "—" : a.monto ? formatearMonto(a.valor) : a.valor}
+        </p>
         <p className="text-xs font-medium">{a.etiqueta}</p>
         {a.nota ? <p className="mt-0.5 text-[11px] opacity-80">{a.nota}</p> : null}
       </div>

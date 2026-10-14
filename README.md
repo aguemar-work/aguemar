@@ -121,7 +121,7 @@ _respaldos         volcados locales (ignorado por git)
 3. ✅ Trabajos: lista, tablero, etapas, tareas, entregables.
 4. ✅ Empresas y workspaces: acceso por empresa, módulos, `/w/[slug]`, proyectos, comentarios, bandeja.
 5. ✅ Velocidad y fluidez: panel lateral, cambios al instante, inicio con lo que pide atención, Mi marca con vista previa.
-6. Cotizaciones y cobros (ítems desde servicios; al aceptarse crean el trabajo).
+6. ✅ Cotizaciones y cobros: ítems desde servicios, PDF con la marca, aceptación que crea el trabajo, cobros y saldo.
 7. Fichas técnicas y documentos (`diagnostico-agueMar.ps1`, briefs, actas), PDF, portal por token.
 8. Calendario (actividades) y solicitudes.
 9. Informes de avance.

@@ -1,5 +1,5 @@
 import { cache } from "react";
-import type { ClienteRow, EquipoRow, FichaRow, CotizacionRow, TrabajoRow } from "@/types/database";
+import type { ClienteRow, EquipoRow, FichaRow, CotizacionRow, TrabajoRow, CobroRow } from "@/types/database";
 import { conSesion } from "./base";
 
 export interface ClienteResumen extends ClienteRow {
@@ -34,17 +34,19 @@ export interface HistorialCliente {
   equipos: EquipoRow[];
   fichas: FichaRow[];
   cotizaciones: CotizacionRow[];
+  cobros: (CobroRow & { cotizaciones: { numero: string | null } | null })[];
 }
 
 export async function historialCliente(id: string): Promise<HistorialCliente> {
   const { db } = await conSesion();
-  const [trabajos, equipos, fichas, cotizaciones] = await Promise.all([
+  const [trabajos, equipos, fichas, cotizaciones, cobros] = await Promise.all([
     db.from("trabajos").select("*, trabajo_tareas(hecha)").eq("cliente_id", id).order("created_at", { ascending: false }).limit(50),
     db.from("equipos").select("*").eq("cliente_id", id).order("created_at", { ascending: false }),
     db.from("fichas").select("*").eq("cliente_id", id).order("fecha", { ascending: false }).limit(50),
     db.from("cotizaciones").select("*").eq("cliente_id", id).order("fecha", { ascending: false }).limit(50),
+    db.from("cobros").select("*, cotizaciones(numero)").eq("cliente_id", id).order("fecha", { ascending: false }).limit(100),
   ]);
-  for (const r of [trabajos, equipos, fichas, cotizaciones]) {
+  for (const r of [trabajos, equipos, fichas, cotizaciones, cobros]) {
     if (r.error) throw r.error;
   }
   return {
@@ -52,6 +54,7 @@ export async function historialCliente(id: string): Promise<HistorialCliente> {
     equipos: (equipos.data ?? []) as EquipoRow[],
     fichas: (fichas.data ?? []) as FichaRow[],
     cotizaciones: (cotizaciones.data ?? []) as CotizacionRow[],
+    cobros: (cobros.data ?? []) as HistorialCliente["cobros"],
   };
 }
 

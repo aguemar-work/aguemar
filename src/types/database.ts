@@ -123,6 +123,10 @@ export type CotizacionRow = Base & {
   estado: EstadoCotizacion;
   enviada_en: string | null;
   aceptada_en: string | null;
+  area: Area;
+  trabajo_id: string | null;
+  rechazada_en: string | null;
+  motivo_rechazo: string | null;
 };
 
 export type CotizacionItemRow = Base & {
@@ -133,7 +137,21 @@ export type CotizacionItemRow = Base & {
   precio_unitario: number;
   descuento: number;
   importe: number;
+  unidad: string;
   orden: number;
+};
+
+export type MedioPago = "transferencia" | "yape" | "plin" | "efectivo" | "tarjeta" | "otro";
+
+export type CobroRow = Base & {
+  cliente_id: string;
+  cotizacion_id: string | null;
+  fecha: string;
+  monto: number;
+  moneda: Moneda;
+  medio: MedioPago;
+  referencia: string | null;
+  notas: string | null;
 };
 
 export type FichaRow = Base & {
@@ -213,7 +231,8 @@ export type EnlacePublicoRow = Base & {
 export type AceptacionRow = Base & {
   cotizacion_id: string;
   nombre: string;
-  dni: string;
+  dni: string | null;
+  registrada_por: "portal" | "empresa" | "propietario";
   ip: string | null;
   user_agent: string | null;
   aceptado_en: string;

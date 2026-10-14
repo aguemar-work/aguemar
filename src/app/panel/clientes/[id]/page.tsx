@@ -15,16 +15,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { correoDeUsuario, historialCliente, obtenerCliente } from "@/lib/datos/clientes";
 import { AccesoEmpresa } from "./acceso";
 import { ModulosEmpresa } from "./modulos";
-import { formatearFecha, formatearMonto } from "@/lib/format";
+import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
+import { estadoEfectivo, saldo } from "@/lib/cotizacion";
+import { ListaCobros, RegistrarCobro } from "../../cotizaciones/cobros";
 import { eliminarCliente } from "../acciones";
 
-export const metadata: Metadata = { title: "Cliente" };
+export const metadata: Metadata = { title: "Empresa" };
 
 export default async function ClienteDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [cliente, historial] = await Promise.all([obtenerCliente(id), historialCliente(id)]);
   if (!cliente) notFound();
   const correoAcceso = await correoDeUsuario(cliente.usuario_id);
+  const hoy = hoyLima();
+  const aceptadas = historial.cotizaciones.filter((c) => c.estado === "aceptada");
+  const totalAceptado = aceptadas.filter((c) => c.moneda === "PEN").reduce((s, c) => s + c.total, 0);
+  const totalCobrado = historial.cobros.filter((k) => k.moneda === "PEN").reduce((s, k) => s + k.monto, 0);
+  const saldoEmpresa = saldo(totalAceptado, totalCobrado);
 
   const datos: [string, string | null][] = [
     ["Documento", cliente.num_doc ? `${cliente.tipo_doc} ${cliente.num_doc}` : null],
@@ -209,17 +216,24 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
           </section>
 
           <section aria-labelledby="cotizaciones">
-            <h2 id="cotizaciones" className="mb-3 text-base font-semibold">
-              Cotizaciones <span className="font-mono text-sm text-muted-foreground">({historial.cotizaciones.length})</span>
-            </h2>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 id="cotizaciones" className="text-base font-semibold">
+                Cotizaciones <span className="font-mono text-sm text-muted-foreground">({historial.cotizaciones.length})</span>
+              </h2>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/panel/cotizaciones/nueva?cliente=${cliente.id}`}>
+                  <Plus /> Nueva cotización
+                </Link>
+              </Button>
+            </div>
             {historial.cotizaciones.length === 0 ? (
-              <EmptyState icono={FileText} titulo="Sin cotizaciones todavía." descripcion="Las cotizaciones llegan en la fase 6." className="py-8" />
+              <EmptyState icono={FileText} titulo="Sin cotizaciones todavía." descripcion="Arma la primera desde tus servicios; al aceptarse se crea el trabajo." className="py-8" />
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Número</TableHead>
-                    <TableHead>Fecha</TableHead>
+                    <TableHead>Asunto</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead>Estado</TableHead>
                   </TableRow>
@@ -227,17 +241,50 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
                 <TableBody>
                   {historial.cotizaciones.map((c) => (
                     <TableRow key={c.id}>
-                      <TableCell className="font-mono text-xs">{c.numero}</TableCell>
-                      <TableCell>{formatearFecha(c.fecha)}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        <Link href={`/panel/cotizaciones/${c.id}`} className="underline-offset-4 hover:underline">
+                          {c.numero}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Link href={`/panel/cotizaciones/${c.id}`} className="underline-offset-4 hover:underline">
+                          {c.asunto || "Sin asunto"}
+                        </Link>
+                        <span className="block text-xs text-muted-foreground">{formatearFecha(c.fecha)}</span>
+                      </TableCell>
                       <TableCell className="text-right font-mono tabular">{formatearMonto(c.total, c.moneda)}</TableCell>
                       <TableCell>
-                        <EtiquetaCotizacion estado={c.estado} />
+                        <EtiquetaCotizacion estado={estadoEfectivo(c, hoy)} />
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             )}
+          </section>
+
+          <section aria-labelledby="cobros" id="cobros" className="scroll-mt-20">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 id="t-cobros" className="text-base font-semibold">
+                Cobros y saldo
+              </h2>
+              <RegistrarCobro clienteId={cliente.id} opciones={aceptadas.map((c) => ({ id: c.id, numero: c.numero, asunto: c.asunto }))} />
+            </div>
+            <div className="mb-3 grid grid-cols-3 gap-2 text-sm">
+              <div className="rounded-md border border-border p-2">
+                <p className="text-xs text-muted-foreground">Aceptado</p>
+                <p className="font-mono tabular">{formatearMonto(totalAceptado)}</p>
+              </div>
+              <div className="rounded-md border border-border p-2">
+                <p className="text-xs text-muted-foreground">Cobrado</p>
+                <p className="font-mono tabular">{formatearMonto(totalCobrado)}</p>
+              </div>
+              <div className={saldoEmpresa > 0 ? "rounded-md bg-warning-bg p-2 text-warning-foreground" : "rounded-md bg-success-bg p-2 text-success-foreground"}>
+                <p className="text-xs">{saldoEmpresa > 0 ? "Te debe" : "Al día"}</p>
+                <p className="font-mono tabular">{formatearMonto(saldoEmpresa)}</p>
+              </div>
+            </div>
+            <ListaCobros cobros={historial.cobros.map((k) => ({ ...k, cotizacion: k.cotizaciones?.numero ?? null }))} />
           </section>
         </div>
       </div>

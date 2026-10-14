@@ -21,3 +21,24 @@ export async function comentarEmpresa(slug: string, entidad: EntidadComentario, 
   revalidatePath(`/w/${slug}`);
   return exito({ id: data as string });
 }
+
+const aceptacionSchema = z.object({
+  nombre: z.string().trim().min(2, "Escribe tu nombre completo.").max(120),
+  dni: z.string().trim().regex(/^\d{8}$/, "El DNI debe tener 8 dígitos."),
+});
+
+/** La empresa acepta una cotización suya (ws_aceptar_cotizacion valida pertenencia y vigencia, y crea el trabajo). */
+export async function aceptarCotizacionEmpresa(slug: string, id: string, input: { nombre: string; dni: string }): Promise<Resultado<void>> {
+  const parsed = aceptacionSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
+  }
+  const insforge = await crearClienteServidor();
+  if (!insforge) return fallo("Sin sesión.");
+  const { error } = await insforge.database.rpc("ws_aceptar_cotizacion", { p_id: id, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni });
+  if (error) return fallo(traducirError(error).mensaje);
+  revalidatePath(`/w/${slug}`, "layout");
+  revalidatePath("/panel", "layout");
+  return exito(undefined);
+}
