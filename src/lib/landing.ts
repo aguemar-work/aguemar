@@ -76,10 +76,12 @@ export function enlaceWhatsApp(telefono: string | null | undefined, texto: strin
   return n ? `https://wa.me/${n}?text=${encodeURIComponent(texto)}` : null;
 }
 
-/** "924 262 338" para mostrar. */
+/** "924 262 338" o "+51 924 262 338" para mostrar. */
 export function telefonoLegible(telefono: string | null | undefined): string | null {
   const d = (telefono ?? "").replace(/\D/g, "");
   if (!d) return null;
-  if (d.length === 9) return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}`;
+  const grupos = (n: string) => `${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6)}`;
+  if (d.length === 9) return grupos(d);
+  if (d.length === 11 && d.startsWith("51")) return `+51 ${grupos(d.slice(2))}`;
   return telefono!.trim();
 }

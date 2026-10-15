@@ -11,6 +11,8 @@ describe("utilidades de la landing", () => {
     expect(numeroWhatsApp("")).toBeNull();
     expect(enlaceWhatsApp("924262338", "Hola, ¿qué tal?")).toBe("https://wa.me/51924262338?text=Hola%2C%20%C2%BFqu%C3%A9%20tal%3F");
     expect(telefonoLegible("924262338")).toBe("924 262 338");
+    expect(telefonoLegible("+51924262338")).toBe("+51 924 262 338");
+    expect(numeroWhatsApp("+51924262338")).toBe("51924262338");
   });
 
   it("agrupa servicios por área y arma el precio", () => {

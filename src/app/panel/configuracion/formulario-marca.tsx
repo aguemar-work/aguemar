@@ -29,7 +29,7 @@ export function FormularioMarca({ perfil }: Props) {
     resolver: zodResolver(marcaSchema),
     defaultValues: {
       nombre_comercial: perfil?.nombre_comercial ?? "agueMar",
-      responsable: perfil?.responsable ?? "Alejandro Guevara Martínez",
+      responsable: perfil?.responsable ?? "Alejandro Fritz Guevara Martínez",
       cargo: perfil?.cargo ?? "Diseño, desarrollo y soporte técnico",
       ruc: perfil?.ruc ?? "",
       telefono: perfil?.telefono ?? "",

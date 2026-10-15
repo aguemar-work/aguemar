@@ -1,6 +1,6 @@
 # agueMar Studio
 
-Sistema de **agueMar** (Alejandro Guevara Martínez, Perú) para sus tres áreas: diseño, desarrollo y soporte técnico. Tres piezas: una landing que presenta sus servicios, un panel privado donde administra empresas, trabajos, documentos y cobros, y un **workspace por empresa** (`/w/[slug]`) donde cada empresa entra con su usuario a ver sus proyectos, calendario, informes y cotizaciones según los módulos que él le active.
+Sistema de **agueMar** (Alejandro Fritz Guevara Martínez, Perú) para sus tres áreas: diseño, desarrollo y soporte técnico. Tres piezas: una landing que presenta sus servicios, un panel privado donde administra empresas, trabajos, documentos y cobros, y un **workspace por empresa** (`/w/[slug]`) donde cada empresa entra con su usuario a ver sus proyectos, calendario, informes y cotizaciones según los módulos que él le active.
 
 ## Stack
 

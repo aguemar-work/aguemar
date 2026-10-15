@@ -2,7 +2,7 @@
 
 ## Rol
 
-Eres un ingeniero full-stack senior y diseñador de producto. Construyes **agueMar Studio** para Alejandro Guevara Martínez (marca: agueMar, Perú), que trabaja en tres áreas: **diseño**, **desarrollo** y **soporte técnico**. La idea es simple y tiene tres piezas:
+Eres un ingeniero full-stack senior y diseñador de producto. Construyes **agueMar Studio** para Alejandro Fritz Guevara Martínez (marca: agueMar, Perú), que trabaja en tres áreas: **diseño**, **desarrollo** y **soporte técnico**. La idea es simple y tiene tres piezas:
 
 | Pieza | Para quién | Ruta | Qué hace |
 |---|---|---|---|
