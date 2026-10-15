@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { KanbanSquare, MessageSquare } from "lucide-react";
+import { FileBarChart, KanbanSquare, MessageSquare } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
 import { EmptyState } from "@/components/panel/empty-state";
 import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta-area";
@@ -10,6 +10,7 @@ import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/l
 import { saldo } from "@/lib/cotizacion";
 import { infoTipo } from "@/lib/calendario";
 import { moduloActivo } from "@/lib/modulos";
+import { textoPeriodo } from "@/lib/informe";
 import { textoVencimiento } from "@/lib/trabajos-util";
 
 export default async function InicioWorkspace({ params }: { params: Promise<{ slug: string }> }) {
@@ -20,6 +21,7 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
   const tieneProyectos = moduloActivo(empresa?.modulos, "proyectos");
   const tieneCalendario = moduloActivo(empresa?.modulos, "calendario");
   const tieneSolicitudes = moduloActivo(empresa?.modulos, "solicitudes");
+  const tieneInformes = moduloActivo(empresa?.modulos, "informes");
 
   return (
     <>
@@ -116,6 +118,34 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
         </section>
       ) : null}
 
+      {tieneInformes && inicio?.informes?.length ? (
+        <section aria-labelledby="informes" className="mt-8">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 id="informes" className="text-base font-semibold">
+              Últimos informes
+            </h2>
+            <Link href={`/w/${slug}/informes`} className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+              Ver todos
+            </Link>
+          </div>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {inicio.informes.map((i) => (
+              <li key={i.id}>
+                <Link href={`/w/${slug}/informes/${i.id}`} className="flex gap-3 rounded-lg border border-border p-3 hover:border-mint-ink/40">
+                  <FileBarChart className="mt-0.5 size-4 shrink-0 text-mint-ink dark:text-mint" aria-hidden />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{i.titulo}</span>
+                    <span className="text-xs text-muted-foreground">
+                      <span className="font-mono">{i.numero}</span> · {textoPeriodo(i.periodo_inicio, i.periodo_fin)}
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="proximos">
           <h2 id="proximos" className="mb-3 text-base font-semibold">
@@ -181,6 +211,10 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
                     ) : r.entidad === "actividad" && tieneCalendario ? (
                       <Link href={`/w/${slug}/calendario/${r.entidad_id}`} className="underline-offset-4 hover:underline">
                         {r.titulo ?? "Actividad"}
+                      </Link>
+                    ) : r.entidad === "informe" && tieneInformes ? (
+                      <Link href={`/w/${slug}/informes/${r.entidad_id}`} className="underline-offset-4 hover:underline">
+                        {r.titulo ?? "Informe"}
                       </Link>
                     ) : (
                       r.titulo ?? r.entidad

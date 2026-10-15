@@ -314,7 +314,7 @@ export default async function InicioPanel() {
                   {r.comentarios.map((c) => (
                     <li key={c.id}>
                       <Link
-                        href={c.entidad === "trabajo" ? `/panel/trabajos/${c.entidad_id}#comentarios` : c.entidad === "actividad" ? `/panel/calendario/${c.entidad_id}` : "/panel/bandeja"}
+                        href={c.entidad === "trabajo" ? `/panel/trabajos/${c.entidad_id}#comentarios` : c.entidad === "actividad" ? `/panel/calendario/${c.entidad_id}` : c.entidad === "informe" ? `/panel/informes/${c.entidad_id}#comentarios` : "/panel/bandeja"}
                         className="block rounded-md p-2 -m-2 hover:bg-soft/70 dark:hover:bg-secondary/40"
                       >
                         <p className="text-xs text-muted-foreground">

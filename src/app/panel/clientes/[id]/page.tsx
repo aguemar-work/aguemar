@@ -19,12 +19,14 @@ import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 import { estadoEfectivo, saldo } from "@/lib/cotizacion";
 import { ListaCobros, RegistrarCobro } from "../../cotizaciones/cobros";
 import { eliminarCliente } from "../acciones";
+import { informesDe } from "@/lib/datos/informes";
+import { textoPeriodo } from "@/lib/informe";
 
 export const metadata: Metadata = { title: "Empresa" };
 
 export default async function ClienteDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [cliente, historial] = await Promise.all([obtenerCliente(id), historialCliente(id)]);
+  const [cliente, historial, informes] = await Promise.all([obtenerCliente(id), historialCliente(id), informesDe({ cliente: id })]);
   if (!cliente) notFound();
   const correoAcceso = await correoDeUsuario(cliente.usuario_id);
   const hoy = hoyLima();
@@ -228,6 +230,37 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
                   ))}
                 </TableBody>
               </Table>
+            )}
+          </section>
+
+          <section aria-labelledby="informes">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 id="informes" className="text-base font-semibold">
+                Informes <span className="font-mono text-sm text-muted-foreground">({informes.length})</span>
+              </h2>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/panel/informes/nuevo?cliente=${cliente.id}`}>
+                  <Plus /> Nuevo informe
+                </Link>
+              </Button>
+            </div>
+            {informes.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Sin informes de avance todavía.</p>
+            ) : (
+              <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+                {informes.map((i) => (
+                  <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                    <Link href={`/panel/informes/${i.id}`} className="min-w-0 underline-offset-4 hover:underline">
+                      <span className="mr-2 font-mono text-xs text-muted-foreground">{i.numero}</span>
+                      {i.titulo}
+                    </Link>
+                    <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {textoPeriodo(i.periodo_inicio, i.periodo_fin)}
+                      {i.publicado ? <Badge variant="ok">Publicado</Badge> : <Badge variant="outline">Borrador</Badge>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </section>
 

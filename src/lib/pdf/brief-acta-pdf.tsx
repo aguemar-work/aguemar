@@ -4,7 +4,7 @@ import { formatearFecha } from "@/lib/format";
 import { lineas, type ActaJson, type BriefJson, type MarcaJson } from "@/lib/documentos";
 import { C, Corchetes, Encabezado, Logo, Pie, Seccion, registrarFuentes, s } from "./base";
 
-function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora, empresa, marca }: {
+export function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora, empresa, marca }: {
   tipo: string;
   numero: string | null;
   fecha: string;
@@ -45,7 +45,7 @@ function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora, empresa,
   );
 }
 
-function Datos({ filas }: { filas: [string, string][] }) {
+export function Datos({ filas }: { filas: [string, string][] }) {
   return (
     <View style={{ flexDirection: "row", gap: 8 }} wrap={false}>
       {filas.map(([k, v]) => (
@@ -58,7 +58,7 @@ function Datos({ filas }: { filas: [string, string][] }) {
   );
 }
 
-function Lista({ items }: { items: string[] }) {
+export function Lista({ items }: { items: string[] }) {
   return (
     <View>
       {items.map((t, i) => (
@@ -71,7 +71,7 @@ function Lista({ items }: { items: string[] }) {
   );
 }
 
-function Cierre({ marca, firmaCliente, empresa, aceptado }: { marca: MarcaJson | null; firmaCliente: string; empresa: string; aceptado?: string | null }) {
+export function Cierre({ marca, firmaCliente, empresa, aceptado }: { marca: MarcaJson | null; firmaCliente: string; empresa: string; aceptado?: string | null }) {
   const nombreMarca = marca?.nombre_comercial ?? "agueMar";
   const contacto = [marca?.telefono, marca?.correo, marca?.web].filter(Boolean) as string[];
   return (

@@ -6,6 +6,7 @@ import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
 import { VistaFicha } from "@/components/documentos/vista-ficha";
 import { VistaCotizacion } from "@/components/documentos/vista-cotizacion";
 import { VistaActa, VistaBrief } from "@/components/documentos/vista-brief-acta";
+import { VistaInforme } from "@/components/documentos/vista-informe";
 import { NOMBRE_DOCUMENTO } from "@/lib/documentos";
 import { AceptarDocumento } from "@/components/documentos/aceptar-documento";
 import { portalDocumento } from "@/lib/datos/portal";
@@ -63,6 +64,13 @@ export default async function PortalDocumento({ params }: { params: Promise<{ to
             <Botones pdf={pdf} />
           </div>
           <VistaBrief b={doc.documento} />
+        </>
+      ) : doc.tipo === "informe" ? (
+        <>
+          <div className="mb-6 flex justify-end">
+            <Botones pdf={pdf} />
+          </div>
+          <VistaInforme i={doc.documento} />
         </>
       ) : doc.tipo === "acta" ? (
         <>

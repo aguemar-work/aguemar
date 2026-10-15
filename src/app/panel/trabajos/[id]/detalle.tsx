@@ -154,6 +154,7 @@ export async function DetalleTrabajo({ id }: { id: string }) {
                   ["Acta de entrega", "/panel/actas/nueva"],
                   ["Ficha técnica", "/panel/fichas/nueva"],
                   ["Actividad", "/panel/calendario/nueva"],
+                  ["Informe", "/panel/informes/nuevo"],
                 ].map(([texto, ruta]) => (
                   <Link
                     key={ruta}

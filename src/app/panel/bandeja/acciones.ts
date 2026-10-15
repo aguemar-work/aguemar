@@ -13,6 +13,7 @@ function rutasDe(entidad: EntidadComentario, entidadId: string) {
   const rutas = ["/panel/bandeja", "/panel"];
   if (entidad === "trabajo") rutas.push(`/panel/trabajos/${entidadId}`);
   if (entidad === "actividad") rutas.push(`/panel/calendario/${entidadId}`, "/panel/calendario");
+  if (entidad === "informe") rutas.push(`/panel/informes/${entidadId}`);
   return rutas;
 }
 

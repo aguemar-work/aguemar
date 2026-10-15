@@ -72,6 +72,10 @@ export default async function BandejaPage({ searchParams }: { searchParams: Prom
                   <Link href={`/panel/calendario/${c.entidad_id}`} className="underline-offset-4 hover:underline">
                     Actividad del calendario
                   </Link>
+                ) : c.entidad === "informe" ? (
+                  <Link href={`/panel/informes/${c.entidad_id}`} className="underline-offset-4 hover:underline">
+                    Informe de avance
+                  </Link>
                 ) : (
                   <span>{c.entidad}</span>
                 )}
@@ -85,6 +89,10 @@ export default async function BandejaPage({ searchParams }: { searchParams: Prom
                 ) : c.entidad === "actividad" ? (
                   <Button asChild size="sm" variant="mint">
                     <Link href={`/panel/calendario/${c.entidad_id}`}>Responder</Link>
+                  </Button>
+                ) : c.entidad === "informe" ? (
+                  <Button asChild size="sm" variant="mint">
+                    <Link href={`/panel/informes/${c.entidad_id}#comentarios`}>Responder</Link>
                   </Button>
                 ) : null}
                 <BotonLeido id={c.id} leido={c.leido} />

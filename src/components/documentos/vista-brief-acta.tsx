@@ -4,7 +4,7 @@ import { lineas, type ActaJson, type BriefJson } from "@/lib/documentos";
 import { formatearFecha, formatearFechaHora } from "@/lib/format";
 
 /** Portada oscura común de los documentos en pantalla. */
-function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora }: { tipo: string; numero: string | null; fecha: string; area: string; titulo: string; resumen?: string | null; pildora?: React.ReactNode }) {
+export function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora }: { tipo: string; numero: string | null; fecha: string; area: string; titulo: string; resumen?: string | null; pildora?: React.ReactNode }) {
   return (
     <header className="relative overflow-hidden rounded-xl bg-ink p-6 text-white sm:p-8">
       <svg aria-hidden viewBox="0 0 200 120" className="pointer-events-none absolute -right-6 -top-4 w-48 text-mint opacity-[0.12]" fill="none">
@@ -21,7 +21,7 @@ function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora }: { tipo
   );
 }
 
-function Seccion({ n, titulo, children }: { n: string; titulo: string; children: React.ReactNode }) {
+export function Seccion({ n, titulo, children }: { n: string; titulo: string; children: React.ReactNode }) {
   return (
     <section>
       <h3 className="mb-3 flex items-baseline gap-2 text-base font-semibold">
@@ -33,7 +33,7 @@ function Seccion({ n, titulo, children }: { n: string; titulo: string; children:
   );
 }
 
-function Lista({ items }: { items: string[] }) {
+export function Lista({ items }: { items: string[] }) {
   return (
     <ul className="space-y-1.5 text-sm">
       {items.map((t, i) => (
@@ -47,7 +47,7 @@ function Lista({ items }: { items: string[] }) {
 }
 
 /** Si la línea empieza con un enlace, lo vuelve clicable. */
-function EnlaceOTexto({ texto }: { texto: string }) {
+export function EnlaceOTexto({ texto }: { texto: string }) {
   const m = /^(https?:\/\/\S+)(.*)$/i.exec(texto);
   if (!m) return <span>{texto}</span>;
   return (
@@ -151,7 +151,7 @@ export function VistaActa({ a }: { a: ActaJson }) {
   );
 }
 
-function Dato({ k, v }: { k: string; v: string }) {
+export function Dato({ k, v }: { k: string; v: string }) {
   return (
     <div className="rounded-lg bg-soft p-3 dark:bg-secondary/50">
       <dt className="text-xs uppercase tracking-wide text-muted-foreground">{k}</dt>

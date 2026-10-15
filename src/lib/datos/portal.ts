@@ -1,13 +1,14 @@
 import { cache } from "react";
 import { crearClienteServidor } from "@/lib/insforge/server";
-import type { ActaJson, BriefJson, FichaJson } from "@/lib/documentos";
+import type { ActaJson, BriefJson, FichaJson, InformeJson } from "@/lib/documentos";
 import type { WsCotizacion } from "./workspace";
 
 export type DocumentoPortal =
   | { tipo: "ficha"; documento: FichaJson }
   | { tipo: "cotizacion"; documento: WsCotizacion }
   | { tipo: "brief"; documento: BriefJson }
-  | { tipo: "acta"; documento: ActaJson };
+  | { tipo: "acta"; documento: ActaJson }
+  | { tipo: "informe"; documento: InformeJson };
 
 /** Documento por token público (portal_documento valida el token y cuenta la vista). Sin sesión. */
 export const portalDocumento = cache(async function portalDocumento(token: string): Promise<DocumentoPortal | null> {

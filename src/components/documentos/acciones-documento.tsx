@@ -12,7 +12,7 @@ import { NOMBRE_DOCUMENTO, urlPortal } from "@/lib/documentos";
 import type { Resultado } from "@/lib/datos/resultado";
 import { enlaceDocumento, revocarEnlace } from "@/app/panel/fichas/acciones";
 
-type Tipo = "ficha" | "brief" | "acta";
+type Tipo = "ficha" | "brief" | "acta" | "informe";
 
 interface Props {
   tipo: Tipo;
@@ -35,7 +35,7 @@ interface Props {
   extra?: React.ReactNode;
 }
 
-/** Publicar, PDF, enlace público con QR, mensaje para WhatsApp y edición (fichas, briefs y actas). */
+/** Publicar, PDF, enlace público con QR, mensaje para WhatsApp y edición (fichas, briefs, actas e informes). */
 export function AccionesDocumento({ tipo, id, numero, titular, publicada, token: tokenInicial, vistas, empresa, publicar: accionPublicar, ruta, rutaWorkspace, bloqueado, extra }: Props) {
   const [pendiente, iniciar] = useTransition();
   const [token, setToken] = useState(tokenInicial);
@@ -263,7 +263,9 @@ function DialogoMensaje({
       ? " con el detalle del servicio, el estado del equipo y las recomendaciones"
       : tipo === "acta"
         ? ". Revisa los entregables y, si todo está conforme, acéptala con tu nombre y DNI"
-        : " para revisar juntos el alcance";
+        : tipo === "informe"
+          ? " con lo avanzado en el periodo. Si tienes comentarios, puedes dejarlos ahí mismo"
+          : " para revisar juntos el alcance";
   const articulo = tipo === "ficha" || tipo === "acta" ? "la" : "el";
   const texto = enlace
     ? `${saludo}, te comparto ${articulo} ${nombre} ${numero} (${titular})${detalle}: ${enlace}`
@@ -276,7 +278,9 @@ function DialogoMensaje({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Mensaje para {empresa.nombre}</DialogTitle>
-          <DialogDescription>{empresa.conWorkspace ? "El enlace lleva a Documentos en su espacio." : "El enlace abre el documento sin iniciar sesión."}</DialogDescription>
+          <DialogDescription>
+            {empresa.conWorkspace ? `El enlace lleva a ${tipo === "informe" ? "Informes" : "Documentos"} en su espacio.` : "El enlace abre el documento sin iniciar sesión."}
+          </DialogDescription>
         </DialogHeader>
         <p className="whitespace-pre-line rounded-md bg-soft p-3 text-sm dark:bg-secondary/50">{texto}</p>
         <DialogFooter>

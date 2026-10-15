@@ -155,6 +155,28 @@ export interface ActaJson {
   token: string | null;
 }
 
+// ---------------------------------------------------------------------------
+// Informe de avance (9)
+// ---------------------------------------------------------------------------
+export interface InformeJson {
+  id: string;
+  numero: string | null;
+  fecha: string;
+  area: Area;
+  titulo: string;
+  periodo_inicio: string;
+  periodo_fin: string;
+  resumen: string | null;
+  indicadores: { valor: string; etiqueta: string; nota?: string | null }[];
+  secciones: { titulo: string; texto: string }[];
+  publicado: boolean;
+  publicado_en: string | null;
+  trabajo: string | null;
+  cliente: FichaJson["cliente"];
+  marca: MarcaJson | null;
+  token: string | null;
+}
+
 /** Texto con una línea por punto → lista sin vacíos. */
 export function lineas(texto: string | null | undefined): string[] {
   return (texto ?? "")
@@ -164,4 +186,4 @@ export function lineas(texto: string | null | undefined): string[] {
 }
 
 /** Nombre corto del tipo de documento para la UI. */
-export const NOMBRE_DOCUMENTO = { ficha: "Ficha técnica", brief: "Brief", acta: "Acta de entrega", cotizacion: "Cotización" } as const;
+export const NOMBRE_DOCUMENTO = { ficha: "Ficha técnica", brief: "Brief", acta: "Acta de entrega", cotizacion: "Cotización", informe: "Informe de avance" } as const;

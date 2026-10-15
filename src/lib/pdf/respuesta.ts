@@ -1,8 +1,9 @@
 import { nombreArchivo } from "@/lib/cotizacion";
-import { urlPortal, type ActaJson, type BriefJson, type FichaJson } from "@/lib/documentos";
+import { urlPortal, type ActaJson, type BriefJson, type FichaJson, type InformeJson } from "@/lib/documentos";
 import { pdfCotizacion, type DatosCotizacionPdf } from "./cotizacion-pdf";
 import { pdfFicha } from "./ficha-pdf";
 import { pdfActa, pdfBrief } from "./brief-acta-pdf";
+import { pdfInforme } from "./informe-pdf";
 
 function responder(pdf: Uint8Array, archivo: string, request: Request): Response {
   const descargar = new URL(request.url).searchParams.has("descargar");
@@ -38,4 +39,8 @@ export async function responderPdfBrief(b: BriefJson, request: Request): Promise
 
 export async function responderPdfActa(a: ActaJson, request: Request): Promise<Response> {
   return responder(await pdfActa(a), nombreArchivo(a.numero ?? "AE-borrador", a.cliente.nombre), request);
+}
+
+export async function responderPdfInforme(i: InformeJson, request: Request): Promise<Response> {
+  return responder(await pdfInforme(i), nombreArchivo(i.numero ?? "INF-borrador", i.cliente.nombre), request);
 }

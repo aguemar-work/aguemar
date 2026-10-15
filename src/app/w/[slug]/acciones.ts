@@ -19,6 +19,7 @@ export async function comentarEmpresa(slug: string, entidad: EntidadComentario, 
   if (error) return fallo(traducirError(error).mensaje);
   if (entidad === "trabajo") revalidatePath(`/w/${slug}/proyectos/${entidadId}`);
   if (entidad === "actividad") revalidatePath(`/w/${slug}/calendario/${entidadId}`);
+  if (entidad === "informe") revalidatePath(`/w/${slug}/informes/${entidadId}`);
   revalidatePath("/panel", "layout");
   revalidatePath(`/w/${slug}`);
   return exito({ id: data as string });

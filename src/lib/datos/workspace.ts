@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { crearClienteServidor } from "@/lib/insforge/server";
-import type { ActaJson, BriefJson, FichaJson } from "@/lib/documentos";
+import type { ActaJson, BriefJson, FichaJson, InformeJson } from "@/lib/documentos";
 import type { EstadoActividad, ItemCalendario, TipoActividad } from "@/lib/calendario";
 import type { Area, EstadoCotizacion, EstadoFinalFicha, EstadoTrabajo, IgvModo, MedioPago, Moneda, Prioridad, TipoEntregable } from "@/types/database";
 import { SinSesionError } from "./resultado";
@@ -50,6 +50,20 @@ export interface WsInicio {
   respuestas: { id: string; entidad: string; entidad_id: string; texto: string; created_at: string; titulo: string | null }[];
   actividades?: { id: string; titulo: string; tipo: string; fecha: string; hora_inicio: string | null }[];
   solicitudes_abiertas?: number;
+  informes?: { id: string; numero: string | null; titulo: string; periodo_inicio: string; periodo_fin: string }[];
+}
+
+export interface WsInformeResumen {
+  id: string;
+  numero: string | null;
+  fecha: string;
+  area: Area;
+  titulo: string;
+  periodo_inicio: string;
+  periodo_fin: string;
+  resumen: string | null;
+  publicado_en: string | null;
+  comentarios: number;
 }
 
 export interface WsCotizacionResumen {
@@ -202,5 +216,7 @@ export const ws = {
   calendario: async (desde: string, hasta: string) => (await rpc<ItemCalendario[]>("ws_calendario", { p_desde: desde, p_hasta: hasta })) ?? [],
   actividad: (id: string) => rpc<WsActividad>("ws_actividad", { p_id: id }),
   solicitudes: async () => (await rpc<WsSolicitud[]>("ws_solicitudes")) ?? [],
+  informes: async () => (await rpc<WsInformeResumen[]>("ws_informes")) ?? [],
+  informe: (id: string) => rpc<InformeJson>("ws_informe", { p_id: id }),
   comentarios: async (entidad: string, id: string) => (await rpc<WsComentario[]>("ws_comentarios", { p_entidad: entidad, p_id: id })) ?? [],
 };

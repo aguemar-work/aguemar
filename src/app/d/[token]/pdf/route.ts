@@ -1,5 +1,5 @@
 import { portalDocumento } from "@/lib/datos/portal";
-import { responderPdfActa, responderPdfBrief, responderPdfCotizacion, responderPdfFicha } from "@/lib/pdf/respuesta";
+import { responderPdfActa, responderPdfBrief, responderPdfCotizacion, responderPdfFicha, responderPdfInforme } from "@/lib/pdf/respuesta";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +16,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
       return responderPdfBrief(doc.documento, request);
     case "acta":
       return responderPdfActa(doc.documento, request);
+    case "informe":
+      return responderPdfInforme(doc.documento, request);
     default:
       return responderPdfCotizacion(doc.documento, request);
   }
