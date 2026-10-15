@@ -4,6 +4,7 @@ import { formatearFecha } from "@/lib/format";
 import { ESTADOS_DIAGNOSTICO, ESTADOS_FINALES, ESTADOS_INCIDENCIA, MODALIDADES, etiquetaDe, type FichaJson } from "@/lib/documentos";
 import type { EstadoDiagnostico, EstadoFinalFicha, EstadoIncidencia } from "@/types/database";
 import { C, Corchetes, Encabezado, Logo, Pie, Seccion, registrarFuentes, s } from "./base";
+import { telefonoLegible } from "@/lib/landing";
 
 const PILDORA_FINAL: Record<EstadoFinalFicha, { fondo: string; color: string }> = {
   operativo: { fondo: C.mint, color: C.ink },
@@ -47,7 +48,7 @@ export function DocumentoFicha({ f, qr, url }: { f: FichaJson; qr: string | null
   const marca = f.marca;
   const nombreMarca = marca?.nombre_comercial || "agueMar";
   const final = ESTADOS_FINALES.find((e) => e.valor === f.estado_final)!;
-  const contacto = [marca?.telefono, marca?.correo, marca?.web].filter(Boolean) as string[];
+  const contacto = [telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[];
   const equipo = f.equipo
     ? ([
         ["Marca y modelo", [f.equipo.marca, f.equipo.modelo].filter(Boolean).join(" ")],

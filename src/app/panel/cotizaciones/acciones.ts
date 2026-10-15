@@ -8,6 +8,7 @@ import { aCentimos, hoyLima } from "@/lib/format";
 import { porcentajeABasis } from "@/lib/validators/marca";
 import { aceptacionSchema, cobroSchema, cotizacionSchema, lineaABase, type CobroInput, type CotizacionInput } from "@/lib/validators/cotizacion";
 import type { CotizacionRow } from "@/types/database";
+import { avisarDocumentoEmpresa } from "@/lib/correo/avisos";
 
 /** Cotizaciones, trabajos, empresas, inicio y workspaces: todo lo que muestra montos o estados. */
 function revalidar() {
@@ -79,6 +80,7 @@ export async function enviarCotizacion(id: string): Promise<Resultado<{ token: s
     if (error) return fallo(traducirError(error).mensaje);
     // Enlace del portal: para quien no tiene workspace (ve, descarga y acepta sin entrar).
     const enlace = await db.rpc("obtener_enlace", { p_tipo: "cotizacion", p_id: id, p_renovar: false });
+    await avisarDocumentoEmpresa("cotizacion", id);
     revalidar();
     return exito({ token: enlace.error ? null : (enlace.data as string) });
   } catch (e) {

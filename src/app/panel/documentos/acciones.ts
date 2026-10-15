@@ -6,6 +6,7 @@ import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { actaSchema, briefSchema, type ActaInput, type BriefInput } from "@/lib/validators/brief-acta";
 import { aceptacionSchema } from "@/lib/validators/cotizacion";
+import { avisarDocumentoEmpresa } from "@/lib/correo/avisos";
 
 function revalidar() {
   revalidatePath("/panel", "layout");
@@ -110,6 +111,7 @@ async function publicar_(tabla: "briefs" | "actas_entrega", tipo: "brief" | "act
       const r = await db.rpc("obtener_enlace", { p_tipo: tipo, p_id: id, p_renovar: false });
       if (r.error) return fallo(traducirError(r.error).mensaje);
       token = r.data as string;
+      await avisarDocumentoEmpresa(tipo, id);
     }
     revalidar();
     return exito({ token });

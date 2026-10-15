@@ -6,6 +6,7 @@ import { conSesion } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import type { EntidadComentario } from "@/types/database";
+import { avisarRespuestaEmpresa } from "@/lib/correo/avisos";
 
 const textoSchema = z.string().trim().min(1, "Escribe un comentario.").max(4000);
 
@@ -33,6 +34,7 @@ export async function comentarPropietario(entidad: EntidadComentario, entidadId:
     await db.from("comentarios").update({ leido: true }).eq("entidad", entidad).eq("entidad_id", entidadId).eq("es_propietario", false);
     rutasDe(entidad, entidadId).forEach((r) => revalidatePath(r));
     revalidatePath("/w", "layout");
+    await avisarRespuestaEmpresa(entidad, entidadId, clienteId, parsed.data);
     return exito({ id: (data as { id: string }).id });
   } catch (e) {
     return fallo(traducirError(e).mensaje);

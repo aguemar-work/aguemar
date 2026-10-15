@@ -3,6 +3,7 @@ import { C, Corchetes, Encabezado, Logo, Pie, Seccion, registrarFuentes, s } fro
 import { formatearFecha, formatearMonto, type Moneda } from "@/lib/format";
 import { rotuloArea } from "@/lib/areas";
 import type { Area, EstadoCotizacion, IgvModo } from "@/types/database";
+import { telefonoLegible } from "@/lib/landing";
 
 // ---------------------------------------------------------------------------
 // Datos que necesita el PDF (los arma el panel o el workspace).
@@ -65,7 +66,7 @@ export function DocumentoCotizacion({ d }: { d: DatosCotizacionPdf }) {
     ["Yape", marca?.pago_yape],
     ["Plin", marca?.pago_plin],
   ].filter(([, v]) => v) as [string, string][];
-  const contacto = [marca?.telefono, marca?.correo, marca?.web].filter(Boolean) as string[];
+  const contacto = [telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[];
   const igvTexto = `${(d.igv_pct / 100).toLocaleString("es-PE", { maximumFractionDigits: 2 })} %`;
   let n = 0;
   const sig = () => String(n++).padStart(2, "0");

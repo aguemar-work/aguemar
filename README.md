@@ -30,7 +30,8 @@ Sin variables de InsForge la app compila igual y muestra un aviso en el panel y 
 | `INSFORGE_API_KEY` | solo servidor | tareas administrativas (recordatorios, vencimientos). Equivale a una service role |
 | `NEXT_PUBLIC_SITE_URL` | sí | URL pública del sitio, usada en enlaces y OG |
 | `NEXT_PUBLIC_WHATSAPP` | recomendada | número en formato internacional sin `+` |
-| `RESEND_API_KEY`, `RESEND_FROM`, `LEADS_NOTIFY_TO` | no | envío de correos con PDF y avisos de leads |
+| `RESEND_API_KEY`, `RESEND_FROM` | no | avisos por correo con Resend; sin API key no se envía nada |
+| `AVISOS_PARA` | no | a dónde te llegan los avisos (si falta, el correo de Mi marca) |
 | `CRON_SECRET` | no | protege la ruta de tareas programadas |
 
 Nunca subas `.env.local` ni `.insforge/project.json` al repositorio.
@@ -98,7 +99,24 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 
 1. Importa el repositorio en Vercel.
 2. Configura las variables de entorno (las mismas de `.env.local`, con `NEXT_PUBLIC_SITE_URL` apuntando al dominio final).
-3. Despliega. Las tareas programadas (vencimiento de cotizaciones, recordatorios) se configuran en la fase 11 con Vercel Cron o con las schedules de InsForge.
+3. Despliega: cada push a `main` publica solo. La base de InsForge es la misma para local y producción.
+
+### Correos (Resend)
+
+1. Crea la cuenta en resend.com y, en **Domains**, agrega `aguemar.com`.
+2. Copia en Namecheap (Advanced DNS) los registros que te muestra Resend (MX y TXT de `send`, y el TXT de DKIM `resend._domainkey`). No toques el registro `korax`.
+3. Cuando el dominio aparezca como verificado, crea una API key y agrégala en Vercel (y en `.env.local` si quieres probar en local): `RESEND_API_KEY`, `RESEND_FROM="agueMar <avisos@aguemar.com>"` y, opcional, `AVISOS_PARA`.
+4. Vuelve a desplegar. Sin dominio verificado, Resend solo deja enviar a tu propio correo (`RESEND_FROM="agueMar <onboarding@resend.dev>"`).
+
+| Aviso | Para | Cuándo |
+|---|---|---|
+| Nuevo lead | ti | alguien escribe en el formulario de la landing |
+| Comentario / solicitud | ti | una empresa comenta o pide un trabajo |
+| Aceptación | ti | aceptan una cotización o un acta (en su espacio o por enlace) |
+| Documento publicado | empresa | publicas una ficha, brief, acta o informe, o envías una cotización |
+| Respuesta | empresa | respondes un comentario o una solicitud |
+
+Los correos salen después de responder (`after()`), así que no hacen más lenta ninguna acción. Cada empresa puede quedar sin avisos desde su ficha (Módulos → Avisos por correo).
 
 ## Estructura
 
@@ -126,4 +144,4 @@ _respaldos         volcados locales (ignorado por git)
 8. ✅ Calendario (actividades, entregas y mantenimientos) y solicitudes de las empresas.
 9. ✅ Informes de avance: por empresa y periodo, armados con lo registrado (tareas, actividades, fichas), PDF, enlace público y comentarios de la empresa.
 10. ✅ Landing de una página con servicios por área, contacto (leads con conversión a empresa en el panel) y SEO.
-11. Notificaciones por correo, pulido, tests completos y despliegue en Vercel con aguemar.com.
+11. ✅ Avisos por correo (Resend), páginas 404 y de error, cabeceras de seguridad, índices sugeridos por el advisor de InsForge, prueba de aislamiento del workspace y guía de despliegue.

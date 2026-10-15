@@ -1,15 +1,24 @@
 "use client";
 
-import { useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
+import { Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FASE_ACTUAL, MODULOS, type ClaveModulo } from "@/lib/modulos";
-import { actualizarModulosEmpresa } from "../acciones";
+import { actualizarModulosEmpresa, cambiarAvisosEmpresa } from "../acciones";
 
-export function ModulosEmpresa({ clienteId, modulos }: { clienteId: string; modulos: string[] }) {
+export function ModulosEmpresa({ clienteId, modulos, avisos }: { clienteId: string; modulos: string[]; avisos: boolean }) {
   const [pendiente, iniciar] = useTransition();
+  const [avisosVista, setAvisosVista] = useOptimistic(avisos);
+
+  const alternarAvisos = (valor: boolean) =>
+    iniciar(async () => {
+      setAvisosVista(valor);
+      const r = await cambiarAvisosEmpresa(clienteId, valor);
+      if (!r.ok) toast.error(r.error);
+    });
 
   const alternar = (clave: ClaveModulo, activo: boolean) =>
     iniciar(async () => {
@@ -47,6 +56,14 @@ export function ModulosEmpresa({ clienteId, modulos }: { clienteId: string; modu
               </li>
             );
           })}
+          <li className="flex items-center gap-3 py-3">
+            <Mail className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">Avisos por correo</p>
+              <p className="text-xs text-muted-foreground">Documentos e informes publicados, cotizaciones enviadas y tus respuestas. Van al correo de la empresa o, si no tiene, al de su acceso.</p>
+            </div>
+            <Switch checked={avisosVista} onCheckedChange={alternarAvisos} disabled={pendiente} aria-label="Enviar avisos por correo" />
+          </li>
         </ul>
       </CardContent>
     </Card>

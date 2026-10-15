@@ -6,6 +6,7 @@ import { z } from "zod";
 import { crearClienteServidor } from "@/lib/insforge/server";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
+import { avisarAceptacion } from "@/lib/correo/avisos";
 
 const aceptacionSchema = z.object({
   nombre: z.string().trim().min(2, "Escribe tu nombre completo.").max(120),
@@ -23,7 +24,7 @@ export async function aceptarCotizacionPortal(token: string, input: { nombre: st
   if (!insforge) return fallo("El servicio no está disponible. Inténtalo más tarde.");
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || null;
-  const { error } = await insforge.database.rpc("aceptar_cotizacion", {
+  const { data, error } = await insforge.database.rpc("aceptar_cotizacion", {
     p_token: token,
     p_nombre: parsed.data.nombre,
     p_dni: parsed.data.dni,
@@ -33,6 +34,8 @@ export async function aceptarCotizacionPortal(token: string, input: { nombre: st
   if (error) return fallo(traducirError(error).mensaje);
   revalidatePath(`/d/${token}`);
   revalidatePath("/panel", "layout");
+  const r = data as { ya_aceptada?: boolean; numero?: string } | null;
+  if (!r?.ya_aceptada) avisarAceptacion({ tipo: "cotizacion", numero: r?.numero ?? null, nombre: parsed.data.nombre, via: "enlace" });
   return exito(undefined);
 }
 
@@ -45,9 +48,11 @@ export async function aceptarActaPortal(token: string, input: { nombre: string; 
   }
   const insforge = await crearClienteServidor();
   if (!insforge) return fallo("El servicio no está disponible. Inténtalo más tarde.");
-  const { error } = await insforge.database.rpc("aceptar_acta", { p_token: token, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni });
+  const { data, error } = await insforge.database.rpc("aceptar_acta", { p_token: token, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni });
   if (error) return fallo(traducirError(error).mensaje);
   revalidatePath(`/d/${token}`);
   revalidatePath("/panel", "layout");
+  const r = data as { ya_aceptada?: boolean; numero?: string } | null;
+  if (!r?.ya_aceptada) avisarAceptacion({ tipo: "acta", numero: r?.numero ?? null, nombre: parsed.data.nombre, via: "enlace" });
   return exito(undefined);
 }

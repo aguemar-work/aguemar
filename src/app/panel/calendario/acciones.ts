@@ -8,6 +8,7 @@ import { traducirError } from "@/lib/insforge/errores";
 import { actividadSchema, type ActividadInput } from "@/lib/validators/actividad";
 import { hoyLima } from "@/lib/format";
 import type { Area } from "@/types/database";
+import { avisarSolicitudRespondida } from "@/lib/correo/avisos";
 
 function revalidar() {
   revalidatePath("/panel", "layout");
@@ -92,6 +93,7 @@ export async function responderSolicitud(id: string, input: { estado: "en_revisi
       .eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
     revalidar();
+    await avisarSolicitudRespondida(id);
     return exito(undefined);
   } catch (e) {
     return fallo(traducirError(e).mensaje);

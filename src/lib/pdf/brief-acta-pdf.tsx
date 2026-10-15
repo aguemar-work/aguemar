@@ -3,6 +3,7 @@ import { rotuloArea } from "@/lib/areas";
 import { formatearFecha } from "@/lib/format";
 import { lineas, type ActaJson, type BriefJson, type MarcaJson } from "@/lib/documentos";
 import { C, Corchetes, Encabezado, Logo, Pie, Seccion, registrarFuentes, s } from "./base";
+import { telefonoLegible } from "@/lib/landing";
 
 export function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora, empresa, marca }: {
   tipo: string;
@@ -15,7 +16,7 @@ export function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora, e
   empresa: string;
   marca: MarcaJson | null;
 }) {
-  const contacto = [marca?.telefono, marca?.correo, marca?.web].filter(Boolean) as string[];
+  const contacto = [telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[];
   return (
     <Page size="A4" style={s.portada}>
       <View style={{ position: "absolute", top: 18, right: 0 }}>
@@ -73,7 +74,7 @@ export function Lista({ items }: { items: string[] }) {
 
 export function Cierre({ marca, firmaCliente, empresa, aceptado }: { marca: MarcaJson | null; firmaCliente: string; empresa: string; aceptado?: string | null }) {
   const nombreMarca = marca?.nombre_comercial ?? "agueMar";
-  const contacto = [marca?.telefono, marca?.correo, marca?.web].filter(Boolean) as string[];
+  const contacto = [telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[];
   return (
     <View>
       {aceptado ? <Text style={{ backgroundColor: C.mintSoft, color: C.mintInk, padding: 8, borderRadius: 4, marginBottom: 12 }}>{aceptado}</Text> : null}

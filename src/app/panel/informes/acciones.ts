@@ -8,6 +8,7 @@ import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { armarDesdePeriodo, type IndicadorInforme, type SeccionInforme } from "@/lib/informe";
 import { informeSchema, type InformeInput } from "@/lib/validators/informe";
+import { avisarDocumentoEmpresa } from "@/lib/correo/avisos";
 
 function revalidar() {
   revalidatePath("/panel", "layout");
@@ -55,6 +56,7 @@ export async function publicarInforme(id: string, publicar: boolean): Promise<Re
       const r = await db.rpc("obtener_enlace", { p_tipo: "informe", p_id: id, p_renovar: false });
       if (r.error) return fallo(traducirError(r.error).mensaje);
       token = r.data as string;
+      await avisarDocumentoEmpresa("informe", id);
     }
     revalidar();
     return exito({ token });

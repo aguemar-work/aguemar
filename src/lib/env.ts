@@ -34,6 +34,8 @@ export function envServidor() {
     RESEND_API_KEY: vacioAUndefined(process.env.RESEND_API_KEY),
     RESEND_FROM: vacioAUndefined(process.env.RESEND_FROM),
     LEADS_NOTIFY_TO: vacioAUndefined(process.env.LEADS_NOTIFY_TO),
+    /** A dónde llegan tus avisos (leads, comentarios, solicitudes, aceptaciones). Si falta, el correo de Mi marca. */
+    AVISOS_PARA: vacioAUndefined(process.env.AVISOS_PARA) ?? vacioAUndefined(process.env.LEADS_NOTIFY_TO),
     CRON_SECRET: vacioAUndefined(process.env.CRON_SECRET),
   };
 }

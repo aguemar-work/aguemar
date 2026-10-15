@@ -64,6 +64,7 @@ export type ClienteRow = Base & {
   usuario_id: string | null;
   modulos: string[];
   activa: boolean;
+  avisos_correo: boolean;
   nombre: string;
   tipo_doc: TipoDoc;
   num_doc: string | null;

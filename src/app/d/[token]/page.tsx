@@ -12,6 +12,7 @@ import { AceptarDocumento } from "@/components/documentos/aceptar-documento";
 import { portalDocumento } from "@/lib/datos/portal";
 import { formatearFecha, formatearFechaHora, formatearMonto } from "@/lib/format";
 import { aceptarActaPortal, aceptarCotizacionPortal } from "./acciones";
+import { telefonoLegible } from "@/lib/landing";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ export default async function PortalDocumento({ params }: { params: Promise<{ to
   const pdf = `/d/${token}/pdf`;
 
   return (
-    <Marco marca={marca?.nombre_comercial} contacto={[marca?.telefono, marca?.correo, marca?.web].filter(Boolean) as string[]}>
+    <Marco marca={marca?.nombre_comercial} contacto={[telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[]}>
       {doc.tipo === "ficha" ? (
         <>
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -133,3 +133,16 @@ export async function restablecerContrasenaEmpresa(clienteId: string, usuarioId:
     return fallo(traducirError(e).mensaje);
   }
 }
+
+/** Activa o desactiva los avisos por correo a la empresa. */
+export async function cambiarAvisosEmpresa(clienteId: string, avisos: boolean): Promise<Resultado<void>> {
+  try {
+    const { db } = await conSesion();
+    const { error } = await db.from("clientes").update({ avisos_correo: avisos }).eq("id", clienteId);
+    if (error) return fallo(traducirError(error).mensaje);
+    revalidatePath(`/panel/clientes/${clienteId}`);
+    return exito(undefined);
+  } catch (e) {
+    return fallo(traducirError(e).mensaje);
+  }
+}

@@ -5,6 +5,7 @@ import { bloques, textoPeriodo } from "@/lib/informe";
 import type { InformeJson } from "@/lib/documentos";
 import { C, Encabezado, Logo, Pie, Seccion, registrarFuentes, s } from "./base";
 import { Datos, Lista, Portada } from "./brief-acta-pdf";
+import { telefonoLegible } from "@/lib/landing";
 
 function Indicadores({ items }: { items: InformeJson["indicadores"] }) {
   return (
@@ -42,7 +43,7 @@ function Contenido({ texto }: { texto: string }) {
 function Cierre({ i }: { i: InformeJson }) {
   const marca = i.marca;
   const nombreMarca = marca?.nombre_comercial ?? "agueMar";
-  const contacto = [marca?.telefono, marca?.correo, marca?.web].filter(Boolean) as string[];
+  const contacto = [telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[];
   return (
     <View>
       <View style={{ width: 220, marginTop: 30, borderTopWidth: 0.8, borderTopColor: C.ink, paddingTop: 4 }}>

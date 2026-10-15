@@ -6,6 +6,7 @@ import { clienteAnonimo } from "@/lib/datos/landing";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { leadSchema, mensajeLead, type LeadInput } from "@/lib/validators/lead";
+import { avisarLead } from "@/lib/correo/avisos";
 
 /** IP del visitante según el proxy (Vercel pone la real primero en x-forwarded-for). */
 function ipDe(h: Headers): string | null {
@@ -41,6 +42,7 @@ export async function enviarContacto(input: LeadInput): Promise<Resultado<void>>
       return fallo(/demasiados/i.test(error.message ?? "") ? "Recibí varios mensajes desde tu conexión. Intenta en una hora o escríbeme por WhatsApp." : t.mensaje);
     }
     revalidatePath("/panel", "layout");
+    avisarLead({ nombre: d.nombre, telefono: d.telefono ?? null, correo: d.correo ?? null, interes: d.interes ?? null, mensaje: mensajeLead(d) });
     return exito(undefined);
   } catch (e) {
     return fallo(traducirError(e).mensaje);

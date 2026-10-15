@@ -6,6 +6,7 @@ import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { EQUIPO_NUEVO, fichaSchema, type FichaInput } from "@/lib/validators/ficha";
 import type { TipoDocumento } from "@/types/database";
+import { avisarDocumentoEmpresa } from "@/lib/correo/avisos";
 
 function revalidar() {
   revalidatePath("/panel", "layout");
@@ -139,6 +140,7 @@ export async function publicarFicha(id: string, publicar: boolean): Promise<Resu
       const r = await db.rpc("obtener_enlace", { p_tipo: "ficha", p_id: id, p_renovar: false });
       if (r.error) return fallo(traducirError(r.error).mensaje);
       token = r.data as string;
+      await avisarDocumentoEmpresa("ficha", id);
     }
     revalidar();
     return exito({ token });

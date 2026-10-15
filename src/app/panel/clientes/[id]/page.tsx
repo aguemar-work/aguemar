@@ -92,7 +92,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
 
         <div className="space-y-6 lg:col-span-2">
           <AccesoEmpresa clienteId={id} slug={cliente.slug} usuarioId={cliente.usuario_id} correoUsuario={correoAcceso} />
-          <ModulosEmpresa clienteId={id} modulos={cliente.modulos ?? []} />
+          <ModulosEmpresa clienteId={id} modulos={cliente.modulos ?? []} avisos={cliente.avisos_correo !== false} />
 
           <section aria-labelledby="trabajos">
             <div className="mb-3 flex items-center justify-between">
