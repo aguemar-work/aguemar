@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
 import { VistaFicha } from "@/components/documentos/vista-ficha";
 import { VistaCotizacion } from "@/components/documentos/vista-cotizacion";
-import { AceptarCotizacion } from "@/components/documentos/aceptar-cotizacion";
+import { VistaActa, VistaBrief } from "@/components/documentos/vista-brief-acta";
+import { NOMBRE_DOCUMENTO } from "@/lib/documentos";
+import { AceptarDocumento } from "@/components/documentos/aceptar-documento";
 import { portalDocumento } from "@/lib/datos/portal";
 import { formatearFecha, formatearFechaHora, formatearMonto } from "@/lib/format";
-import { aceptarCotizacionPortal } from "./acciones";
+import { aceptarActaPortal, aceptarCotizacionPortal } from "./acciones";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
   const doc = await portalDocumento(token);
   if (!doc) return { title: "Enlace no válido", robots: NOINDEX };
   const marca = doc.documento.marca?.nombre_comercial ?? "agueMar";
-  const titulo = doc.tipo === "ficha" ? `${doc.documento.numero} · Ficha técnica` : `${doc.documento.numero} · Cotización`;
+  const titulo = `${doc.documento.numero} · ${NOMBRE_DOCUMENTO[doc.tipo]}`;
   return { title: { absolute: `${titulo} · ${marca}` }, robots: NOINDEX };
 }
 
-/** Portal público por token: ficha técnica publicada o cotización enviada. Sin login y fuera de buscadores. */
+/** Portal público por token: ficha, brief o acta publicados, o cotización enviada. Sin login y fuera de buscadores. */
 export default async function PortalDocumento({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const doc = await portalDocumento(token);
@@ -55,6 +57,33 @@ export default async function PortalDocumento({ params }: { params: Promise<{ to
           </div>
           <VistaFicha f={doc.documento} />
         </>
+      ) : doc.tipo === "brief" ? (
+        <>
+          <div className="mb-6 flex justify-end">
+            <Botones pdf={pdf} />
+          </div>
+          <VistaBrief b={doc.documento} />
+        </>
+      ) : doc.tipo === "acta" ? (
+        <>
+          <div className="mb-6 flex justify-end">
+            <Botones pdf={pdf} />
+          </div>
+          {!doc.documento.aceptacion ? (
+            <div className="mb-8">
+              <AceptarDocumento
+                aceptar={aceptarActaPortal.bind(null, token)}
+                contacto={doc.documento.cliente.contacto}
+                titulo="Confirmar la recepción"
+                descripcion="Revisa los entregables. Si todo está conforme, confirma con tu nombre y DNI."
+                conformidad="Recibí los entregables listados a mi conformidad."
+                boton="Confirmar recepción"
+                textoExito="¡Gracias! Recepción confirmada."
+              />
+            </div>
+          ) : null}
+          <VistaActa a={doc.documento} />
+        </>
       ) : (
         <>
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -73,7 +102,7 @@ export default async function PortalDocumento({ params }: { params: Promise<{ to
             c={doc.documento}
             arriba={
               doc.documento.estado === "enviada" ? (
-                <AceptarCotizacion
+                <AceptarDocumento
                   aceptar={aceptarCotizacionPortal.bind(null, token)}
                   total={formatearMonto(doc.documento.total, doc.documento.moneda)}
                   contacto={doc.documento.cliente.contacto}

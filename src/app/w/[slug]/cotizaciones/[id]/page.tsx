@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ws } from "@/lib/datos/workspace";
 import { moduloActivo } from "@/lib/modulos";
 import { formatearFechaHora, formatearMonto } from "@/lib/format";
-import { AceptarCotizacion } from "@/components/documentos/aceptar-cotizacion";
+import { AceptarDocumento } from "@/components/documentos/aceptar-documento";
 import { VistaCotizacion } from "@/components/documentos/vista-cotizacion";
 import { aceptarCotizacionEmpresa } from "../../acciones";
 
@@ -49,7 +49,7 @@ export default async function CotizacionWorkspace({ params }: { params: Promise<
         c={c}
         arriba={
           <>
-                {c.estado === "enviada" ? <AceptarCotizacion aceptar={aceptarCotizacionEmpresa.bind(null, slug, c.id)} total={formatearMonto(c.total, c.moneda)} contacto={empresa?.contacto ?? null} /> : null}
+                {c.estado === "enviada" ? <AceptarDocumento aceptar={aceptarCotizacionEmpresa.bind(null, slug, c.id)} total={formatearMonto(c.total, c.moneda)} contacto={empresa?.contacto ?? null} /> : null}
 
                 {c.estado === "aceptada" && c.aceptacion ? (
                   <p className="flex items-start gap-2 rounded-lg border border-border bg-success-bg p-4 text-sm text-success-foreground">

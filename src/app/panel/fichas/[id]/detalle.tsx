@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { contextoFicha, obtenerFicha } from "@/lib/datos/fichas";
 import { nombreEquipo } from "@/lib/documentos";
 import { formatearFechaHora } from "@/lib/format";
-import { eliminarFicha } from "../acciones";
-import { AccionesFicha } from "./acciones-ficha";
+import { eliminarFicha, publicarFicha } from "../acciones";
+import { AccionesDocumento } from "@/components/documentos/acciones-documento";
 
 /** Detalle de una ficha. Se usa en la página completa y en el panel lateral (@modal). */
 export async function DetalleFicha({ id }: { id: string }) {
@@ -35,7 +35,11 @@ export async function DetalleFicha({ id }: { id: string }) {
           </span>
         }
         acciones={
-          <AccionesFicha
+          <AccionesDocumento
+            tipo="ficha"
+            publicar={publicarFicha.bind(null, f.id)}
+            ruta={`/panel/fichas/${f.id}`}
+            rutaWorkspace={`documentos/${f.id}`}
             id={f.id}
             numero={f.numero}
             titular={f.titular}
@@ -78,7 +82,7 @@ export async function DetalleFicha({ id }: { id: string }) {
           titulo={`¿Eliminar ${f.numero}?`}
           descripcion="Se elimina la ficha con su diagnóstico, trabajos e incidencias, y su enlace público deja de funcionar. El equipo se conserva."
           accion={eliminarFicha.bind(null, f.id)}
-          irA="/panel/fichas"
+          irA="/panel/documentos"
           textoExito="Ficha eliminada."
           variant="ghost"
           size="sm"

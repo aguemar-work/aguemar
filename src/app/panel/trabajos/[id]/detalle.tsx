@@ -146,12 +146,23 @@ export async function DetalleTrabajo({ id }: { id: string }) {
                   <FileText className="size-4" aria-hidden /> Sin cotización. Crear una
                 </Link>
               )}
-              <Link
-                href={`/panel/fichas/nueva?trabajo=${id}${trabajo.cliente_id ? `&cliente=${trabajo.cliente_id}` : ""}`}
-                className="flex items-center gap-2 underline-offset-4 hover:underline"
-              >
-                <FileSignature className="size-4" aria-hidden /> Crear ficha técnica de este trabajo
-              </Link>
+              <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <FileSignature className="size-4" aria-hidden />
+                <span>Crear:</span>
+                {[
+                  ["Brief", "/panel/briefs/nuevo"],
+                  ["Acta de entrega", "/panel/actas/nueva"],
+                  ["Ficha técnica", "/panel/fichas/nueva"],
+                ].map(([texto, ruta]) => (
+                  <Link
+                    key={ruta}
+                    href={`${ruta}?trabajo=${id}${trabajo.cliente_id ? `&cliente=${trabajo.cliente_id}` : ""}`}
+                    className="text-foreground underline-offset-4 hover:underline"
+                  >
+                    {texto}
+                  </Link>
+                ))}
+              </p>
             </CardContent>
           </Card>
         </div>

@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
     "/panel/fichas/[id]/pdf": archivosPdf,
     "/w/[slug]/fichas/[id]/pdf": archivosPdf,
     "/d/[token]/pdf": archivosPdf,
+    "/panel/briefs/[id]/pdf": archivosPdf,
+    "/panel/actas/[id]/pdf": archivosPdf,
+    "/w/[slug]/briefs/[id]/pdf": archivosPdf,
+    "/w/[slug]/actas/[id]/pdf": archivosPdf,
   },
 };
 

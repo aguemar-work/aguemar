@@ -96,7 +96,7 @@ Responsivo desde 360 px. Accesible (teclado, foco visible, etiquetas, AA). Estad
 6. ✅ Cotizaciones y cobros: ítems desde servicios, IGV (totales calculados por triggers en la base), PDF, aceptación que crea el trabajo (`cotizacion_aceptar_core`), cobros parciales y saldo por empresa; módulo Cotizaciones del workspace.
 7. Documentos.
    - 7a ✅ Fichas técnicas: script `public/diagnostico-agueMar.ps1` (JSON), importador (`src/lib/diagnostico.ts`), editor con plantillas, PDF con QR, publicar, portal `/d/[token]` (fichas publicadas y cotizaciones enviadas, aceptación con DNI), módulos Documentos y Equipos.
-   - 7b Briefs (`BR-`) y actas de entrega (`AE-`, la empresa la acepta en su workspace).
+   - 7b ✅ Briefs (`BR-`) y actas de entrega (`AE-`): desde el trabajo, PDF, publicar y enlace; el acta se acepta en el workspace, por enlace o desde el panel, y el trabajo pasa a entregado. Listado general en `/panel/documentos`.
 8. Calendario (actividades) y solicitudes (una solicitud se convierte en cotización o en trabajo).
 9. Informes de avance con PDF.
 10. Landing de una página con servicios por área, contacto (leads) y SEO.

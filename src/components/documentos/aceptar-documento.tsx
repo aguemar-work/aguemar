@@ -13,16 +13,24 @@ import type { Resultado } from "@/lib/datos/resultado";
  * Aceptar una cotización con nombre y DNI. La acción llega ya atada: desde el
  * workspace (ws_aceptar_cotizacion) o desde el portal por token (aceptar_cotizacion).
  */
-export function AceptarCotizacion({
+export function AceptarDocumento({
   aceptar: accion,
   total,
   contacto,
   textoExito = "¡Gracias! Cotización aceptada. Ya estamos en marcha.",
+  titulo = "Aceptar esta cotización",
+  descripcion,
+  conformidad = "Revisé el detalle y las condiciones, y acepto la cotización.",
+  boton = "Aceptar cotización",
 }: {
   aceptar: (input: { nombre: string; dni: string }) => Promise<Resultado<unknown>>;
-  total: string;
+  total?: string;
   contacto: string | null;
   textoExito?: string;
+  titulo?: string;
+  descripcion?: string;
+  conformidad?: string;
+  boton?: string;
 }) {
   const [nombre, setNombre] = useState(contacto ?? "");
   const [dni, setDni] = useState("");
@@ -41,8 +49,8 @@ export function AceptarCotizacion({
   return (
     <Card className="border-mint-ink/40">
       <CardHeader>
-        <CardTitle>Aceptar esta cotización</CardTitle>
-        <CardDescription>Por {total}. Al aceptar, empezamos a trabajar.</CardDescription>
+        <CardTitle>{titulo}</CardTitle>
+        <CardDescription>{descripcion ?? `Por ${total}. Al aceptar, empezamos a trabajar.`}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -67,7 +75,7 @@ export function AceptarCotizacion({
           </Campo>
           <label className="flex items-start gap-2 text-sm sm:col-span-2">
             <input type="checkbox" className="mt-0.5 size-4 accent-mint-ink dark:accent-mint" checked={conforme} onChange={(e) => setConforme(e.target.checked)} />
-            Revisé el detalle y las condiciones, y acepto la cotización.
+            {conformidad}
           </label>
           {errores.mensaje && !errores.campo ? (
             <p role="alert" className="text-sm text-danger sm:col-span-2">
@@ -76,7 +84,7 @@ export function AceptarCotizacion({
           ) : null}
           <div className="sm:col-span-2">
             <Button type="submit" variant="mint" disabled={pendiente || !conforme}>
-              {pendiente ? <Loader2 className="animate-spin" /> : <Check />} Aceptar cotización
+              {pendiente ? <Loader2 className="animate-spin" /> : <Check />} {boton}
             </Button>
           </div>
         </form>

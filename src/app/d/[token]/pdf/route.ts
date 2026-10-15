@@ -1,5 +1,5 @@
 import { portalDocumento } from "@/lib/datos/portal";
-import { responderPdfCotizacion, responderPdfFicha } from "@/lib/pdf/respuesta";
+import { responderPdfActa, responderPdfBrief, responderPdfCotizacion, responderPdfFicha } from "@/lib/pdf/respuesta";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,5 +9,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const { token } = await params;
   const doc = await portalDocumento(token);
   if (!doc) return new Response("Enlace no válido", { status: 404, headers: { "X-Robots-Tag": "noindex" } });
-  return doc.tipo === "ficha" ? responderPdfFicha(doc.documento, request) : responderPdfCotizacion(doc.documento, request);
+  switch (doc.tipo) {
+    case "ficha":
+      return responderPdfFicha(doc.documento, request);
+    case "brief":
+      return responderPdfBrief(doc.documento, request);
+    case "acta":
+      return responderPdfActa(doc.documento, request);
+    default:
+      return responderPdfCotizacion(doc.documento, request);
+  }
 }

@@ -3,7 +3,7 @@
  * FichaJson es la forma que devuelven ficha_json / ficha_panel / ws_ficha / portal_documento:
  * la usan el detalle del panel, el workspace, el portal y el PDF.
  */
-import type { EstadoDiagnostico, EstadoFinalFicha, EstadoIncidencia, ModalidadServicio } from "@/types/database";
+import type { Area, EstadoDiagnostico, EstadoFinalFicha, EstadoIncidencia, ModalidadServicio } from "@/types/database";
 import { sumarDias } from "@/lib/format";
 
 export interface MarcaJson {
@@ -105,3 +105,63 @@ export function urlPortal(origen: string, token: string): string {
 
 // Re-exportado para quien arma fechas relativas desde aquí.
 export { sumarDias };
+
+// ---------------------------------------------------------------------------
+// Brief y acta de entrega (7b)
+// ---------------------------------------------------------------------------
+export interface BriefJson {
+  id: string;
+  numero: string | null;
+  fecha: string;
+  area: Area;
+  titulo: string;
+  objetivo: string | null;
+  contexto: string | null;
+  publico: string | null;
+  alcance: string | null;
+  fuera_alcance: string | null;
+  entregables: string | null;
+  referencias: string | null;
+  fecha_entrega: string | null;
+  publicado: boolean;
+  publicado_en: string | null;
+  trabajo: string | null;
+  cliente: FichaJson["cliente"];
+  marca: MarcaJson | null;
+  token: string | null;
+}
+
+export interface EntregableActa {
+  nombre: string;
+  detalle: string | null;
+  url: string | null;
+}
+
+export interface ActaJson {
+  id: string;
+  numero: string | null;
+  fecha: string;
+  area: Area;
+  titulo: string;
+  resumen: string | null;
+  entregables: EntregableActa[];
+  observaciones: string | null;
+  publicada: boolean;
+  publicada_en: string | null;
+  aceptacion: { nombre: string; dni: string | null; aceptado_en: string } | null;
+  trabajo: string | null;
+  cliente: FichaJson["cliente"];
+  marca: MarcaJson | null;
+  token: string | null;
+}
+
+/** Texto con una línea por punto → lista sin vacíos. */
+export function lineas(texto: string | null | undefined): string[] {
+  return (texto ?? "")
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^\s*[-•·*]\s*/, "").trim())
+    .filter(Boolean);
+}
+
+/** Nombre corto del tipo de documento para la UI. */
+export const NOMBRE_DOCUMENTO = { ficha: "Ficha técnica", brief: "Brief", acta: "Acta de entrega", cotizacion: "Cotización" } as const;

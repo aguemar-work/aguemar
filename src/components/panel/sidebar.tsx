@@ -23,8 +23,8 @@ export function Sidebar({ onNavegar, className }: SidebarProps) {
         </Link>
       </div>
       <ul className="flex-1 space-y-1 overflow-y-auto p-3">
-        {NAV_PANEL.map(({ href, etiqueta, icono: Icono }) => {
-          const activo = href === "/panel" ? pathname === href : pathname.startsWith(href);
+        {NAV_PANEL.map(({ href, etiqueta, icono: Icono, tambien }) => {
+          const activo = href === "/panel" ? pathname === href : [href, ...(tambien ?? [])].some((r) => pathname.startsWith(r));
           return (
             <li key={href}>
               <Link

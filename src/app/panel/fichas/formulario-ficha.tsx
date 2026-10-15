@@ -431,7 +431,7 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
       <BarraAcciones
         guardando={guardando}
         textoGuardar={ficha ? "Guardar cambios" : "Guardar borrador"}
-        hrefCancelar={ficha ? `/panel/fichas/${ficha.id}` : "/panel/fichas"}
+        hrefCancelar={ficha ? `/panel/fichas/${ficha.id}` : "/panel/documentos"}
         error={errorGeneral}
       />
     </form>

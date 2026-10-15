@@ -35,3 +35,19 @@ export async function aceptarCotizacionPortal(token: string, input: { nombre: st
   revalidatePath("/panel", "layout");
   return exito(undefined);
 }
+
+/** Aceptación de un acta desde el portal público. */
+export async function aceptarActaPortal(token: string, input: { nombre: string; dni: string }): Promise<Resultado<void>> {
+  const parsed = aceptacionSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
+  }
+  const insforge = await crearClienteServidor();
+  if (!insforge) return fallo("El servicio no está disponible. Inténtalo más tarde.");
+  const { error } = await insforge.database.rpc("aceptar_acta", { p_token: token, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni });
+  if (error) return fallo(traducirError(error).mensaje);
+  revalidatePath(`/d/${token}`);
+  revalidatePath("/panel", "layout");
+  return exito(undefined);
+}

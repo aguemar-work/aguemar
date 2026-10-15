@@ -42,3 +42,19 @@ export async function aceptarCotizacionEmpresa(slug: string, id: string, input: 
   revalidatePath("/panel", "layout");
   return exito(undefined);
 }
+
+/** La empresa acepta un acta de entrega publicada (ws_aceptar_acta valida empresa y publicación; el trabajo pasa a entregado). */
+export async function aceptarActaEmpresa(slug: string, id: string, input: { nombre: string; dni: string }): Promise<Resultado<void>> {
+  const parsed = aceptacionSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
+  }
+  const insforge = await crearClienteServidor();
+  if (!insforge) return fallo("Sin sesión.");
+  const { error } = await insforge.database.rpc("ws_aceptar_acta", { p_id: id, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni });
+  if (error) return fallo(traducirError(error).mensaje);
+  revalidatePath(`/w/${slug}`, "layout");
+  revalidatePath("/panel", "layout");
+  return exito(undefined);
+}

@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { crearClienteServidor } from "@/lib/insforge/server";
-import type { FichaJson } from "@/lib/documentos";
+import type { ActaJson, BriefJson, FichaJson } from "@/lib/documentos";
 import type { Area, EstadoCotizacion, EstadoFinalFicha, EstadoTrabajo, IgvModo, MedioPago, Moneda, Prioridad, TipoEntregable } from "@/types/database";
 import { SinSesionError } from "./resultado";
 
@@ -122,13 +122,16 @@ export interface WsCotizacion {
 
 export interface WsDocumento {
   id: string;
-  tipo: "ficha";
+  tipo: "ficha" | "brief" | "acta";
   numero: string | null;
   fecha: string;
   titulo: string;
-  tipo_servicio: string;
-  estado_final: EstadoFinalFicha;
-  equipo: string | null;
+  area: string;
+  /** Ficha: estado final; acta: por_aceptar | aceptada; brief: null. */
+  estado: string | null;
+  /** Ficha: equipo; brief y acta: trabajo. */
+  detalle: string | null;
+  estado_final: EstadoFinalFicha | null;
 }
 
 export interface WsEquipo {
@@ -164,6 +167,8 @@ export const ws = {
   cotizacion: (id: string) => rpc<WsCotizacion>("ws_cotizacion", { p_id: id }),
   documentos: async () => (await rpc<WsDocumento[]>("ws_documentos")) ?? [],
   ficha: (id: string) => rpc<FichaJson>("ws_ficha", { p_id: id }),
+  brief: (id: string) => rpc<BriefJson>("ws_brief", { p_id: id }),
+  acta: (id: string) => rpc<ActaJson>("ws_acta", { p_id: id }),
   equipos: async () => (await rpc<WsEquipo[]>("ws_equipos")) ?? [],
   comentarios: async (entidad: string, id: string) => (await rpc<WsComentario[]>("ws_comentarios", { p_entidad: entidad, p_id: id })) ?? [],
 };
