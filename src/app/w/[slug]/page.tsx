@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ws } from "@/lib/datos/workspace";
 import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
 import { saldo } from "@/lib/cotizacion";
+import { infoTipo } from "@/lib/calendario";
 import { moduloActivo } from "@/lib/modulos";
 import { textoVencimiento } from "@/lib/trabajos-util";
 
@@ -17,6 +18,8 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
   const [empresa, inicio, cot] = await Promise.all([ws.miEmpresa(), ws.inicio(), ws.cotizaciones().catch(() => null)]);
   const hoy = hoyLima();
   const tieneProyectos = moduloActivo(empresa?.modulos, "proyectos");
+  const tieneCalendario = moduloActivo(empresa?.modulos, "calendario");
+  const tieneSolicitudes = moduloActivo(empresa?.modulos, "solicitudes");
 
   return (
     <>
@@ -43,6 +46,18 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
             <p className="font-mono text-2xl font-semibold tabular">{inicio?.entregados ?? 0}</p>
           </CardContent>
         </Card>
+        {tieneSolicitudes ? (
+          <Link href={`/w/${slug}/solicitudes`} className="rounded-lg">
+            <Card className="h-full transition-colors hover:border-mint-ink/40">
+              <CardHeader className="p-4 pb-1">
+                <CardTitle className="text-xs font-medium text-muted-foreground">Pedidos abiertos</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                <p className="font-mono text-2xl font-semibold tabular">{inicio?.solicitudes_abiertas ?? 0}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ) : null}
         {cot ? (
           <>
             <Link href={`/w/${slug}/cotizaciones`} className="rounded-lg">
@@ -68,6 +83,38 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
           </>
         ) : null}
       </section>
+
+      {tieneCalendario && inicio?.actividades?.length ? (
+        <section aria-labelledby="agenda" className="mt-8">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 id="agenda" className="text-base font-semibold">
+              Próximas actividades
+            </h2>
+            <Link href={`/w/${slug}/calendario`} className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+              Ver calendario
+            </Link>
+          </div>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {inicio.actividades.map((a) => (
+              <li key={a.id}>
+                <Link href={`/w/${slug}/calendario/${a.id}`} className="flex gap-3 rounded-lg border border-border p-3 hover:border-mint-ink/40">
+                  <span className="w-12 shrink-0 text-center">
+                    <span className="block font-mono text-lg font-semibold leading-none">{a.fecha.slice(8, 10)}</span>
+                    <span className="font-mono text-[10px] uppercase text-muted-foreground">{formatearFecha(a.fecha).slice(3, 5)}/{a.fecha.slice(2, 4)}</span>
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{a.titulo}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {infoTipo(a.tipo).etiqueta}
+                      {a.hora_inicio ? ` · ${a.hora_inicio}` : ""}
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="proximos">
@@ -130,6 +177,10 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
                     {r.entidad === "trabajo" && tieneProyectos ? (
                       <Link href={`/w/${slug}/proyectos/${r.entidad_id}`} className="underline-offset-4 hover:underline">
                         {r.titulo ?? "Proyecto"}
+                      </Link>
+                    ) : r.entidad === "actividad" && tieneCalendario ? (
+                      <Link href={`/w/${slug}/calendario/${r.entidad_id}`} className="underline-offset-4 hover:underline">
+                        {r.titulo ?? "Actividad"}
                       </Link>
                     ) : (
                       r.titulo ?? r.entidad

@@ -12,6 +12,7 @@ const textoSchema = z.string().trim().min(1, "Escribe un comentario.").max(4000)
 function rutasDe(entidad: EntidadComentario, entidadId: string) {
   const rutas = ["/panel/bandeja", "/panel"];
   if (entidad === "trabajo") rutas.push(`/panel/trabajos/${entidadId}`);
+  if (entidad === "actividad") rutas.push(`/panel/calendario/${entidadId}`, "/panel/calendario");
   return rutas;
 }
 
@@ -30,6 +31,7 @@ export async function comentarPropietario(entidad: EntidadComentario, entidadId:
     // Al responder, los comentarios de la empresa en ese hilo quedan leídos.
     await db.from("comentarios").update({ leido: true }).eq("entidad", entidad).eq("entidad_id", entidadId).eq("es_propietario", false);
     rutasDe(entidad, entidadId).forEach((r) => revalidatePath(r));
+    revalidatePath("/w", "layout");
     return exito({ id: (data as { id: string }).id });
   } catch (e) {
     return fallo(traducirError(e).mensaje);

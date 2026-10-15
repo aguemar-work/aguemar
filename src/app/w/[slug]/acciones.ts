@@ -18,6 +18,8 @@ export async function comentarEmpresa(slug: string, entidad: EntidadComentario, 
   const { data, error } = await insforge.database.rpc("ws_comentar", { p_entidad: entidad, p_id: entidadId, p_texto: parsed.data });
   if (error) return fallo(traducirError(error).mensaje);
   if (entidad === "trabajo") revalidatePath(`/w/${slug}/proyectos/${entidadId}`);
+  if (entidad === "actividad") revalidatePath(`/w/${slug}/calendario/${entidadId}`);
+  revalidatePath("/panel", "layout");
   revalidatePath(`/w/${slug}`);
   return exito({ id: data as string });
 }
@@ -57,4 +59,35 @@ export async function aceptarActaEmpresa(slug: string, id: string, input: { nomb
   revalidatePath(`/w/${slug}`, "layout");
   revalidatePath("/panel", "layout");
   return exito(undefined);
+}
+
+const solicitudEmpresaSchema = z.object({
+  titulo: z.string().trim().min(3, "Cuéntanos en pocas palabras qué necesitas.").max(200),
+  descripcion: z.string().trim().max(4000).optional(),
+  area: z.enum(["", "diseno", "desarrollo", "soporte"]).optional(),
+  prioridad: z.enum(["baja", "media", "alta"]),
+  fecha_deseada: z.string().optional(),
+});
+
+/** La empresa pide un trabajo (ws_solicitar valida módulo, límites y fecha). */
+export async function solicitarEmpresa(slug: string, input: z.input<typeof solicitudEmpresaSchema>): Promise<Resultado<{ id: string }>> {
+  const parsed = solicitudEmpresaSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
+  }
+  const insforge = await crearClienteServidor();
+  if (!insforge) return fallo("Sin sesión.");
+  const d = parsed.data;
+  const { data, error } = await insforge.database.rpc("ws_solicitar", {
+    p_titulo: d.titulo,
+    p_descripcion: d.descripcion || null,
+    p_area: d.area || null,
+    p_prioridad: d.prioridad,
+    p_fecha_deseada: d.fecha_deseada || null,
+  });
+  if (error) return fallo(traducirError(error).mensaje);
+  revalidatePath(`/w/${slug}`, "layout");
+  revalidatePath("/panel", "layout");
+  return exito({ id: data as string });
 }

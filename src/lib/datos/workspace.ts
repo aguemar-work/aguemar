@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { crearClienteServidor } from "@/lib/insforge/server";
 import type { ActaJson, BriefJson, FichaJson } from "@/lib/documentos";
+import type { EstadoActividad, ItemCalendario, TipoActividad } from "@/lib/calendario";
 import type { Area, EstadoCotizacion, EstadoFinalFicha, EstadoTrabajo, IgvModo, MedioPago, Moneda, Prioridad, TipoEntregable } from "@/types/database";
 import { SinSesionError } from "./resultado";
 
@@ -47,6 +48,8 @@ export interface WsInicio {
   entregados: number;
   proximos: { id: string; titulo: string; area: Area; estado: EstadoTrabajo; fecha_compromiso: string | null }[];
   respuestas: { id: string; entidad: string; entidad_id: string; texto: string; created_at: string; titulo: string | null }[];
+  actividades?: { id: string; titulo: string; tipo: string; fecha: string; hora_inicio: string | null }[];
+  solicitudes_abiertas?: number;
 }
 
 export interface WsCotizacionResumen {
@@ -149,6 +152,32 @@ export interface WsEquipo {
   fichas: { id: string; numero: string | null; fecha: string; tipo_servicio: string; estado_final: EstadoFinalFicha; proximo_mantenimiento: string | null }[];
 }
 
+export interface WsActividad {
+  id: string;
+  titulo: string;
+  descripcion: string | null;
+  tipo: TipoActividad;
+  fecha: string;
+  hora_inicio: string | null;
+  hora_fin: string | null;
+  lugar: string | null;
+  estado: EstadoActividad;
+  trabajo: { id: string; titulo: string } | null;
+}
+
+export interface WsSolicitud {
+  id: string;
+  titulo: string;
+  descripcion: string | null;
+  area: Area | null;
+  prioridad: Prioridad;
+  fecha_deseada: string | null;
+  estado: "nueva" | "en_revision" | "aceptada" | "rechazada";
+  respuesta: string | null;
+  created_at: string;
+  trabajo: { id: string; titulo: string } | null;
+}
+
 async function rpc<T>(nombre: string, args?: Record<string, unknown>): Promise<T | null> {
   const insforge = await crearClienteServidor();
   if (!insforge) throw new SinSesionError();
@@ -170,5 +199,8 @@ export const ws = {
   brief: (id: string) => rpc<BriefJson>("ws_brief", { p_id: id }),
   acta: (id: string) => rpc<ActaJson>("ws_acta", { p_id: id }),
   equipos: async () => (await rpc<WsEquipo[]>("ws_equipos")) ?? [],
+  calendario: async (desde: string, hasta: string) => (await rpc<ItemCalendario[]>("ws_calendario", { p_desde: desde, p_hasta: hasta })) ?? [],
+  actividad: (id: string) => rpc<WsActividad>("ws_actividad", { p_id: id }),
+  solicitudes: async () => (await rpc<WsSolicitud[]>("ws_solicitudes")) ?? [],
   comentarios: async (entidad: string, id: string) => (await rpc<WsComentario[]>("ws_comentarios", { p_entidad: entidad, p_id: id })) ?? [],
 };

@@ -123,7 +123,7 @@ _respaldos         volcados locales (ignorado por git)
 5. ✅ Velocidad y fluidez: panel lateral, cambios al instante, inicio con lo que pide atención, Mi marca con vista previa.
 6. ✅ Cotizaciones y cobros: ítems desde servicios, PDF con la marca, aceptación que crea el trabajo, cobros y saldo.
 7. Documentos: 7a ✅ fichas técnicas con diagnóstico (`public/diagnostico-agueMar.ps1`), PDF con QR y portal por enlace; 7b ✅ briefs y actas de entrega (aceptación que marca el trabajo como entregado).
-8. Calendario (actividades) y solicitudes.
+8. ✅ Calendario (actividades, entregas y mantenimientos) y solicitudes de las empresas.
 9. Informes de avance.
 10. Landing de una página con servicios por área, contacto (leads) y SEO.
 11. Notificaciones por correo, pulido, tests completos y despliegue en Vercel con aguemar.com.

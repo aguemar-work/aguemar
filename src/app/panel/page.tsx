@@ -11,6 +11,7 @@ import { AREAS } from "@/lib/areas";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 import { diasHasta, textoVencimiento } from "@/lib/trabajos-util";
 import { cn } from "@/lib/utils";
+import { infoTipo } from "@/lib/calendario";
 
 const FECHA_LARGA = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
@@ -37,7 +38,7 @@ export default async function InicioPanel() {
     { etiqueta: "Entregas vencidas", valor: r?.entregas_vencidas ?? 0, tono: "danger", icono: AlarmClock, href: "/panel/trabajos" },
     { etiqueta: "Entregan esta semana", valor: r?.entregas_semana ?? 0, tono: "warn", icono: CalendarClock, href: "/panel/trabajos" },
     { etiqueta: "Tareas vencidas", valor: r?.tareas_vencidas ?? 0, tono: "warn", icono: ListTodo, href: "/panel/trabajos" },
-    { etiqueta: "Comentarios sin leer", valor: r?.comentarios_sin_leer ?? 0, tono: "info", icono: MessageSquare, href: "/panel/bandeja" },
+    { etiqueta: "Por responder", valor: (r?.comentarios_sin_leer ?? 0) + (r?.solicitudes_nuevas ?? 0), tono: "info", icono: MessageSquare, href: "/panel/bandeja" },
     { etiqueta: "Cotizaciones sin respuesta", valor: r?.cotizaciones_sin_respuesta ?? 0, tono: "info", icono: FileText, href: "/panel/cotizaciones" },
     { etiqueta: "Por cobrar", valor: r?.por_cobrar ?? 0, tono: "warn", icono: Wallet, href: "/panel/cotizaciones?estado=aceptada", monto: true },
   ];
@@ -201,6 +202,40 @@ export default async function InicioPanel() {
 
         <div className="space-y-6">
           <Card>
+            <CardHeader className="flex-row items-center justify-between gap-3 pb-2">
+              <CardTitle>Esta semana</CardTitle>
+              <Link href="/panel/calendario?vista=lista" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+                Calendario
+              </Link>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {!r || r.agenda.length === 0 ? (
+                <Vacio icono={CalendarClock} texto="Nada agendado para los próximos 7 días." />
+              ) : (
+                <ul className="space-y-2">
+                  {r.agenda.map((a) => (
+                    <li key={a.id}>
+                      <Link href={`/panel/calendario/${a.id}`} className="flex gap-3 rounded-md p-1.5 -m-1.5 hover:bg-soft/70 dark:hover:bg-secondary/40">
+                        <span className="w-14 shrink-0 font-mono text-xs text-muted-foreground">
+                          {formatearFecha(a.fecha).slice(0, 5)}
+                          {a.hora_inicio ? <span className="block">{a.hora_inicio}</span> : null}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium">{a.titulo}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {infoTipo(a.tipo).etiqueta}
+                            {a.empresa ? ` · ${a.empresa}` : ""}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle>En qué estás</CardTitle>
             </CardHeader>
@@ -262,14 +297,24 @@ export default async function InicioPanel() {
               </Link>
             </CardHeader>
             <CardContent className="pt-0">
-              {!r || r.comentarios.length === 0 ? (
+              {!r || (r.comentarios.length === 0 && r.solicitudes.length === 0) ? (
                 <Vacio icono={Inbox} texto="Las empresas no te han escrito nada nuevo." />
               ) : (
                 <ul className="space-y-3">
+                  {r.solicitudes.map((s) => (
+                    <li key={s.id}>
+                      <Link href="/panel/bandeja" className="block rounded-md p-2 -m-2 hover:bg-soft/70 dark:hover:bg-secondary/40">
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">{s.empresa}</span> · solicitud nueva
+                        </p>
+                        <p className="line-clamp-2 text-sm">{s.titulo}</p>
+                      </Link>
+                    </li>
+                  ))}
                   {r.comentarios.map((c) => (
                     <li key={c.id}>
                       <Link
-                        href={c.entidad === "trabajo" ? `/panel/trabajos/${c.entidad_id}#comentarios` : "/panel/bandeja"}
+                        href={c.entidad === "trabajo" ? `/panel/trabajos/${c.entidad_id}#comentarios` : c.entidad === "actividad" ? `/panel/calendario/${c.entidad_id}` : "/panel/bandeja"}
                         className="block rounded-md p-2 -m-2 hover:bg-soft/70 dark:hover:bg-secondary/40"
                       >
                         <p className="text-xs text-muted-foreground">

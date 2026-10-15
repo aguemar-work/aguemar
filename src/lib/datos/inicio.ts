@@ -30,6 +30,9 @@ export interface ResumenInicio {
   por_cobrar: number;
   deudores: { cliente_id: string; empresa: string; moneda: Moneda; aceptado: number; cobrado: number; saldo: number }[];
   mantenimientos: { id: string; numero: string | null; proximo_mantenimiento: string; empresa: string; modelo: string | null; serie: string | null }[];
+  solicitudes_nuevas: number;
+  solicitudes: { id: string; titulo: string; empresa: string; created_at: string }[];
+  agenda: { id: string; titulo: string; tipo: string; fecha: string; hora_inicio: string | null; empresa: string | null }[];
   leads_nuevos: number;
   empresas: number;
   empresas_con_acceso: number;

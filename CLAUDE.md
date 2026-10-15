@@ -97,7 +97,7 @@ Responsivo desde 360 px. Accesible (teclado, foco visible, etiquetas, AA). Estad
 7. Documentos.
    - 7a ✅ Fichas técnicas: script `public/diagnostico-agueMar.ps1` (JSON), importador (`src/lib/diagnostico.ts`), editor con plantillas, PDF con QR, publicar, portal `/d/[token]` (fichas publicadas y cotizaciones enviadas, aceptación con DNI), módulos Documentos y Equipos.
    - 7b ✅ Briefs (`BR-`) y actas de entrega (`AE-`): desde el trabajo, PDF, publicar y enlace; el acta se acepta en el workspace, por enlace o desde el panel, y el trabajo pasa a entregado. Listado general en `/panel/documentos`.
-8. Calendario (actividades) y solicitudes (una solicitud se convierte en cotización o en trabajo).
+8. ✅ Calendario y solicitudes: actividades por empresa (mes y lista, `panel_calendario` / `ws_calendario` suman entregas de trabajos y mantenimientos), comentarios en actividades, solicitudes desde el workspace (`ws_solicitar`) que en la Bandeja se responden o convierten en trabajo o cotización; agenda de la semana en el inicio.
 9. Informes de avance con PDF.
 10. Landing de una página con servicios por área, contacto (leads) y SEO.
 11. Notificaciones por correo, pulido, tests completos y despliegue (Vercel con el dominio aguemar.com).
