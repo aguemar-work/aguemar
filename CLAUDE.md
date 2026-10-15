@@ -99,7 +99,7 @@ Responsivo desde 360 px. Accesible (teclado, foco visible, etiquetas, AA). Estad
    - 7b ✅ Briefs (`BR-`) y actas de entrega (`AE-`): desde el trabajo, PDF, publicar y enlace; el acta se acepta en el workspace, por enlace o desde el panel, y el trabajo pasa a entregado. Listado general en `/panel/documentos`.
 8. ✅ Calendario y solicitudes: actividades por empresa (mes y lista, `panel_calendario` / `ws_calendario` suman entregas de trabajos y mantenimientos), comentarios en actividades, solicitudes desde el workspace (`ws_solicitar`) que en la Bandeja se responden o convierten en trabajo o cotización; agenda de la semana en el inicio.
 9. ✅ Informes de avance (`INF-`): por empresa y periodo (opcionalmente un trabajo); “Armar con lo del periodo” llena resumen, indicadores y secciones desde `panel_informe_periodo` (`src/lib/informe.ts`); PDF, publicar, enlace público, módulo Informes del workspace con comentarios; últimos informes en el inicio de la empresa.
-10. Landing de una página con servicios por área, contacto (leads) y SEO.
+10. ✅ Landing (`src/app/page.tsx`, estática con `revalidate` y regenerada al guardar servicios o Mi marca): portada, servicios por área desde `landing_datos()` (anon, solo datos públicos), cómo trabajo, tu espacio, contacto con formulario (`enviarContacto` → `crear_lead`, trampa para bots, 5 por hora e IP) y WhatsApp; SEO con metadatos, JSON-LD, `robots.ts`, `sitemap.ts` y `opengraph-image.tsx`. Leads en `/panel/leads`: contactar, marcar contactado y convertir en empresa.
 11. Notificaciones por correo, pulido, tests completos y despliegue (Vercel con el dominio aguemar.com).
 
 ## Convenciones del repo

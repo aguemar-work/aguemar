@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
     "/panel/actas/[id]/pdf": archivosPdf,
     "/w/[slug]/briefs/[id]/pdf": archivosPdf,
     "/w/[slug]/actas/[id]/pdf": archivosPdf,
+    "/panel/informes/[id]/pdf": archivosPdf,
+    "/w/[slug]/informes/[id]/pdf": archivosPdf,
+    "/opengraph-image": archivosPdf,
   },
 };
 

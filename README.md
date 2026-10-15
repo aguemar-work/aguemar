@@ -125,5 +125,5 @@ _respaldos         volcados locales (ignorado por git)
 7. Documentos: 7a ✅ fichas técnicas con diagnóstico (`public/diagnostico-agueMar.ps1`), PDF con QR y portal por enlace; 7b ✅ briefs y actas de entrega (aceptación que marca el trabajo como entregado).
 8. ✅ Calendario (actividades, entregas y mantenimientos) y solicitudes de las empresas.
 9. ✅ Informes de avance: por empresa y periodo, armados con lo registrado (tareas, actividades, fichas), PDF, enlace público y comentarios de la empresa.
-10. Landing de una página con servicios por área, contacto (leads) y SEO.
+10. ✅ Landing de una página con servicios por área, contacto (leads con conversión a empresa en el panel) y SEO.
 11. Notificaciones por correo, pulido, tests completos y despliegue en Vercel con aguemar.com.
