@@ -146,9 +146,12 @@ export async function DetalleTrabajo({ id }: { id: string }) {
                   <FileText className="size-4" aria-hidden /> Sin cotización. Crear una
                 </Link>
               )}
-              <p className="flex items-center gap-2">
-                <FileSignature className="size-4" aria-hidden /> Brief, acta o ficha técnica: en la fase 7.
-              </p>
+              <Link
+                href={`/panel/fichas/nueva?trabajo=${id}${trabajo.cliente_id ? `&cliente=${trabajo.cliente_id}` : ""}`}
+                className="flex items-center gap-2 underline-offset-4 hover:underline"
+              >
+                <FileSignature className="size-4" aria-hidden /> Crear ficha técnica de este trabajo
+              </Link>
             </CardContent>
           </Card>
         </div>

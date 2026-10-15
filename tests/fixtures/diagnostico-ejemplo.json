@@ -1,0 +1,67 @@
+{
+    "version":  1,
+    "herramienta":  "diagnostico-agueMar.ps1",
+    "generado":  "2026-10-09T10:15:00-05:00",
+    "es_admin":  true,
+    "equipo":  {
+                   "fabricante":  "LENOVO",
+                   "modelo":  "IdeaPad Pro 5 (83LT)",
+                   "serie":  "E2E-PRUEBA-01",
+                   "nombre_equipo":  "EQUIPO-PRUEBA",
+                   "sistema_operativo":  "Microsoft Windows 11 Pro",
+                   "version_os":  "10.0.26200",
+                   "procesador":  "Intel Core Ultra 7 155H",
+                   "nucleos":  16,
+                   "ram_gb":  32,
+                   "graficas":  "NVIDIA GeForce RTX 4050 Laptop GPU",
+                   "bios_version":  "RLCN29WW",
+                   "bios_fecha":  "2025-08-14"
+               },
+    "discos":  {
+                   "nombre":  "SAMSUNG MZAL81T0HFLB-00BL2",
+                   "tipo_medio":  "SSD",
+                   "bus":  "NVMe",
+                   "tamano_gb":  954,
+                   "salud":  "Healthy",
+                   "estado_operativo":  "OK",
+                   "desgaste_pct":  0,
+                   "temperatura_c":  38,
+                   "horas_encendido":  1234,
+                   "errores_lectura":  0,
+                   "errores_escritura":  0
+               },
+    "volumenes":  [
+                      { "letra":  "C:", "etiqueta":  "", "total_gb":  953, "libre_gb":  612 }
+                  ],
+    "bateria":  {
+                    "fabricante":  "BYD",
+                    "quimica":  "LiP",
+                    "nombre":  "L23B4PG2",
+                    "capacidad_diseno_mwh":  80000,
+                    "capacidad_completa_mwh":  79760,
+                    "salud_pct":  99.7,
+                    "ciclos":  392
+                },
+    "eventos":  {
+                    "dias":  7,
+                    "criticos":  0,
+                    "errores":  12,
+                    "recientes":  [
+                                      { "fecha":  "2026-10-08T18:02:11", "nivel":  "error", "origen":  "Microsoft-Windows-Store", "id":  1000, "mensaje":  "Error 0x80073D02 al actualizar una aplicación." }
+                                  ]
+                },
+    "seguridad":  {
+                      "antivirus_activo":  true,
+                      "proteccion_tiempo_real":  true,
+                      "firmas_actualizadas":  "2026-10-09",
+                      "firewall_activo":  true,
+                      "ultima_actualizacion":  "2026-10-02"
+                  },
+    "inicio":  [
+                   { "nombre":  "OneDrive", "comando":  "OneDrive.exe /background", "ubicacion":  "HKU\\Run" },
+                   { "nombre":  "WhatsApp", "comando":  "WhatsApp.exe", "ubicacion":  "Startup" }
+               ],
+    "avisos":  [
+
+               ]
+}

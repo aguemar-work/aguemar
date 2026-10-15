@@ -122,7 +122,7 @@ _respaldos         volcados locales (ignorado por git)
 4. ✅ Empresas y workspaces: acceso por empresa, módulos, `/w/[slug]`, proyectos, comentarios, bandeja.
 5. ✅ Velocidad y fluidez: panel lateral, cambios al instante, inicio con lo que pide atención, Mi marca con vista previa.
 6. ✅ Cotizaciones y cobros: ítems desde servicios, PDF con la marca, aceptación que crea el trabajo, cobros y saldo.
-7. Fichas técnicas y documentos (`diagnostico-agueMar.ps1`, briefs, actas), PDF, portal por token.
+7. Documentos: 7a ✅ fichas técnicas con diagnóstico (`public/diagnostico-agueMar.ps1`), PDF con QR y portal por enlace; 7b briefs y actas.
 8. Calendario (actividades) y solicitudes.
 9. Informes de avance.
 10. Landing de una página con servicios por área, contacto (leads) y SEO.

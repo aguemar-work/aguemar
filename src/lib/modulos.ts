@@ -35,7 +35,7 @@ export const MODULOS: Modulo[] = [
 export const CLAVES_MODULO = MODULOS.map((m) => m.clave) as [ClaveModulo, ...ClaveModulo[]];
 
 /** Fase actual del producto: los módulos con fase mayor se muestran como "pronto". */
-export const FASE_ACTUAL = 6;
+export const FASE_ACTUAL = 7;
 
 export function infoModulo(clave: string): Modulo | undefined {
   return MODULOS.find((m) => m.clave === clave);

@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/panel/cotizaciones/[id]/pdf": archivosPdf,
     "/w/[slug]/cotizaciones/[id]/pdf": archivosPdf,
+    "/panel/fichas/[id]/pdf": archivosPdf,
+    "/w/[slug]/fichas/[id]/pdf": archivosPdf,
+    "/d/[token]/pdf": archivosPdf,
   },
 };
 

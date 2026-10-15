@@ -7,10 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Campo, propsCampo } from "@/components/formulario/campo";
-import { aceptarCotizacionEmpresa } from "../../acciones";
+import type { Resultado } from "@/lib/datos/resultado";
 
-/** La empresa acepta la cotización con su nombre y DNI. */
-export function AceptarCotizacion({ slug, id, total, contacto }: { slug: string; id: string; total: string; contacto: string | null }) {
+/**
+ * Aceptar una cotización con nombre y DNI. La acción llega ya atada: desde el
+ * workspace (ws_aceptar_cotizacion) o desde el portal por token (aceptar_cotizacion).
+ */
+export function AceptarCotizacion({
+  aceptar: accion,
+  total,
+  contacto,
+  textoExito = "¡Gracias! Cotización aceptada. Ya estamos en marcha.",
+}: {
+  aceptar: (input: { nombre: string; dni: string }) => Promise<Resultado<unknown>>;
+  total: string;
+  contacto: string | null;
+  textoExito?: string;
+}) {
   const [nombre, setNombre] = useState(contacto ?? "");
   const [dni, setDni] = useState("");
   const [conforme, setConforme] = useState(false);
@@ -20,16 +33,16 @@ export function AceptarCotizacion({ slug, id, total, contacto }: { slug: string;
   const aceptar = () =>
     iniciar(async () => {
       setErrores({});
-      const r = await aceptarCotizacionEmpresa(slug, id, { nombre, dni });
+      const r = await accion({ nombre, dni });
       if (!r.ok) return setErrores({ campo: r.campo, mensaje: r.error });
-      toast.success("¡Gracias! Cotización aceptada. Ya estamos en marcha.");
+      toast.success(textoExito);
     });
 
   return (
     <Card className="border-mint-ink/40">
       <CardHeader>
         <CardTitle>Aceptar esta cotización</CardTitle>
-        <CardDescription>Por {total}. Al aceptar, empezamos a trabajar y verás el avance en Proyectos.</CardDescription>
+        <CardDescription>Por {total}. Al aceptar, empezamos a trabajar.</CardDescription>
       </CardHeader>
       <CardContent>
         <form

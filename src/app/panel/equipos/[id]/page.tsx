@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, ClipboardList } from "lucide-react";
+import { Pencil, ClipboardList, Plus } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
 import { EmptyState } from "@/components/panel/empty-state";
 import { ConfirmarEliminar } from "@/components/panel/confirmar-eliminar";
@@ -89,9 +89,16 @@ export default async function EquipoDetallePage({ params }: { params: Promise<{ 
         </Card>
 
         <section aria-labelledby="historial" className="lg:col-span-2">
-          <h2 id="historial" className="mb-3 text-base font-semibold">
-            Historial de fichas <span className="font-mono text-sm text-muted-foreground">({fichas.length})</span>
-          </h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 id="historial" className="text-base font-semibold">
+              Historial de fichas <span className="font-mono text-sm text-muted-foreground">({fichas.length})</span>
+            </h2>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/panel/fichas/nueva?cliente=${equipo.cliente_id}&equipo=${equipo.id}`}>
+                <Plus /> Nueva ficha
+              </Link>
+            </Button>
+          </div>
           {fichas.length === 0 ? (
             <EmptyState
               icono={ClipboardList}
@@ -113,7 +120,11 @@ export default async function EquipoDetallePage({ params }: { params: Promise<{ 
               <TableBody>
                 {fichas.map((f) => (
                   <TableRow key={f.id}>
-                    <TableCell className="font-mono text-xs">{f.numero}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      <Link href={`/panel/fichas/${f.id}`} className="underline-offset-4 hover:underline">
+                        {f.numero}
+                      </Link>
+                    </TableCell>
                     <TableCell>{formatearFecha(f.fecha)}</TableCell>
                     <TableCell className="hidden md:table-cell">{f.tipo_servicio}</TableCell>
                     <TableCell>

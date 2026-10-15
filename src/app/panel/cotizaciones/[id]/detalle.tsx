@@ -7,6 +7,7 @@ import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
 import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { obtenerCotizacion } from "@/lib/datos/cotizaciones";
+import { enlaceDe } from "@/lib/datos/fichas";
 import { estadoEfectivo, fechaVence, saldo } from "@/lib/cotizacion";
 import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
 import { textoVencimiento } from "@/lib/trabajos-util";
@@ -17,7 +18,7 @@ import { AccionesCotizacion } from "./acciones-cotizacion";
 
 /** Detalle de una cotización. Se usa en la página completa y en el panel lateral (@modal). */
 export async function DetalleCotizacion({ id }: { id: string }) {
-  const c = await obtenerCotizacion(id);
+  const [c, enlace] = await Promise.all([obtenerCotizacion(id), enlaceDe("cotizacion", id)]);
   if (!c) notFound();
   const hoy = hoyLima();
   const estado = estadoEfectivo(c, hoy);
@@ -58,6 +59,7 @@ export async function DetalleCotizacion({ id }: { id: string }) {
             asunto={c.asunto}
             vence={formatearFecha(vence)}
             empresa={{ nombre: empresa?.nombre ?? "la empresa", contacto: empresa?.contacto ?? null, telefono: empresa?.telefono ?? null, slug: empresa?.slug ?? null, conWorkspace }}
+            token={enlace && !enlace.revocado ? enlace.token : null}
           />
         }
       />

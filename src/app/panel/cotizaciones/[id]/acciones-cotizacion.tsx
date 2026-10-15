@@ -24,18 +24,22 @@ interface Props {
   asunto: string;
   vence: string;
   empresa: { nombre: string; contacto: string | null; telefono: string | null; slug: string | null; conWorkspace: boolean };
+  /** Token del portal (/d/…) si la cotización ya tiene enlace. */
+  token: string | null;
 }
 
 /** Acciones de una cotización según su estado: editar, enviar, aceptar, rechazar, duplicar, PDF y WhatsApp. */
-export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, vence, empresa }: Props) {
+export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, vence, empresa, token: tokenInicial }: Props) {
   const router = useRouter();
   const [pendiente, iniciar] = useTransition();
+  const [token, setToken] = useState(tokenInicial);
   const [dialogo, setDialogo] = useState<"aceptar" | "rechazar" | "mensaje" | null>(null);
 
   const enviar = () =>
     iniciar(async () => {
       const r = await enviarCotizacion(id);
       if (!r.ok) return void toast.error(r.error);
+      if (r.data.token) setToken(r.data.token);
       toast.success(empresa.conWorkspace ? "Enviada: ya aparece en el workspace de la empresa." : "Marcada como enviada.");
       setDialogo("mensaje");
     });
@@ -115,6 +119,7 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
         total={formatearMonto(total, moneda)}
         vence={vence}
         empresa={empresa}
+        token={token}
       />
     </>
   );
@@ -215,7 +220,9 @@ function DialogoMensaje({
   total,
   vence,
   empresa,
+  token,
 }: {
+  token: string | null;
   abierto: boolean;
   onCerrar: () => void;
   id: string;
@@ -229,7 +236,9 @@ function DialogoMensaje({
   const saludo = empresa.contacto ? `Hola ${empresa.contacto.split(" ")[0]}` : "Hola";
   const texto = empresa.conWorkspace
     ? `${saludo}, te envío la cotización ${numero} (${asunto}) por ${total}, válida hasta el ${vence}. Puedes revisarla, descargar el PDF y aceptarla en tu espacio: ${origen}/w/${empresa.slug}/cotizaciones/${id}`
-    : `${saludo}, te envío la cotización ${numero} (${asunto}) por ${total}, válida hasta el ${vence}. Te adjunto el PDF; cualquier duda me escribes.`;
+    : token
+      ? `${saludo}, te envío la cotización ${numero} (${asunto}) por ${total}, válida hasta el ${vence}. Aquí puedes verla, descargar el PDF y aceptarla: ${origen}/d/${token}`
+      : `${saludo}, te envío la cotización ${numero} (${asunto}) por ${total}, válida hasta el ${vence}. Te adjunto el PDF; cualquier duda me escribes.`;
   const telefono = (empresa.telefono ?? "").replace(/\D/g, "");
   const wa = telefono ? `https://wa.me/${telefono.length === 9 ? `51${telefono}` : telefono}?text=${encodeURIComponent(texto)}` : null;
 
@@ -239,7 +248,11 @@ function DialogoMensaje({
         <DialogHeader>
           <DialogTitle>Mensaje para {empresa.nombre}</DialogTitle>
           <DialogDescription>
-            {empresa.conWorkspace ? "La empresa tiene el módulo Cotizaciones: el enlace la lleva a su espacio." : "Esta empresa no ve cotizaciones en su workspace: adjunta el PDF al mensaje."}
+            {empresa.conWorkspace
+              ? "La empresa tiene el módulo Cotizaciones: el enlace la lleva a su espacio."
+              : token
+                ? "El enlace abre la cotización sin iniciar sesión; desde ahí la pueden aceptar con nombre y DNI."
+                : "Envíala primero para generar el enlace, o adjunta el PDF."}
           </DialogDescription>
         </DialogHeader>
         <p className="whitespace-pre-line rounded-md bg-soft p-3 text-sm dark:bg-secondary/50">{texto}</p>

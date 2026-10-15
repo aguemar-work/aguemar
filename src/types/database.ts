@@ -168,6 +168,10 @@ export type FichaRow = Base & {
   indicadores: Indicador[];
   proximo_mantenimiento: string | null;
   recordatorio_enviado_en: string | null;
+  publicada: boolean;
+  publicada_en: string | null;
+  trabajo_id: string | null;
+  diagnostico_origen: unknown | null;
 };
 
 export type FichaDiagnosticoRow = Base & {

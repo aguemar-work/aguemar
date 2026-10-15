@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { crearClienteServidor } from "@/lib/insforge/server";
-import type { Area, EstadoCotizacion, EstadoTrabajo, IgvModo, MedioPago, Moneda, Prioridad, TipoEntregable } from "@/types/database";
+import type { FichaJson } from "@/lib/documentos";
+import type { Area, EstadoCotizacion, EstadoFinalFicha, EstadoTrabajo, IgvModo, MedioPago, Moneda, Prioridad, TipoEntregable } from "@/types/database";
 import { SinSesionError } from "./resultado";
 
 /** Datos que devuelven las funciones ws_* (proyección segura, sin columnas internas). */
@@ -119,6 +120,32 @@ export interface WsCotizacion {
   } | null;
 }
 
+export interface WsDocumento {
+  id: string;
+  tipo: "ficha";
+  numero: string | null;
+  fecha: string;
+  titulo: string;
+  tipo_servicio: string;
+  estado_final: EstadoFinalFicha;
+  equipo: string | null;
+}
+
+export interface WsEquipo {
+  id: string;
+  marca: string | null;
+  modelo: string | null;
+  serie: string;
+  sistema_operativo: string | null;
+  procesador: string | null;
+  ram: string | null;
+  almacenamiento: string | null;
+  grafica: string | null;
+  bateria: string | null;
+  bios: string | null;
+  fichas: { id: string; numero: string | null; fecha: string; tipo_servicio: string; estado_final: EstadoFinalFicha; proximo_mantenimiento: string | null }[];
+}
+
 async function rpc<T>(nombre: string, args?: Record<string, unknown>): Promise<T | null> {
   const insforge = await crearClienteServidor();
   if (!insforge) throw new SinSesionError();
@@ -135,5 +162,8 @@ export const ws = {
   trabajo: (id: string) => rpc<WsTrabajo>("ws_trabajo", { p_id: id }),
   cotizaciones: () => rpc<WsCotizaciones>("ws_cotizaciones"),
   cotizacion: (id: string) => rpc<WsCotizacion>("ws_cotizacion", { p_id: id }),
+  documentos: async () => (await rpc<WsDocumento[]>("ws_documentos")) ?? [],
+  ficha: (id: string) => rpc<FichaJson>("ws_ficha", { p_id: id }),
+  equipos: async () => (await rpc<WsEquipo[]>("ws_equipos")) ?? [],
   comentarios: async (entidad: string, id: string) => (await rpc<WsComentario[]>("ws_comentarios", { p_entidad: entidad, p_id: id })) ?? [],
 };

@@ -63,7 +63,7 @@ export function saldo(total: number, cobrado: number): number {
   return Math.max(total - cobrado, 0);
 }
 
-/** Nombre del PDF: COT-2026-001_SGC.pdf (sin caracteres raros). */
+/** Nombre del PDF: COT-2026-001_SGC.pdf o FT-2026-001_SGC.pdf (sin caracteres raros). */
 export function nombreArchivo(numero: string | null, empresa: string): string {
   const limpio = empresa
     .normalize("NFD")

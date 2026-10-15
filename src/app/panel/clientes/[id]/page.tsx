@@ -188,7 +188,19 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
               Fichas técnicas <span className="font-mono text-sm text-muted-foreground">({historial.fichas.length})</span>
             </h2>
             {historial.fichas.length === 0 ? (
-              <EmptyState icono={ClipboardList} titulo="Sin fichas técnicas todavía." descripcion="Las fichas técnicas llegan en la fase 7." className="py-8" />
+              <EmptyState
+                icono={ClipboardList}
+                titulo="Sin fichas técnicas todavía."
+                descripcion="Ejecuta el script de diagnóstico en el equipo y crea la ficha del servicio."
+                className="py-8"
+                accion={
+                  <Button asChild variant="outline">
+                    <Link href={`/panel/fichas/nueva?cliente=${cliente.id}`}>
+                      <Plus /> Nueva ficha
+                    </Link>
+                  </Button>
+                }
+              />
             ) : (
               <Table>
                 <TableHeader>
@@ -202,7 +214,11 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
                 <TableBody>
                   {historial.fichas.map((f) => (
                     <TableRow key={f.id}>
-                      <TableCell className="font-mono text-xs">{f.numero}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        <Link href={`/panel/fichas/${f.id}`} className="underline-offset-4 hover:underline">
+                          {f.numero}
+                        </Link>
+                      </TableCell>
                       <TableCell>{formatearFecha(f.fecha)}</TableCell>
                       <TableCell className="hidden md:table-cell">{f.tipo_servicio}</TableCell>
                       <TableCell>

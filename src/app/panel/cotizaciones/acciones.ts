@@ -65,7 +65,7 @@ export async function guardarCotizacion(input: CotizacionInput, id?: string): Pr
 }
 
 /** Pasa a "enviada": la empresa la ve en su workspace. Si estaba vencida, se renueva con fecha de hoy. */
-export async function enviarCotizacion(id: string): Promise<Resultado<void>> {
+export async function enviarCotizacion(id: string): Promise<Resultado<{ token: string | null }>> {
   try {
     const { db } = await conSesion();
     const actual = await db.from("cotizaciones").select("estado, total").eq("id", id).maybeSingle();
@@ -77,8 +77,10 @@ export async function enviarCotizacion(id: string): Promise<Resultado<void>> {
     if (c.estado === "vencida" || c.estado === "rechazada") cambios.fecha = hoyLima();
     const { error } = await db.from("cotizaciones").update(cambios).eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
+    // Enlace del portal: para quien no tiene workspace (ve, descarga y acepta sin entrar).
+    const enlace = await db.rpc("obtener_enlace", { p_tipo: "cotizacion", p_id: id, p_renovar: false });
     revalidar();
-    return exito(undefined);
+    return exito({ token: enlace.error ? null : (enlace.data as string) });
   } catch (e) {
     return fallo(traducirError(e).mensaje);
   }
