@@ -85,3 +85,24 @@ export function telefonoLegible(telefono: string | null | undefined): string | n
   if (d.length === 11 && d.startsWith("51")) return `+51 ${grupos(d.slice(2))}`;
   return telefono!.trim();
 }
+
+/**
+ * Cifras de "Quién está detrás" (años, empresas atendidas, equipos revisados…).
+ * [PENDIENTE: cifras reales de Alejandro] — mientras esté vacío, la sección no muestra cifras
+ * (en desarrollo se ve un recordatorio). Nunca poner cifras inventadas.
+ */
+export const CIFRAS_LANDING: { valor: string; texto: string }[] = [];
+
+/**
+ * Foto para "Quién está detrás", servida desde `public/` (p. ej. "/alejandro.jpg").
+ * [PENDIENTE: foto de Alejandro] — sin foto se muestra el monograma con sus iniciales.
+ */
+export const FOTO_LANDING: string | null = null;
+
+/** "Alejandro Fritz Guevara Martínez" → "AG" (primer nombre y primer apellido). */
+export function iniciales(nombre: string | null | undefined): string {
+  const partes = (nombre ?? "").trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return "aM";
+  const apellido = partes.length >= 4 ? partes[2] : partes[partes.length > 1 ? 1 : 0];
+  return `${partes[0]![0]}${partes.length > 1 ? apellido![0] : ""}`.toUpperCase();
+}

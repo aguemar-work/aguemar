@@ -134,3 +134,148 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* ---------- Landing: movimiento ----------
+ * Todo es mejora progresiva: sin soporte o con "reducir movimiento", el contenido se ve quieto y completo.
+ * Las animaciones de scroll usan animation-timeline (sin JavaScript).
+ */
+
+/* Con la escena 3D activa, se ocultan los respaldos estáticos (corchetes SVG, glifos de área). */
+.escena-3d .solo-sin-escena {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+/* Grano sutil sobre el fondo: quita lo plano de la pantalla. */
+.grano {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+@keyframes landing-palabra {
+  from {
+    opacity: 0;
+    transform: translateY(0.6em) rotate(2deg);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes landing-revelar {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes landing-escribir {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes landing-cursor {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes landing-trazo {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* La cabecera tiene fondo siempre; con scroll-timeline, empieza transparente y lo toma al bajar. */
+@keyframes landing-cabecera {
+  from {
+    background-color: transparent;
+    border-color: transparent;
+    backdrop-filter: none;
+  }
+}
+
+@keyframes landing-bajar {
+  0% {
+    transform: translateY(-100%);
+  }
+  60%,
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Titular de portada: palabra por palabra al cargar (--i = índice de la palabra). */
+  .palabras-entrada > span {
+    display: inline-block;
+    animation: landing-palabra 0.9s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+    animation-delay: calc(120ms + var(--i, 0) * 70ms);
+  }
+
+  /* Etiqueta mono que se escribe sola. */
+  .escribir {
+    animation: landing-escribir 1.2s steps(40, end) both;
+    animation-delay: var(--retraso, 0ms);
+  }
+  .cursor-mono::after {
+    content: "▍";
+    margin-left: 0.1em;
+    color: var(--color-mint);
+    animation: landing-cursor 1s steps(1) infinite;
+  }
+
+  .entrada {
+    animation: landing-revelar 0.9s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+    animation-delay: var(--retraso, 0ms);
+  }
+
+  .indicador-bajar > span {
+    animation: landing-bajar 2.2s cubic-bezier(0.6, 0, 0.2, 1) infinite;
+  }
+
+  @supports (animation-timeline: view()) {
+    /* Bloques que suben al entrar en pantalla. */
+    .revelar {
+      animation: landing-revelar linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 55%;
+    }
+    /* Títulos de sección, palabra por palabra. */
+    .palabras-scroll > span {
+      display: inline-block;
+      animation: landing-palabra linear both;
+      animation-timeline: view();
+      animation-range: entry calc(5% + var(--i, 0) * 4%) entry calc(45% + var(--i, 0) * 4%);
+    }
+    /* La línea de "Cómo trabajo" se dibuja mientras bajas. */
+    .trazo-scroll {
+      transform-origin: top;
+      animation: landing-trazo linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 65%;
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    /* La cabecera toma fondo al empezar a bajar. */
+    .cabecera-scroll {
+      animation: landing-cabecera linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 160px;
+    }
+  }
+}
