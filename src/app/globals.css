@@ -40,8 +40,8 @@
   --muted-bg: #f5f7fa;
   --muted-foreground: #4a5263;
   --border: #e2e5eb;
-  --input: #e2e5eb;
-  --ring: #1ce783;
+  --input: #767e8f; /* borde de campos: 4,1:1 sobre blanco (WCAG 1.4.11 pide 3:1) */
+  --ring: #0a6b3b; /* anillo de foco: 6,6:1 sobre blanco; el mint puro daba 1,6:1 */
   --sidebar: #0a0f1a;
   --sidebar-foreground: #e6e9ef;
   --success-foreground: #0a6b3b;
@@ -66,7 +66,7 @@
   --muted-bg: #161e2e;
   --muted-foreground: #9aa3b5;
   --border: #243044;
-  --input: #243044;
+  --input: #66718a; /* 3,9:1 sobre ink */
   --ring: #1ce783;
   --sidebar: #070b13;
   --sidebar-foreground: #e6e9ef;

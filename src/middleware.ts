@@ -6,10 +6,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Todo excepto estáticos, imágenes, la ruta de refresh y archivos con extensión.
-     */
-    "/((?!_next/static|_next/image|api/auth/refresh|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)$).*)",
-  ],
+  /*
+   * Solo las rutas que leen la sesión: login, panel, workspace y sin-acceso.
+   * La landing (/), el portal público (/d/*), /privacidad, los estáticos y la
+   * ruta de refresh no pasan por aquí: ahorran una invocación de edge por visita.
+   * Una ruta nueva que use cookies de sesión debe añadirse a esta lista.
+   */
+  matcher: ["/login/:path*", "/panel/:path*", "/w/:path*", "/sin-acceso"],
 };

@@ -2,6 +2,7 @@ import { cache } from "react";
 import type { ActaJson, BriefJson, EntregableActa } from "@/lib/documentos";
 import type { Area } from "@/types/database";
 import { conSesion } from "./base";
+import { filtroOr } from "./busqueda";
 
 /** Fila editable de un brief (incluye notas internas). */
 export interface BriefFila {
@@ -114,7 +115,7 @@ export async function listarDocumentos(filtros: { tipo?: string; q?: string; cli
   const filtrar = <T extends { eq: (c: string, v: string) => T; or: (f: string) => T }>(consulta: T, campoTitulo: string) => {
     let c = consulta;
     if (filtros.cliente) c = c.eq("cliente_id", filtros.cliente);
-    if (q) c = c.or(`${campoTitulo}.ilike.%${q}%,numero.ilike.%${q}%`);
+    if (q) c = c.or(filtroOr(q, [campoTitulo, "numero"]));
     return c;
   };
   const [fichas, briefs, actas] = await Promise.all([

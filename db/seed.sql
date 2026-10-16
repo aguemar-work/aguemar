@@ -44,7 +44,7 @@ begin
 
   -- ---------- Plantillas de checklist ----------
   insert into public.plantillas_checklist (owner_id, tipo_servicio, items) values
-    (v_owner, 'soporte', 'Mantenimiento preventivo', '[
+    (v_owner, 'Mantenimiento preventivo', '[
       {"titulo": "Respaldo", "detalle": "Copia de seguridad de documentos y perfiles antes de intervenir."},
       {"titulo": "Integridad", "detalle": "DISM, SFC y CHKDSK sin errores."},
       {"titulo": "Limpieza", "detalle": "Archivos temporales, caché y papelera."},
@@ -58,13 +58,13 @@ begin
       {"titulo": "Idioma y teclado", "detalle": "Configuración regional y distribución de teclado correctas."},
       {"titulo": "Soporte del fabricante", "detalle": "Controladores y BIOS según el soporte del fabricante."}
     ]'::jsonb),
-    (v_owner, 'soporte', 'Mantenimiento correctivo', '[
+    (v_owner, 'Mantenimiento correctivo', '[
       {"titulo": "Diagnóstico", "detalle": "Identificación de la causa de la falla."},
       {"titulo": "Respaldo", "detalle": "Copia de seguridad si el caso lo permite."},
       {"titulo": "Corrección", "detalle": "Reparación o reemplazo del componente afectado."},
       {"titulo": "Verificación", "detalle": "Pruebas de funcionamiento tras la corrección."}
     ]'::jsonb),
-    (v_owner, 'soporte', 'Soporte remoto', '[
+    (v_owner, 'Soporte remoto', '[
       {"titulo": "Conexión", "detalle": "Sesión remota establecida con autorización del cliente."},
       {"titulo": "Atención", "detalle": "Revisión y solución de las incidencias reportadas."},
       {"titulo": "Cierre", "detalle": "Sesión cerrada y accesos temporales eliminados."}

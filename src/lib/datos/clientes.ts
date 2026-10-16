@@ -1,6 +1,7 @@
 import { cache } from "react";
 import type { ClienteRow, EquipoRow, FichaRow, CotizacionRow, TrabajoRow, CobroRow } from "@/types/database";
 import { conSesion } from "./base";
+import { filtroOr } from "./busqueda";
 
 export interface ClienteResumen extends ClienteRow {
   equipos: { count: number }[];
@@ -15,7 +16,7 @@ export async function listarClientes(busqueda?: string): Promise<ClienteResumen[
     .limit(200);
   const q = busqueda?.trim();
   if (q) {
-    consulta = consulta.or(`nombre.ilike.%${q}%,num_doc.ilike.%${q}%,contacto.ilike.%${q}%`);
+    consulta = consulta.or(filtroOr(q, ["nombre", "num_doc", "contacto"]));
   }
   const { data, error } = await consulta;
   if (error) throw error;

@@ -7,6 +7,7 @@ import { crearClienteServidor } from "@/lib/insforge/server";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { avisarAceptacion } from "@/lib/correo/avisos";
+import { ipDe } from "@/lib/ip";
 
 const aceptacionSchema = z.object({
   nombre: z.string().trim().min(2, "Escribe tu nombre completo.").max(120),
@@ -23,12 +24,11 @@ export async function aceptarCotizacionPortal(token: string, input: { nombre: st
   const insforge = await crearClienteServidor();
   if (!insforge) return fallo("El servicio no está disponible. Inténtalo más tarde.");
   const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || null;
   const { data, error } = await insforge.database.rpc("aceptar_cotizacion", {
     p_token: token,
     p_nombre: parsed.data.nombre,
     p_dni: parsed.data.dni,
-    p_ip: ip && /^[0-9a-fA-F:.]+$/.test(ip) ? ip : null,
+    p_ip: ipDe(h),
     p_user_agent: h.get("user-agent")?.slice(0, 300) ?? null,
   });
   if (error) return fallo(traducirError(error).mensaje);

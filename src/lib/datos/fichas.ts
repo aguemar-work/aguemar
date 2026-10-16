@@ -2,6 +2,7 @@ import { cache } from "react";
 import type { EquipoRow, FichaDiagnosticoRow, FichaIncidenciaRow, FichaRecomendacionRow, FichaRow, FichaTrabajoRow, TipoDocumento } from "@/types/database";
 import type { FichaJson } from "@/lib/documentos";
 import { conSesion } from "./base";
+import { filtroOr } from "./busqueda";
 
 export type FichaResumen = FichaRow & {
   clientes: { id: string; nombre: string } | null;
@@ -19,7 +20,7 @@ export async function listarFichas(filtros: { cliente?: string; q?: string; publ
   if (filtros.cliente) consulta = consulta.eq("cliente_id", filtros.cliente);
   if (filtros.publicadas !== undefined) consulta = consulta.eq("publicada", filtros.publicadas);
   const q = filtros.q?.replace(/[%,()]/g, " ").trim();
-  if (q) consulta = consulta.or(`titular.ilike.%${q}%,numero.ilike.%${q}%,tipo_servicio.ilike.%${q}%`);
+  if (q) consulta = consulta.or(filtroOr(q, ["titular", "numero", "tipo_servicio"]));
   const { data, error } = await consulta;
   if (error) throw error;
   return (data ?? []) as FichaResumen[];

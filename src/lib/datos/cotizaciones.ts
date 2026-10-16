@@ -1,6 +1,7 @@
 import { cache } from "react";
 import type { AceptacionRow, CobroRow, CotizacionItemRow, CotizacionRow, EstadoCotizacion } from "@/types/database";
 import { conSesion } from "./base";
+import { filtroOr } from "./busqueda";
 
 export type CotizacionResumen = CotizacionRow & {
   clientes: { id: string; nombre: string } | null;
@@ -24,7 +25,7 @@ export async function listarCotizaciones(filtros: FiltrosCotizaciones = {}): Pro
   // "enviada" incluye las vencidas sin marcar; el filtro fino por vigencia se hace en la página.
   if (filtros.estado && filtros.estado !== "todas") consulta = consulta.eq("estado", filtros.estado);
   if (filtros.cliente) consulta = consulta.eq("cliente_id", filtros.cliente);
-  if (filtros.q) consulta = consulta.or(`asunto.ilike.%${filtros.q.replace(/[%,()]/g, " ")}%,numero.ilike.%${filtros.q.replace(/[%,()]/g, " ")}%`);
+  if (filtros.q) consulta = consulta.or(filtroOr(filtros.q, ["asunto", "numero"]));
   const { data, error } = await consulta;
   if (error) throw error;
   return (data ?? []) as CotizacionResumen[];

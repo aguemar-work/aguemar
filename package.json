@@ -12,9 +12,10 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "logo": "node scripts/crop-logo.mjs",
-    "db:migrate": "npx -y @insforge/cli db migrations up --all",
-    "db:status": "npx -y @insforge/cli db migrations list",
-    "db:seed": "node scripts/seed.mjs"
+    "db:migrate": "insforge db migrations up --all",
+    "db:status": "insforge db migrations list",
+    "db:seed": "node scripts/seed.mjs",
+    "staging:cuentas": "node scripts/staging.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

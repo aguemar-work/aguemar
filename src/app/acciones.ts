@@ -7,12 +7,7 @@ import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { leadSchema, mensajeLead, type LeadInput } from "@/lib/validators/lead";
 import { avisarLead } from "@/lib/correo/avisos";
-
-/** IP del visitante según el proxy (Vercel pone la real primero en x-forwarded-for). */
-function ipDe(h: Headers): string | null {
-  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? h.get("x-real-ip") ?? "").trim();
-  return /^[\d.:a-fA-F]{3,45}$/.test(ip) ? ip : null;
-}
+import { ipDe } from "@/lib/ip";
 
 /** Formulario de contacto de la landing: guarda el lead con crear_lead (límite de 5 por hora e IP en la base). */
 export async function enviarContacto(input: LeadInput): Promise<Resultado<void>> {

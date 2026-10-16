@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Sin scripts de instalación: ninguna dependencia los necesita para compilar ni probar.
+      - run: npm ci --ignore-scripts
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests unitarios
+        run: npm test
+
+      # Informativo hasta resolver SEG-10 (avisos de postcss dentro de next y de la cadena de eslint-config-next).
+      - name: Auditoría de dependencias de producción
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
+      # Sin variables de InsForge: la app compila igual (la landing sale con sus textos base).
+      - name: Build de producción
+        run: npx next build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://aguemar.com

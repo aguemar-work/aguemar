@@ -13,17 +13,19 @@ export function clienteAnonimo() {
   return createClient({ baseUrl, anonKey, isServerMode: true });
 }
 
-/** Marca y servicios visibles. Si la base no responde, la landing se muestra igual con sus textos. */
+/**
+ * Marca y servicios visibles.
+ *
+ * Sin InsForge configurado devuelve la versión vacía (la landing se muestra con sus
+ * textos base). Con InsForge configurado, un fallo de la base **lanza**: durante una
+ * regeneración ISR, Next conserva la última versión buena en lugar de publicar una
+ * landing sin servicios, teléfono ni RUC durante una hora.
+ */
 export async function datosLanding(): Promise<DatosLanding> {
-  const vacio: DatosLanding = { marca: null, servicios: [] };
   const cliente = clienteAnonimo();
-  if (!cliente) return vacio;
-  try {
-    const { data, error } = await cliente.database.rpc("landing_datos");
-    if (error || !data) return vacio;
-    const d = data as Partial<DatosLanding>;
-    return { marca: d.marca ?? null, servicios: d.servicios ?? [] };
-  } catch {
-    return vacio;
-  }
+  if (!cliente) return { marca: null, servicios: [] };
+  const { data, error } = await cliente.database.rpc("landing_datos");
+  if (error) throw new Error(`landing_datos falló: ${error.message ?? "sin detalle"}`);
+  const d = (data ?? {}) as Partial<DatosLanding>;
+  return { marca: d.marca ?? null, servicios: d.servicios ?? [] };
 }

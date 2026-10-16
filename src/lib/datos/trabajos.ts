@@ -1,6 +1,7 @@
 import { cache } from "react";
 import type { Area, EstadoTrabajo, TrabajoEntregableRow, TrabajoEtapaRow, TrabajoRow, TrabajoTareaRow } from "@/types/database";
 import { conSesion } from "./base";
+import { filtroOr } from "./busqueda";
 
 export interface TrabajoResumen extends TrabajoRow {
   clientes: { id: string; nombre: string } | null;
@@ -29,7 +30,7 @@ export async function listarTrabajos(filtros: FiltrosTrabajos = {}): Promise<Tra
   if (filtros.estado && filtros.estado !== "todos" && filtros.estado !== "activos") consulta = consulta.eq("estado", filtros.estado);
   if (!filtros.estado || filtros.estado === "activos") consulta = consulta.in("estado", ACTIVOS);
   const q = filtros.busqueda?.trim();
-  if (q) consulta = consulta.or(`titulo.ilike.%${q}%,descripcion.ilike.%${q}%`);
+  if (q) consulta = consulta.or(filtroOr(q, ["titulo", "descripcion"]));
   const { data, error } = await consulta;
   if (error) throw error;
   return (data ?? []) as TrabajoResumen[];

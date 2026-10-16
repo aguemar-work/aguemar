@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -107,7 +108,13 @@ export function FormularioContacto({ servicios, whatsapp }: { servicios: Servici
         </p>
       ) : null}
       <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-muted-foreground">Uso tus datos solo para responderte.</p>
+        <p className="text-xs text-muted-foreground">
+          Uso tus datos solo para responderte.{" "}
+          <Link href="/privacidad" className="underline underline-offset-2 hover:text-foreground">
+            Cómo los trato
+          </Link>
+          .
+        </p>
         <Button type="submit" variant="mint" size="lg" disabled={enviando}>
           {enviando ? <Loader2 className="animate-spin" /> : <Send />} Enviar mensaje
         </Button>

@@ -1,0 +1,18 @@
+# Avisos semanales de dependencias desactualizadas (DEV-05). Agrupa las menores
+# y parches para no abrir un PR por paquete.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Lima
+    open-pull-requests-limit: 5
+    groups:
+      menores-y-parches:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -1,6 +1,7 @@
 import { cache } from "react";
 import type { EquipoRow, FichaRow } from "@/types/database";
 import { conSesion } from "./base";
+import { filtroOr } from "./busqueda";
 
 export interface EquipoConCliente extends EquipoRow {
   clientes: { id: string; nombre: string } | null;
@@ -16,7 +17,7 @@ export async function listarEquipos(opciones?: { clienteId?: string; busqueda?: 
     .limit(300);
   if (opciones?.clienteId) consulta = consulta.eq("cliente_id", opciones.clienteId);
   const q = opciones?.busqueda?.trim();
-  if (q) consulta = consulta.or(`serie.ilike.%${q}%,marca.ilike.%${q}%,modelo.ilike.%${q}%`);
+  if (q) consulta = consulta.or(filtroOr(q, ["serie", "marca", "modelo"]));
   const { data, error } = await consulta;
   if (error) throw error;
   return (data ?? []) as EquipoConCliente[];

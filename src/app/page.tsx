@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ArrowRight,
   CalendarDays,
@@ -14,11 +15,16 @@ import {
 import { Logo } from "@/components/brand/logo";
 import { Brackets } from "@/components/brand/brackets";
 import { Button } from "@/components/ui/button";
-import { FormularioContacto } from "@/components/landing/formulario-contacto";
+import { SaltarContenido } from "@/components/ui/saltar-contenido";
 import { MuestraEspacio } from "@/components/landing/muestra-espacio";
 import { datosLanding } from "@/lib/datos/landing";
 import { AREAS_LANDING, enlaceWhatsApp, numeroWhatsApp, serviciosPorArea, telefonoLegible, textoPrecio } from "@/lib/landing";
 import { envPublico } from "@/lib/env";
+
+// El formulario (React Hook Form + Zod) se carga aparte: la landing es casi estática y así pesa menos al entrar.
+const FormularioContacto = dynamic(() => import("@/components/landing/formulario-contacto").then((m) => m.FormularioContacto), {
+  loading: () => <div aria-hidden className="min-h-[420px] animate-pulse rounded-2xl border border-border bg-soft" />,
+});
 
 // Estática y regenerada cada hora; además, guardar servicios o Mi marca la regenera al instante.
 export const revalidate = 3600;
@@ -86,9 +92,7 @@ export default async function Inicio() {
 
   return (
     <div className="bg-background text-foreground">
-      <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-mint focus:px-3 focus:py-2 focus:text-ink">
-        Saltar al contenido
-      </a>
+      <SaltarContenido />
 
       {/* ---------- Portada ---------- */}
       <section className="relative overflow-hidden bg-ink text-white">
@@ -299,6 +303,9 @@ export default async function Inicio() {
             <a href="#contacto" className="hover:text-foreground">
               Contacto
             </a>
+            <Link href="/privacidad" className="hover:text-foreground">
+              Privacidad
+            </Link>
             <Link href="/login" className="hover:text-foreground">
               Ingresar
             </Link>

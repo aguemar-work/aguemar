@@ -3,6 +3,7 @@ import type { InformeJson } from "@/lib/documentos";
 import type { DatosPeriodo, IndicadorInforme, SeccionInforme } from "@/lib/informe";
 import type { Area } from "@/types/database";
 import { conSesion } from "./base";
+import { filtroOr } from "./busqueda";
 
 /** Fila editable de un informe (incluye notas internas). */
 export interface InformeFila {
@@ -87,7 +88,7 @@ export async function listarInformes(filtros: { q?: string; cliente?: string; es
   if (filtros.estado === "publicado") consulta = consulta.eq("publicado", true);
   if (filtros.estado === "borrador") consulta = consulta.eq("publicado", false);
   const q = filtros.q?.replace(/[%,()]/g, " ").trim();
-  if (q) consulta = consulta.or(`titulo.ilike.%${q}%,numero.ilike.%${q}%`);
+  if (q) consulta = consulta.or(filtroOr(q, ["titulo", "numero"]));
   const { data, error } = await consulta;
   if (error) throw error;
   type Fila = Omit<InformeListado, "empresa"> & { clientes: { nombre: string } | null };
