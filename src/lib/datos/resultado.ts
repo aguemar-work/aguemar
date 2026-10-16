@@ -17,3 +17,10 @@ export class SinSesionError extends Error {
     this.name = "SinSesionError";
   }
 }
+
+export class SinPermisoError extends Error {
+  constructor() {
+    super("Solo el propietario puede hacer esto.");
+    this.name = "SinPermisoError";
+  }
+}

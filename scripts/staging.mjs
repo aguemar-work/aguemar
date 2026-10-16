@@ -90,6 +90,7 @@ if (Array.isArray(hayMarca) && hayMarca[0]?.n > 0) {
 
 // ---------- empresas y accesos ----------
 consulta(`
+insert into public.miembros (user_id, rol, nombre) values ('${propietario}', 'propietario', 'Propietario de prueba') on conflict do nothing;
 update public.clientes set usuario_id = '${empresaA}', modulos = '{calendario,proyectos,informes,documentos,cotizaciones,equipos,solicitudes}'
  where owner_id = '${propietario}' and slug = 'sgc' and (usuario_id is null or usuario_id = '${empresaA}');
 insert into public.clientes (owner_id, nombre, slug, modulos, tipo_doc, num_doc, contacto, telefono, correo, direccion, usuario_id)

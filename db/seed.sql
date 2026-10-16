@@ -33,6 +33,10 @@ begin
           E'Precios expresados en soles. Validez según la fecha indicada.\nEl servicio incluye la ficha técnica del trabajo realizado.\nForma de pago: 50 % al aceptar y 50 % al entregar, salvo acuerdo distinto.',
           '[PENDIENTE: cuenta]', '[PENDIENTE: CCI]', '[PENDIENTE: Yape]', '[PENDIENTE: Plin]');
 
+  -- ---------- Propietario del estudio (Fase 13): sin esta fila no entra al panel ----------
+  insert into public.miembros (user_id, rol, nombre) values (v_owner, 'propietario', 'Alejandro Fritz Guevara Martínez')
+  on conflict do nothing;
+
   -- ---------- Servicios iniciales ([PENDIENTE: confirmar lista y precios]) ----------
   insert into public.servicios (owner_id, area, nombre, descripcion, precio_base, unidad, visible_landing, orden) values
     (v_owner, 'soporte', 'Mantenimiento preventivo', 'Limpieza, integridad del sistema, optimización, actualizaciones y ficha técnica del estado del equipo.', null, 'equipo', true, 1),

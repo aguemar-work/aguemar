@@ -71,8 +71,9 @@ export type Rol =
   | { tipo: "anonimo" };
 
 /**
- * Rol del usuario actual: propietario (tiene perfil de marca), usuario de una
- * empresa (clientes.usuario_id) o sin acceso.
+ * Rol del usuario actual: propietario (public.miembros, vía es_propietario()),
+ * usuario de una empresa (clientes.usuario_id) o sin acceso. Tener un perfil de
+ * marca ya no basta: cualquiera podía crearse uno (auditoría SEG-01).
  */
 export const obtenerRol = cache(async (): Promise<Rol> => {
   const insforge = await crearClienteServidor();
@@ -81,11 +82,11 @@ export const obtenerRol = cache(async (): Promise<Rol> => {
   if (!usuario) return { tipo: "anonimo" };
 
   // Las dos preguntas van en paralelo: una sola ida y vuelta a InsForge.
-  const [marca, ws] = await Promise.all([
-    insforge.database.from("perfil_marca").select("id").limit(1).maybeSingle(),
+  const [propietario, ws] = await Promise.all([
+    insforge.database.rpc("es_propietario"),
     insforge.database.rpc("ws_mi_empresa"),
   ]);
-  if (!marca.error && marca.data) return { tipo: "propietario", usuario };
+  if (!propietario.error && propietario.data === true) return { tipo: "propietario", usuario };
 
   const empresa = ws.data as { slug?: string; nombre?: string } | null;
   if (empresa?.slug) return { tipo: "empresa", usuario, slug: empresa.slug, nombre: empresa.nombre ?? "" };

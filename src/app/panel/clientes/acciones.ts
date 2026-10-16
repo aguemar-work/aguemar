@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { clienteSchema, type ClienteInput } from "@/lib/validators/cliente";
@@ -101,6 +101,8 @@ export async function crearAccesoEmpresa(clienteId: string, input: AccesoEmpresa
     return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
   }
   try {
+    // Crear el usuario en InsForge no pasa por la RLS: solo el propietario (auditoría SEG-03).
+    await exigirPropietario();
     const { db } = await conSesion();
     const actual = await db.from("clientes").select("id, nombre, usuario_id").eq("id", clienteId).maybeSingle();
     if (actual.error) return fallo(traducirError(actual.error).mensaje);

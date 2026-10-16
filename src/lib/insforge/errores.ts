@@ -36,6 +36,10 @@ const UNICOS: Record<string, ErrorTraducido> = {
 };
 
 export function traducirError(error: unknown): ErrorTraducido {
+  // Errores propios de la app (exigirPropietario, conSesion): su mensaje ya es para el usuario.
+  if (error instanceof Error && (error.name === "SinPermisoError" || error.name === "SinSesionError")) {
+    return { mensaje: error.message };
+  }
   const e = (error ?? {}) as ErrorPostgrest;
   const texto = `${e.message ?? ""} ${e.details ?? ""}`;
 
@@ -60,11 +64,15 @@ export function traducirError(error: unknown): ErrorTraducido {
     }
     return { mensaje: "Algún dato no cumple las reglas de validación." };
   }
+  // Bloqueos propios de la base (Fase 13): el mensaje ya viene en español.
+  if (e.code === "42501" && /^No puedes vincular|^Ese usuario no pertenece/.test(e.message ?? "")) {
+    return { mensaje: e.message! };
+  }
   if (e.code === "42501" || e.statusCode === 403) {
     return { mensaje: "No tienes permiso para esta acción. Vuelve a iniciar sesión." };
   }
   // Mensajes propios de nuestras funciones SQL (raise exception ... using errcode): ya vienen en español.
-  if ((e.code === "22023" || e.code === "P0002") && e.message) {
+  if ((e.code === "22023" || e.code === "P0002" || e.code === "22001" || e.code === "53400" || e.code === "55000") && e.message) {
     return { mensaje: e.message };
   }
   if (e.code === "PGRST116") {

@@ -65,7 +65,9 @@ Objetivo: que nada llegue a producción sin pasar por CI, y cerrar lo barato que
 
 Cierra: DEV-01, DEV-02, DEV-04, DEV-05, SEO-01, COD-01, COD-02, SEG-09, A11Y-01/02/03, PER-01, PER-03, UX-01, LEG-01.
 
-### Fase 13 · Modelo de equipo interno y cierre de la base — ≈ 1 a 1,5 días
+### Fase 13 · Modelo de equipo interno y cierre de la base — ≈ 1 a 1,5 días ✅
+
+> Hecha el 16/10/2026. Dos ajustes respecto a lo planeado: `miembro_empresas` se crea en la Fase 14, cuando la usen los colaboradores; y en vez de comprobar el rol en cada Server Action (una ida y vuelta más, ~0,4 s), la RLS es la barrera y `exigirPropietario()` va solo donde la RLS no llega (crear usuarios en InsForge).
 
 Objetivo: que "propietario" exista en la base y que ninguna columna de sistema sea escribible desde fuera. Una migración, probada primero en `staging`.
 
