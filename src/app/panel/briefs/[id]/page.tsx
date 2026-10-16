@@ -9,6 +9,8 @@ import { VistaBrief } from "@/components/documentos/vista-brief-acta";
 import { Badge } from "@/components/ui/badge";
 import { contextoDocumento, obtenerBrief } from "@/lib/datos/briefs-actas";
 import { eliminarBrief, publicarBrief } from "@/app/panel/documentos/acciones";
+import { EnlaceEmpresa } from "@/components/panel/enlace-empresa";
+import { SoloPropietario } from "@/components/panel/solo-propietario";
 
 export const metadata: Metadata = { title: "Brief" };
 
@@ -27,9 +29,7 @@ export default async function BriefPage({ params }: { params: Promise<{ id: stri
         descripcion={
           <span className="flex flex-wrap items-center gap-2">
             {empresa ? (
-              <Link href={`/panel/clientes/${empresa.id}`} className="underline-offset-4 hover:underline">
-                {empresa.nombre}
-              </Link>
+              <EnlaceEmpresa id={empresa.id} nombre={empresa.nombre} />
             ) : null}
             {b.publicado ? <Badge variant="ok">Publicado</Badge> : <Badge variant="outline">Borrador</Badge>}
           </span>
@@ -70,18 +70,20 @@ export default async function BriefPage({ params }: { params: Promise<{ id: stri
         </aside>
       ) : null}
       <div className="mt-10 border-t border-border pt-4">
-        <ConfirmarEliminar
-          titulo={`¿Eliminar ${b.numero}?`}
-          descripcion="Se elimina el brief y su enlace público deja de funcionar."
-          accion={eliminarBrief.bind(null, b.id)}
-          irA="/panel/documentos"
-          textoExito="Brief eliminado."
-          variant="ghost"
-          size="sm"
-        >
-          Eliminar brief
-        </ConfirmarEliminar>
-      </div>
-    </>
+        <SoloPropietario>
+          <ConfirmarEliminar
+            titulo={`¿Eliminar ${b.numero}?`}
+            descripcion="Se elimina el brief y su enlace público deja de funcionar."
+            accion={eliminarBrief.bind(null, b.id)}
+            irA="/panel/documentos"
+            textoExito="Brief eliminado."
+            variant="ghost"
+            size="sm"
+          >
+            Eliminar brief
+          </ConfirmarEliminar>
+        </SoloPropietario>
+        </div>
+      </>
   );
 }

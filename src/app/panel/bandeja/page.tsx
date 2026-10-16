@@ -10,12 +10,16 @@ import { formatearFechaHora } from "@/lib/format";
 import { BotonLeido } from "./boton-leido";
 import { TarjetaSolicitud } from "./solicitud";
 import { listarSolicitudes } from "@/lib/datos/calendario";
+import { obtenerRol } from "@/lib/insforge/server";
 
 export const metadata: Metadata = { title: "Bandeja" };
 
 export default async function BandejaPage({ searchParams }: { searchParams: Promise<{ todos?: string }> }) {
   const { todos } = await searchParams;
-  const [comentarios, solicitudes] = await Promise.all([bandejaComentarios(!todos), listarSolicitudes(!todos)]);
+  const rol = await obtenerRol();
+  // El colaborador ve y responde comentarios de sus empresas; las solicitudes (que se vuelven trabajo o cotización) son del propietario.
+  const propietario = rol.tipo === "propietario";
+  const [comentarios, solicitudes] = await Promise.all([bandejaComentarios(!todos), propietario ? listarSolicitudes(!todos) : Promise.resolve([])]);
   const titulos = await titulosDeTrabajos(comentarios.filter((c) => c.entidad === "trabajo").map((c) => c.entidad_id));
 
   return (
@@ -23,13 +27,14 @@ export default async function BandejaPage({ searchParams }: { searchParams: Prom
       <PageHeader
         codigo="08"
         titulo="Bandeja"
-        descripcion="Solicitudes y comentarios de tus empresas. Responde, convierte una solicitud en trabajo o cotízala."
+        descripcion={propietario ? "Solicitudes y comentarios de tus empresas. Responde, convierte una solicitud en trabajo o cotízala." : "Comentarios de tus empresas. Respóndelos o márcalos como leídos."}
         acciones={
           <Button asChild variant="outline" size="sm">
             <Link href={todos ? "/panel/bandeja" : "/panel/bandeja?todos=1"}>{todos ? "Ver solo no leídos" : "Ver todos"}</Link>
           </Button>
         }
       />
+      {propietario ? (
       <section aria-labelledby="t-solicitudes" className="mb-8">
         <h2 id="t-solicitudes" className="mb-3 text-base font-semibold">
           Solicitudes <span className="font-mono text-sm text-muted-foreground">({solicitudes.length})</span>
@@ -46,6 +51,7 @@ export default async function BandejaPage({ searchParams }: { searchParams: Prom
           </ul>
         )}
       </section>
+      ) : null}
 
       <h2 className="mb-3 text-base font-semibold">Comentarios</h2>
       {comentarios.length === 0 ? (

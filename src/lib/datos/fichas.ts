@@ -1,7 +1,7 @@
 import { cache } from "react";
 import type { EquipoRow, FichaDiagnosticoRow, FichaIncidenciaRow, FichaRecomendacionRow, FichaRow, FichaTrabajoRow, TipoDocumento } from "@/types/database";
 import type { FichaJson } from "@/lib/documentos";
-import { conSesion } from "./base";
+import { conSesionPanel } from "./base";
 import { filtroOr } from "./busqueda";
 
 export type FichaResumen = FichaRow & {
@@ -10,7 +10,7 @@ export type FichaResumen = FichaRow & {
 };
 
 export async function listarFichas(filtros: { cliente?: string; q?: string; publicadas?: boolean } = {}): Promise<FichaResumen[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   let consulta = db
     .from("fichas")
     .select("*, clientes(id, nombre), equipos(id, marca, modelo, serie)")
@@ -36,7 +36,7 @@ export type FichaEdicion = FichaRow & {
 
 /** Ficha con sus filas, para editar. */
 export const obtenerFichaEdicion = cache(async function obtenerFichaEdicion(id: string): Promise<FichaEdicion | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db
     .from("fichas")
     .select("*, equipos(*), ficha_diagnosticos(*), ficha_trabajos(*), ficha_incidencias(*), ficha_recomendaciones(*)")
@@ -55,7 +55,7 @@ export const obtenerFichaEdicion = cache(async function obtenerFichaEdicion(id: 
 
 /** Ficha completa en la forma de los documentos (una sola llamada: ficha_panel). */
 export const obtenerFicha = cache(async function obtenerFicha(id: string): Promise<FichaJson | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.rpc("ficha_panel", { p_id: id });
   if (error) throw error;
   return (data as FichaJson | null) ?? null;
@@ -63,7 +63,7 @@ export const obtenerFicha = cache(async function obtenerFicha(id: string): Promi
 
 /** Datos de la ficha que no van en el documento: empresa (para WhatsApp y workspace), trabajo vinculado, vistas del enlace. */
 export async function contextoFicha(id: string) {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const [ficha, enlace] = await Promise.all([
     db
       .from("fichas")
@@ -88,14 +88,14 @@ export async function contextoFicha(id: string) {
 
 /** Enlace público vigente de un documento (o null). */
 export async function enlaceDe(tipo: TipoDocumento, id: string): Promise<{ token: string; revocado: boolean; vistas: number } | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data } = await db.from("enlaces_publicos").select("token, revocado, vistas").eq("tipo", tipo).eq("documento_id", id).maybeSingle();
   return (data as { token: string; revocado: boolean; vistas: number } | null) ?? null;
 }
 
 /** Equipos de todas las empresas, para el selector de la ficha (se filtra por empresa en el cliente). */
 export async function opcionesEquipos(): Promise<{ id: string; cliente_id: string; marca: string | null; modelo: string | null; serie: string }[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("equipos").select("id, cliente_id, marca, modelo, serie").order("marca").limit(1000);
   if (error) throw error;
   return (data ?? []) as { id: string; cliente_id: string; marca: string | null; modelo: string | null; serie: string }[];
@@ -103,7 +103,7 @@ export async function opcionesEquipos(): Promise<{ id: string; cliente_id: strin
 
 /** Trabajos para vincular la ficha (activos y recientes). */
 export async function opcionesTrabajos(): Promise<{ id: string; cliente_id: string | null; titulo: string }[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db
     .from("trabajos")
     .select("id, cliente_id, titulo")

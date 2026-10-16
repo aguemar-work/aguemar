@@ -31,7 +31,7 @@ Sin variables de InsForge la app compila igual y muestra un aviso en el panel y 
 | `NEXT_PUBLIC_WHATSAPP` | recomendada | número en formato internacional sin `+` |
 | `RESEND_API_KEY`, `RESEND_FROM` | no | avisos por correo con Resend; sin API key no se envía nada |
 | `AVISOS_PARA` | no | a dónde te llegan los avisos (si falta, el correo de Mi marca) |
-| `E2E_*` | solo local | cuentas de prueba de staging para Playwright (las crea `npm run staging:cuentas`) |
+| `E2E_*` | solo local | cuentas de prueba de staging para Playwright: propietario, empresa A y B, colaborador (las crea `npm run staging:cuentas`) |
 
 Nunca subas `.env.local` ni `.insforge/project.json` al repositorio. No configures en Vercel ninguna clave de servicio de InsForge: el código no la usa.
 
@@ -63,7 +63,7 @@ npx insforge branch switch staging
 npm run db:migrate
 ```
 
-4. Crea las cuentas de prueba y los datos de ejemplo (propietario con el seed, empresa A vinculada a SGC y empresa B con su propio trabajo). El script se niega a correr contra un proyecto que no sea una rama:
+4. Crea las cuentas de prueba y los datos de ejemplo (propietario con el seed, empresa A vinculada a SGC, empresa B con su propio trabajo y un colaborador asignado solo a SGC que entra por una invitación real). El script se niega a correr contra un proyecto que no sea una rama:
 
 ```bash
 npm run staging:cuentas

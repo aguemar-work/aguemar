@@ -1,11 +1,11 @@
 import { cache } from "react";
 import type { EstadoActividad, ItemCalendario, TipoActividad } from "@/lib/calendario";
 import type { Area, Prioridad } from "@/types/database";
-import { conSesion } from "./base";
+import { conSesionPanel } from "./base";
 
 /** Actividades, entregas y mantenimientos del rango (una llamada: panel_calendario). */
 export async function calendarioPanel(desde: string, hasta: string): Promise<(ItemCalendario & { cliente_id: string | null; visible_empresa: boolean })[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.rpc("panel_calendario", { p_desde: desde, p_hasta: hasta });
   if (error) throw error;
   return (data ?? []) as (ItemCalendario & { cliente_id: string | null; visible_empresa: boolean })[];
@@ -29,7 +29,7 @@ export interface ActividadFila {
 }
 
 export const obtenerActividad = cache(async function obtenerActividad(id: string): Promise<ActividadFila | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("actividades").select("*, clientes(id, nombre)").eq("id", id).maybeSingle();
   if (error) throw error;
   if (!data) return null;
@@ -56,7 +56,7 @@ export interface SolicitudFila {
 
 /** Solicitudes para la bandeja: abiertas (nuevas y en revisión) o todas. */
 export async function listarSolicitudes(soloAbiertas = true): Promise<SolicitudFila[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   let consulta = db.from("solicitudes").select("*, clientes(id, nombre)").order("created_at", { ascending: false }).limit(100);
   if (soloAbiertas) consulta = consulta.in("estado", ["nueva", "en_revision"]);
   const { data, error } = await consulta;

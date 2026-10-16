@@ -66,12 +66,13 @@ export const obtenerUsuario = cache(async (): Promise<UsuarioSesion | null> => {
 
 export type Rol =
   | { tipo: "propietario"; usuario: UsuarioSesion }
+  | { tipo: "colaborador"; usuario: UsuarioSesion }
   | { tipo: "empresa"; usuario: UsuarioSesion; slug: string; nombre: string }
   | { tipo: "sin_acceso"; usuario: UsuarioSesion }
   | { tipo: "anonimo" };
 
 /**
- * Rol del usuario actual: propietario (public.miembros, vía es_propietario()),
+ * Rol del usuario actual: propietario o colaborador (public.miembros, vía mi_rol()),
  * usuario de una empresa (clientes.usuario_id) o sin acceso. Tener un perfil de
  * marca ya no basta: cualquiera podía crearse uno (auditoría SEG-01).
  */
@@ -82,11 +83,21 @@ export const obtenerRol = cache(async (): Promise<Rol> => {
   if (!usuario) return { tipo: "anonimo" };
 
   // Las dos preguntas van en paralelo: una sola ida y vuelta a InsForge.
-  const [propietario, ws] = await Promise.all([
-    insforge.database.rpc("es_propietario"),
+  const [miembro, ws] = await Promise.all([
+    insforge.database.rpc("mi_rol"),
     insforge.database.rpc("ws_mi_empresa"),
   ]);
-  if (!propietario.error && propietario.data === true) return { tipo: "propietario", usuario };
+  // Si no se pudo consultar el rol, no se concluye "sin acceso": con el token vencido o
+  // rechazado (401) se trata como sin sesión (vuelve al login con la ruta pedida); con
+  // otro fallo, error (la página ofrece reintentar). Pasa al renovar el token en paralelo.
+  const fallo = miembro.error ?? ws.error;
+  if (fallo) {
+    const estado = (fallo as { statusCode?: number; status?: number }).statusCode ?? (fallo as { status?: number }).status;
+    if (estado === 401) return { tipo: "anonimo" };
+    throw new Error(`No se pudo verificar tu acceso: ${fallo.message ?? "error de conexión"}`);
+  }
+  if (!miembro.error && miembro.data === "propietario") return { tipo: "propietario", usuario };
+  if (!miembro.error && miembro.data === "colaborador") return { tipo: "colaborador", usuario };
 
   const empresa = ws.data as { slug?: string; nombre?: string } | null;
   if (empresa?.slug) return { tipo: "empresa", usuario, slug: empresa.slug, nombre: empresa.nombre ?? "" };
@@ -96,8 +107,13 @@ export const obtenerRol = cache(async (): Promise<Rol> => {
 
 /** Ruta de inicio según el rol. */
 export function rutaInicio(rol: Rol): string {
-  if (rol.tipo === "propietario") return "/panel";
+  if (rol.tipo === "propietario" || rol.tipo === "colaborador") return "/panel";
   if (rol.tipo === "empresa") return `/w/${rol.slug}`;
   if (rol.tipo === "sin_acceso") return "/sin-acceso";
   return "/login";
+}
+
+/** Propietario o colaborador: entran al panel. */
+export function esEquipo(rol: Rol): rol is Extract<Rol, { tipo: "propietario" | "colaborador" }> {
+  return rol.tipo === "propietario" || rol.tipo === "colaborador";
 }

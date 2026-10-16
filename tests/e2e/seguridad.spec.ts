@@ -216,4 +216,9 @@ test("el DNI de quien acepta sale enmascarado fuera del panel (SEG-06)", async (
   const { c: sesionA } = await sesion(EMPRESA_A);
   const det = (await sesionA.database.rpc("ws_cotizacion", { p_id: cot.data!.id })).data as { aceptacion?: { dni?: string | null } | null } | null;
   expect(det?.aceptacion?.dni).toBe("****5678");
+
+  // Limpieza: el trabajo que creó la aceptación y la cotización (su aceptación se va en cascada).
+  const z = await duenio.database.from("cotizaciones").select("trabajo_id").eq("id", cot.data!.id).single();
+  await duenio.database.from("cotizaciones").delete().eq("id", cot.data!.id);
+  if (z.data?.trabajo_id) await duenio.database.from("trabajos").delete().eq("id", z.data.trabajo_id);
 });

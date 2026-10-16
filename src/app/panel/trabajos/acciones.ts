@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { aCentimos, hoyLima } from "@/lib/format";
@@ -80,6 +80,8 @@ export async function cambiarVisibilidadTrabajo(id: string, visible: boolean): P
 
 export async function eliminarTrabajo(id: string): Promise<Resultado<void>> {
   try {
+    // Solo el propietario (el colaborador no borra ni reorganiza): mensaje claro en vez de un falso éxito.
+    await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.from("trabajos").delete().eq("id", id).select("cliente_id").maybeSingle();
     if (error) return fallo(traducirError(error).mensaje);
@@ -97,6 +99,8 @@ export async function agregarEtapa(trabajoId: string, titulo: string): Promise<R
   const parsed = etapaSchema.safeParse({ titulo });
   if (!parsed.success) return fallo(parsed.error.issues[0]?.message ?? "Revisa el nombre.");
   try {
+    // Solo el propietario organiza las etapas (el colaborador trabaja tareas y entregables).
+    await exigirPropietario();
     const { db, usuario } = await conSesion();
     const ultimo = await db.from("trabajo_etapas").select("orden").eq("trabajo_id", trabajoId).order("orden", { ascending: false }).limit(1).maybeSingle();
     const orden = ((ultimo.data as { orden: number } | null)?.orden ?? 0) + 1;
@@ -117,6 +121,8 @@ export async function renombrarEtapa(id: string, trabajoId: string, titulo: stri
   const parsed = etapaSchema.safeParse({ titulo });
   if (!parsed.success) return fallo(parsed.error.issues[0]?.message ?? "Revisa el nombre.");
   try {
+    // Solo el propietario (el colaborador no borra ni reorganiza): mensaje claro en vez de un falso éxito.
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("trabajo_etapas").update({ titulo: parsed.data.titulo }).eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
@@ -129,6 +135,8 @@ export async function renombrarEtapa(id: string, trabajoId: string, titulo: stri
 
 export async function marcarEtapa(id: string, trabajoId: string, hecha: boolean): Promise<Resultado<void>> {
   try {
+    // Solo el propietario organiza las etapas (el colaborador trabaja tareas y entregables).
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("trabajo_etapas").update({ hecha }).eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
@@ -141,6 +149,8 @@ export async function marcarEtapa(id: string, trabajoId: string, hecha: boolean)
 
 export async function eliminarEtapa(id: string, trabajoId: string): Promise<Resultado<void>> {
   try {
+    // Solo el propietario (el colaborador no borra ni reorganiza): mensaje claro en vez de un falso éxito.
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("trabajo_etapas").delete().eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
@@ -153,6 +163,8 @@ export async function eliminarEtapa(id: string, trabajoId: string): Promise<Resu
 
 export async function reordenarEtapas(trabajoId: string, ids: string[]): Promise<Resultado<void>> {
   try {
+    // Solo el propietario organiza las etapas (el colaborador trabaja tareas y entregables).
+    await exigirPropietario();
     const { db } = await conSesion();
     const rs = await Promise.all(ids.map((id, i) => db.from("trabajo_etapas").update({ orden: i + 1 }).eq("id", id)));
     const conError = rs.find((r) => r.error);

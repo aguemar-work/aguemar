@@ -10,6 +10,8 @@ import { nombreEquipo } from "@/lib/documentos";
 import { formatearFechaHora } from "@/lib/format";
 import { eliminarFicha, publicarFicha } from "../acciones";
 import { AccionesDocumento } from "@/components/documentos/acciones-documento";
+import { EnlaceEmpresa } from "@/components/panel/enlace-empresa";
+import { SoloPropietario } from "@/components/panel/solo-propietario";
 
 /** Detalle de una ficha. Se usa en la página completa y en el panel lateral (@modal). */
 export async function DetalleFicha({ id }: { id: string }) {
@@ -27,9 +29,7 @@ export async function DetalleFicha({ id }: { id: string }) {
         descripcion={
           <span className="flex flex-wrap items-center gap-2">
             {empresa ? (
-              <Link href={`/panel/clientes/${empresa.id}`} className="underline-offset-4 hover:underline">
-                {empresa.nombre}
-              </Link>
+              <EnlaceEmpresa id={empresa.id} nombre={empresa.nombre} />
             ) : null}
             {f.publicada ? <Badge variant="ok">Publicada</Badge> : <Badge variant="outline">Borrador</Badge>}
           </span>
@@ -78,18 +78,20 @@ export async function DetalleFicha({ id }: { id: string }) {
       <VistaFicha f={f} />
 
       <div className="mt-10 border-t border-border pt-4">
-        <ConfirmarEliminar
-          titulo={`¿Eliminar ${f.numero}?`}
-          descripcion="Se elimina la ficha con su diagnóstico, trabajos e incidencias, y su enlace público deja de funcionar. El equipo se conserva."
-          accion={eliminarFicha.bind(null, f.id)}
-          irA="/panel/documentos"
-          textoExito="Ficha eliminada."
-          variant="ghost"
-          size="sm"
-        >
-          Eliminar ficha
-        </ConfirmarEliminar>
-      </div>
-    </>
+        <SoloPropietario>
+          <ConfirmarEliminar
+            titulo={`¿Eliminar ${f.numero}?`}
+            descripcion="Se elimina la ficha con su diagnóstico, trabajos e incidencias, y su enlace público deja de funcionar. El equipo se conserva."
+            accion={eliminarFicha.bind(null, f.id)}
+            irA="/panel/documentos"
+            textoExito="Ficha eliminada."
+            variant="ghost"
+            size="sm"
+          >
+            Eliminar ficha
+          </ConfirmarEliminar>
+        </SoloPropietario>
+        </div>
+      </>
   );
 }

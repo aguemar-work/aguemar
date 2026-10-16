@@ -80,7 +80,9 @@ Objetivo: que "propietario" exista en la base y que ninguna columna de sistema s
 
 Cierra: SEG-01, SEG-02, SEG-03, SEG-04, SEG-06, SEG-07, SEG-11, ARQ-01, DAT-01, TST-01.
 
-### Fase 14 · Accesos: colaboradores, invitaciones y perfiles — ≈ 2 días
+### Fase 14 · Accesos: colaboradores, invitaciones y perfiles — ≈ 2 días ✅
+
+> Hecha el 16/10/2026 con estas decisiones: el colaborador **ejecuta y publica** (no crea ni borra trabajos ni organiza etapas); las invitaciones salen por **enlace y correo**. trabajos y clientes no se le abren como tabla: los lee por vistas sin montos ni notas. Límite conocido (DAT-02): InsForge no guarda sesiones en la base, así que una sesión abierta vive hasta que vence su token; lo que corta al instante es "quitar acceso" o desactivar al colaborador. `ws_admin_set_password` queda en la base sin uso (se retira en una fase siguiente).
 
 Objetivo: tu punto 5 y una forma segura de dar accesos.
 

@@ -13,14 +13,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sidebar } from "./sidebar";
+import type { RolPanel } from "./nav";
 import { ThemeToggle } from "./theme-toggle";
 
 interface TopbarProps {
   correo?: string | null;
+  rol?: RolPanel;
   cerrarSesion: () => Promise<void>;
 }
 
-export function Topbar({ correo, cerrarSesion }: TopbarProps) {
+export function Topbar({ correo, cerrarSesion, rol = "propietario" }: TopbarProps) {
   const [abierto, setAbierto] = useState(false);
 
   return (
@@ -33,7 +35,7 @@ export function Topbar({ correo, cerrarSesion }: TopbarProps) {
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0">
           <SheetTitle className="sr-only">Menú del panel</SheetTitle>
-          <Sidebar onNavegar={() => setAbierto(false)} />
+          <Sidebar rol={rol} onNavegar={() => setAbierto(false)} />
         </SheetContent>
       </Sheet>
 
@@ -49,6 +51,7 @@ export function Topbar({ correo, cerrarSesion }: TopbarProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60">
           <DropdownMenuLabel className="truncate font-mono">{correo ?? "Sin sesión"}</DropdownMenuLabel>
+          {rol === "colaborador" ? <p className="px-2 pb-1.5 text-xs text-muted-foreground">Colaborador del equipo</p> : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => void cerrarSesion()}>
             <LogOut /> Cerrar sesión

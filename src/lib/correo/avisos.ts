@@ -133,18 +133,26 @@ interface Destino {
   conAcceso: boolean;
 }
 
-/** Correo de la empresa: el de contacto o, si no tiene, el de su usuario. Null si desactivó los avisos. */
+/**
+ * Correo de la empresa: el de contacto o, si no tiene, el de su usuario. Null si desactivó los avisos.
+ * contacto_aviso_empresa responde al propietario y al colaborador asignado (el colaborador no lee clientes).
+ */
 async function destinoEmpresa(db: Db, clienteId: string): Promise<Destino | null> {
-  const { data } = await db.from("clientes").select("nombre, contacto, correo, slug, modulos, usuario_id, activa, avisos_correo").eq("id", clienteId).maybeSingle();
-  const c = data as { nombre: string; contacto: string | null; correo: string | null; slug: string | null; modulos: string[] | null; usuario_id: string | null; activa: boolean; avisos_correo: boolean } | null;
+  const { data } = await db.rpc("contacto_aviso_empresa", { p_cliente: clienteId });
+  const c = data as {
+    nombre: string;
+    contacto: string | null;
+    correo: string | null;
+    slug: string | null;
+    modulos: string[] | null;
+    activa: boolean;
+    avisos_correo: boolean;
+    correo_usuario: string | null;
+  } | null;
   if (!c || !c.avisos_correo || c.activa === false) return null;
-  let correo = c.correo;
-  if (!correo && c.usuario_id) {
-    const r = await db.rpc("ws_correo_usuario", { p_usuario: c.usuario_id });
-    correo = (r.data as string | null) ?? null;
-  }
+  const correo = c.correo || c.correo_usuario;
   if (!correo) return null;
-  return { correo, nombre: c.nombre, contacto: c.contacto, slug: c.slug, modulos: c.modulos ?? [], conAcceso: Boolean(c.usuario_id && c.slug) };
+  return { correo, nombre: c.nombre, contacto: c.contacto, slug: c.slug, modulos: c.modulos ?? [], conAcceso: Boolean(c.correo_usuario && c.slug) };
 }
 
 const saludo = (d: Destino) => (d.contacto ? `Hola ${d.contacto.split(" ")[0]},` : "Hola,");
@@ -207,6 +215,7 @@ export async function avisarDocumentoEmpresa(tipo: TipoDoc, id: string) {
 
 const RUTA_ESPACIO: Partial<Record<EntidadComentario, { modulo: ClaveModulo; ruta: (id: string) => string; tabla: string }>> = {
   trabajo: { modulo: "proyectos", ruta: (id) => `proyectos/${id}`, tabla: "trabajos" },
+  // (si responde un colaborador, el título sale de trabajos_equipo: ver avisarRespuestaEmpresa)
   actividad: { modulo: "calendario", ruta: (id) => `calendario/${id}`, tabla: "actividades" },
   informe: { modulo: "informes", ruta: (id) => `informes/${id}`, tabla: "informes" },
 };
@@ -218,7 +227,8 @@ export async function avisarRespuestaEmpresa(entidad: EntidadComentario, entidad
   if (!cfg) return;
   const { db } = await conSesion();
   despues(async () => {
-    const { data } = await db.from(cfg.tabla).select("titulo").eq("id", entidadId).maybeSingle();
+    let { data } = await db.from(cfg.tabla).select("titulo").eq("id", entidadId).maybeSingle();
+    if (!data && cfg.tabla === "trabajos") ({ data } = await db.from("trabajos_equipo").select("titulo").eq("id", entidadId).maybeSingle());
     const titulo = (data as { titulo: string } | null)?.titulo ?? "tu proyecto";
     await aLaEmpresa(db, clienteId, (d) =>
       d.conAcceso && moduloActivo(d.modulos, cfg.modulo)
@@ -257,5 +267,38 @@ export async function avisarSolicitudRespondida(solicitudId: string) {
           }
         : null,
     );
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Invitaciones de acceso
+// ---------------------------------------------------------------------------
+/**
+ * Invitación para entrar a su espacio (empresa) o al panel (colaborador). El enlace
+ * es de un solo uso y vence en 7 días; quien lo recibe fija su contraseña.
+ * Se llama desde una acción del propietario; si no hay Resend, no se envía nada
+ * (el propietario igual tiene el enlace para copiarlo).
+ */
+export function avisarInvitacion(i: { correo: string; enlace: string; tipo: "empresa" | "colaborador"; empresa?: string | null; nombre?: string | null }) {
+  despues(async () => {
+    const estudio = "agueMar";
+    const saludoInv = i.nombre ? `Hola ${i.nombre.split(" ")[0]},` : "Hola,";
+    const esEmpresa = i.tipo === "empresa";
+    await enviarCorreo({
+      para: i.correo,
+      asunto: esEmpresa ? `Tu espacio en ${estudio}${i.empresa ? ` para ${i.empresa}` : ""}` : `Te invitaron al equipo de ${estudio}`,
+      rotulo: esEmpresa ? "// tu espacio" : "// equipo",
+      titulo: esEmpresa ? "Ya tienes un espacio para seguir tus proyectos" : "Te sumamos al equipo",
+      parrafos: [
+        saludoInv,
+        esEmpresa
+          ? `Desde tu espacio${i.empresa ? ` de ${i.empresa}` : ""} vas a ver el avance, los documentos y las cotizaciones, y podrás dejarnos comentarios.`
+          : "Vas a ver y trabajar los proyectos de las empresas que te asignamos: tareas, actividades, fichas e informes.",
+        "Abre el enlace, crea tu contraseña y listo. Vence en 7 días y sirve una sola vez.",
+      ],
+      boton: { texto: esEmpresa ? "Crear mi acceso" : "Unirme al equipo", url: i.enlace },
+      pie: "Si no esperabas este correo, ignóralo: sin abrir el enlace no se crea ninguna cuenta.",
+      responderA: await correoPropietario(),
+    });
   });
 }

@@ -6,6 +6,8 @@ import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { conSesionOpcional } from "@/lib/datos/base";
+import { obtenerRol } from "@/lib/insforge/server";
+import { InicioEquipo } from "./inicio-equipo";
 import { resumenInicio, type ResumenInicio } from "@/lib/datos/inicio";
 import { AREAS } from "@/lib/areas";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
@@ -29,6 +31,8 @@ const TONO_TEXTO = {
 } as const;
 
 export default async function InicioPanel() {
+  // El colaborador tiene su propio inicio: sus empresas, sin dinero ni leads.
+  if ((await obtenerRol()).tipo === "colaborador") return <InicioEquipo />;
   const sesion = await conSesionOpcional();
   const r: ResumenInicio | null = sesion ? await resumenInicio() : null;
   const hoy = r?.hoy ?? hoyLima();

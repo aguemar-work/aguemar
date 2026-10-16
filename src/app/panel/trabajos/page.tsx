@@ -15,6 +15,7 @@ import { calcularAvance, textoVencimiento } from "@/lib/trabajos-util";
 import type { Area, EstadoTrabajo } from "@/types/database";
 import { FiltrosTrabajos as Filtros } from "./filtros";
 import { Tablero } from "./tablero";
+import { obtenerRol } from "@/lib/insforge/server";
 
 export const metadata: Metadata = { title: "Trabajos" };
 
@@ -31,7 +32,9 @@ export default async function TrabajosPage({ searchParams }: Props) {
     clienteId: sp.cliente || undefined,
     busqueda: sp.q,
   };
-  const [trabajos, clientes] = await Promise.all([listarTrabajos(filtros), opcionesClientes()]);
+  const [trabajos, clientes, rol] = await Promise.all([listarTrabajos(filtros), opcionesClientes(), obtenerRol()]);
+  // El colaborador no crea trabajos ni ve montos.
+  const propietario = rol.tipo === "propietario";
   const hoy = hoyLima();
   const hayFiltros = Boolean(sp.q || sp.area || sp.cliente || (sp.estado && sp.estado !== "activos"));
 
@@ -40,13 +43,15 @@ export default async function TrabajosPage({ searchParams }: Props) {
       <PageHeader
         codigo="04"
         titulo="Trabajos"
-        descripcion="Todo lo que haces, por área y estado. Las cotizaciones, cobros y documentos se cuelgan de aquí."
+        descripcion={propietario ? "Todo lo que haces, por área y estado. Las cotizaciones, cobros y documentos se cuelgan de aquí." : "Los trabajos de tus empresas: avanza tareas y entregables, y comenta."}
         acciones={
-          <Button asChild variant="mint">
-            <Link href="/panel/trabajos/nuevo">
-              <Plus /> Nuevo trabajo
-            </Link>
-          </Button>
+          propietario ? (
+            <Button asChild variant="mint">
+              <Link href="/panel/trabajos/nuevo">
+                <Plus /> Nuevo trabajo
+              </Link>
+            </Button>
+          ) : null
         }
       />
 
@@ -58,17 +63,25 @@ export default async function TrabajosPage({ searchParams }: Props) {
         <EmptyState
           icono={KanbanSquare}
           titulo={hayFiltros ? "Sin trabajos para ese filtro." : "Aún no hay trabajos."}
-          descripcion={hayFiltros ? "Prueba con otro filtro o crea el trabajo." : "Crea el primero: un sitio, una identidad, un mantenimiento. Lo que sea que estés haciendo."}
+          descripcion={
+            !propietario
+              ? "Cuando el propietario cree trabajos en tus empresas, aparecerán aquí."
+              : hayFiltros
+                ? "Prueba con otro filtro o crea el trabajo."
+                : "Crea el primero: un sitio, una identidad, un mantenimiento. Lo que sea que estés haciendo."
+          }
           accion={
+            !propietario ? undefined : (
             <Button asChild variant="mint">
               <Link href="/panel/trabajos/nuevo">
                 <Plus /> Nuevo trabajo
               </Link>
             </Button>
+            )
           }
         />
       ) : vista === "tablero" ? (
-        <Tablero trabajos={trabajos} hoy={hoy} />
+        <Tablero trabajos={trabajos} hoy={hoy} soloLectura={!propietario} />
       ) : (
         <Table>
           <TableHeader>
@@ -78,7 +91,7 @@ export default async function TrabajosPage({ searchParams }: Props) {
               <TableHead>Estado</TableHead>
               <TableHead className="hidden lg:table-cell">Compromiso</TableHead>
               <TableHead className="hidden sm:table-cell text-right">Avance</TableHead>
-              <TableHead className="hidden lg:table-cell text-right">Monto</TableHead>
+              {propietario ? <TableHead className="hidden lg:table-cell text-right">Monto</TableHead> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -117,9 +130,11 @@ export default async function TrabajosPage({ searchParams }: Props) {
                       <span className="text-xs text-muted-foreground">Sin tareas</span>
                     )}
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell text-right font-mono tabular">
-                    {t.monto_estimado != null ? formatearMonto(t.monto_estimado, t.moneda) : "—"}
-                  </TableCell>
+                  {propietario ? (
+                    <TableCell className="hidden lg:table-cell text-right font-mono tabular">
+                      {t.monto_estimado != null ? formatearMonto(t.monto_estimado, t.moneda) : "—"}
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               );
             })}

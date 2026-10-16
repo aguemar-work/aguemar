@@ -21,12 +21,16 @@ import { ListaCobros, RegistrarCobro } from "../../cotizaciones/cobros";
 import { eliminarCliente } from "../acciones";
 import { informesDe } from "@/lib/datos/informes";
 import { textoPeriodo } from "@/lib/informe";
+import { soloPropietario } from "@/lib/datos/base";
+import { invitacionDeEmpresa } from "@/lib/datos/equipo";
 
 export const metadata: Metadata = { title: "Empresa" };
 
 export default async function ClienteDetallePage({ params }: { params: Promise<{ id: string }> }) {
+  // Solo el propietario (el colaborador recibe 404).
+  await soloPropietario();
   const { id } = await params;
-  const [cliente, historial, informes] = await Promise.all([obtenerCliente(id), historialCliente(id), informesDe({ cliente: id })]);
+  const [cliente, historial, informes, invitacion] = await Promise.all([obtenerCliente(id), historialCliente(id), informesDe({ cliente: id }), invitacionDeEmpresa(id)]);
   if (!cliente) notFound();
   const correoAcceso = await correoDeUsuario(cliente.usuario_id);
   const hoy = hoyLima();
@@ -91,7 +95,14 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
         </Card>
 
         <div className="space-y-6 lg:col-span-2">
-          <AccesoEmpresa clienteId={id} slug={cliente.slug} usuarioId={cliente.usuario_id} correoUsuario={correoAcceso} />
+          <AccesoEmpresa
+            clienteId={id}
+            slug={cliente.slug}
+            usuarioId={cliente.usuario_id}
+            correoUsuario={correoAcceso}
+            correoSugerido={cliente.correo}
+            invitacion={invitacion ? { id: invitacion.id, token: invitacion.token, correo: invitacion.correo, expira_en: invitacion.expira_en } : null}
+          />
           <ModulosEmpresa clienteId={id} modulos={cliente.modulos ?? []} avisos={cliente.avisos_correo !== false} />
 
           <section aria-labelledby="trabajos">

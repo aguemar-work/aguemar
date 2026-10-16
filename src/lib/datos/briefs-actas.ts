@@ -1,7 +1,7 @@
 import { cache } from "react";
 import type { ActaJson, BriefJson, EntregableActa } from "@/lib/documentos";
 import type { Area } from "@/types/database";
-import { conSesion } from "./base";
+import { conSesionPanel } from "./base";
 import { filtroOr } from "./busqueda";
 
 /** Fila editable de un brief (incluye notas internas). */
@@ -42,14 +42,14 @@ export interface ActaFila {
 }
 
 export const obtenerBriefFila = cache(async function obtenerBriefFila(id: string): Promise<BriefFila | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("briefs").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as BriefFila | null) ?? null;
 });
 
 export const obtenerActaFila = cache(async function obtenerActaFila(id: string): Promise<ActaFila | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("actas_entrega").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as ActaFila | null) ?? null;
@@ -57,14 +57,14 @@ export const obtenerActaFila = cache(async function obtenerActaFila(id: string):
 
 /** Documento completo (misma forma que el workspace y el portal). */
 export const obtenerBrief = cache(async function obtenerBrief(id: string): Promise<BriefJson | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.rpc("brief_panel", { p_id: id });
   if (error) throw error;
   return (data as BriefJson | null) ?? null;
 });
 
 export const obtenerActa = cache(async function obtenerActa(id: string): Promise<ActaJson | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.rpc("acta_panel", { p_id: id });
   if (error) throw error;
   return (data as ActaJson | null) ?? null;
@@ -72,7 +72,7 @@ export const obtenerActa = cache(async function obtenerActa(id: string): Promise
 
 /** Contexto que no va en el documento: empresa (mensajes y workspace), trabajo y notas internas. */
 export async function contextoDocumento(tabla: "briefs" | "actas_entrega", id: string) {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const tipo = tabla === "briefs" ? "brief" : "acta";
   const [doc, enlace] = await Promise.all([
     db
@@ -109,7 +109,7 @@ export interface DocumentoListado {
 
 /** Todos los documentos del propietario (fichas, briefs y actas) para el listado general. */
 export async function listarDocumentos(filtros: { tipo?: string; q?: string; cliente?: string } = {}): Promise<DocumentoListado[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const q = filtros.q?.replace(/[%,()]/g, " ").trim();
   const quiero = (t: string) => !filtros.tipo || filtros.tipo === t;
   const filtrar = <T extends { eq: (c: string, v: string) => T; or: (f: string) => T }>(consulta: T, campoTitulo: string) => {
@@ -146,7 +146,7 @@ export async function listarDocumentos(filtros: { tipo?: string; q?: string; cli
 
 /** Entregables de un trabajo, para precargar el acta. */
 export async function entregablesDeTrabajo(trabajoId: string): Promise<EntregableActa[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("trabajo_entregables").select("nombre, nota, url").eq("trabajo_id", trabajoId).order("orden");
   if (error) throw error;
   return ((data ?? []) as { nombre: string; nota: string | null; url: string | null }[]).map((e) => ({ nombre: e.nombre, detalle: e.nota, url: e.url }));
@@ -154,7 +154,7 @@ export async function entregablesDeTrabajo(trabajoId: string): Promise<Entregabl
 
 /** Datos de un trabajo para precargar brief o acta. */
 export async function datosTrabajo(trabajoId: string): Promise<{ id: string; titulo: string; area: Area; cliente_id: string | null; descripcion: string | null } | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data } = await db.from("trabajos").select("id, titulo, area, cliente_id, descripcion").eq("id", trabajoId).maybeSingle();
   return (data as { id: string; titulo: string; area: Area; cliente_id: string | null; descripcion: string | null } | null) ?? null;
 }

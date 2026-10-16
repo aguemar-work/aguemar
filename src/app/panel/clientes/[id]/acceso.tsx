@@ -4,24 +4,35 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { ExternalLink, KeyRound, Loader2, UserPlus } from "lucide-react";
+import { ExternalLink, KeyRound, Loader2, Send, UserX } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Campo, propsCampo } from "@/components/formulario/campo";
-import { accesoEmpresaSchema, nuevaContrasenaSchema, type AccesoEmpresaInput, type NuevaContrasenaInput } from "@/lib/validators/empresa";
-import { crearAccesoEmpresa, restablecerContrasenaEmpresa } from "../acciones";
+import { ConfirmarEliminar } from "@/components/panel/confirmar-eliminar";
+import { InvitacionPendiente } from "@/components/panel/invitacion-pendiente";
+import { invitarEmpresaSchema, type InvitarEmpresaInput } from "@/lib/validators/empresa";
+import { enviarRecuperacionEmpresa, invitarEmpresa, quitarAccesoEmpresa } from "../acciones";
 
 interface Props {
   clienteId: string;
   slug: string | null;
   usuarioId: string | null;
   correoUsuario: string | null;
+  /** Correo de contacto de la empresa, para sugerirlo al invitar. */
+  correoSugerido: string | null;
+  invitacion: { id: string; token: string; correo: string; expira_en: string } | null;
 }
 
-export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario }: Props) {
+/**
+ * Acceso al workspace por invitación: el propietario escribe el correo y comparte
+ * el enlace; la persona fija su contraseña. Con acceso activo: enviar código de
+ * recuperación o quitar el acceso.
+ */
+export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario, correoSugerido, invitacion }: Props) {
+  const ruta = `/panel/clientes/${clienteId}`;
   return (
     <Card>
       <CardHeader>
@@ -35,78 +46,70 @@ export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario }: Pro
           ) : (
             <span className="font-mono">/w/…</span>
           )}{" "}
-          con el correo y la contraseña que definas aquí.
+          con la contraseña que crea al aceptar tu invitación.
         </CardDescription>
       </CardHeader>
-      <CardContent>{usuarioId ? <Restablecer clienteId={clienteId} usuarioId={usuarioId} correo={correoUsuario} /> : <Crear clienteId={clienteId} />}</CardContent>
+      <CardContent>
+        {usuarioId ? (
+          <AccesoActivo clienteId={clienteId} correo={correoUsuario} />
+        ) : invitacion ? (
+          <InvitacionPendiente id={invitacion.id} token={invitacion.token} correo={invitacion.correo} expiraEn={invitacion.expira_en} tipo="empresa" ruta={ruta} />
+        ) : (
+          <Invitar clienteId={clienteId} correoSugerido={correoSugerido} />
+        )}
+      </CardContent>
     </Card>
   );
 }
 
-function Crear({ clienteId }: { clienteId: string }) {
+function Invitar({ clienteId, correoSugerido }: { clienteId: string; correoSugerido: string | null }) {
   const [pendiente, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
-  const { register, handleSubmit, formState, setError } = useForm<AccesoEmpresaInput>({
-    resolver: zodResolver(accesoEmpresaSchema),
-    defaultValues: { correo: "", contrasena: "" },
+  const { register, handleSubmit, formState, setError } = useForm<InvitarEmpresaInput>({
+    resolver: zodResolver(invitarEmpresaSchema),
+    defaultValues: { correo: correoSugerido ?? "" },
   });
-  const errores = formState.errors;
+  const error = formState.errors.correo?.message;
 
   const onSubmit = handleSubmit((datos) =>
     iniciar(async () => {
       setErrorGeneral(undefined);
-      const r = await crearAccesoEmpresa(clienteId, datos);
+      const r = await invitarEmpresa(clienteId, datos);
       if (!r.ok) {
-        if (r.campo === "correo" || r.campo === "contrasena") setError(r.campo, { message: r.error });
+        if (r.campo === "correo") setError("correo", { message: r.error });
         else setErrorGeneral(r.error);
         return;
       }
-      toast.success("Acceso creado. Comparte el correo y la contraseña con la empresa.");
+      toast.success("Invitación lista. Copia el enlace o envíalo por WhatsApp.");
     }),
   );
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Campo id="acc-correo" etiqueta="Correo de acceso" requerido error={errores.correo?.message}>
-          <Input {...register("correo")} {...propsCampo("acc-correo", errores.correo?.message)} type="email" autoComplete="off" placeholder="contacto@empresa.pe" />
-        </Campo>
-        <Campo id="acc-pass" etiqueta="Contraseña inicial" requerido error={errores.contrasena?.message} ayuda="Mínimo 8 caracteres. Se la entregas tú a la empresa.">
-          <Input {...register("contrasena")} {...propsCampo("acc-pass", errores.contrasena?.message, "si")} type="text" autoComplete="off" className="font-mono" />
-        </Campo>
-      </div>
+      <Campo id="inv-correo" etiqueta="Correo de acceso" requerido error={error} ayuda="Le llega un enlace para crear su contraseña. Vence en 7 días.">
+        <Input {...register("correo")} {...propsCampo("inv-correo", error, "si")} type="email" autoComplete="off" placeholder="contacto@empresa.pe" />
+      </Campo>
       {errorGeneral ? (
         <p role="alert" className="text-sm text-danger">
           {errorGeneral}
         </p>
       ) : null}
       <Button type="submit" variant="mint" disabled={pendiente}>
-        {pendiente ? <Loader2 className="animate-spin" aria-hidden /> : <UserPlus aria-hidden />} Crear acceso
+        {pendiente ? <Loader2 className="animate-spin" aria-hidden /> : <Send aria-hidden />} Invitar
       </Button>
     </form>
   );
 }
 
-function Restablecer({ clienteId, usuarioId, correo }: { clienteId: string; usuarioId: string; correo: string | null }) {
-  const [abierto, setAbierto] = useState(false);
+function AccesoActivo({ clienteId, correo }: { clienteId: string; correo: string | null }) {
   const [pendiente, iniciar] = useTransition();
-  const { register, handleSubmit, formState, reset } = useForm<NuevaContrasenaInput>({
-    resolver: zodResolver(nuevaContrasenaSchema),
-    defaultValues: { contrasena: "" },
-  });
 
-  const onSubmit = handleSubmit((datos) =>
+  const recuperar = () =>
     iniciar(async () => {
-      const r = await restablecerContrasenaEmpresa(clienteId, usuarioId, datos.contrasena);
-      if (!r.ok) {
-        toast.error(r.error);
-        return;
-      }
-      toast.success("Contraseña actualizada. Compártela con la empresa.");
-      reset();
-      setAbierto(false);
-    }),
-  );
+      const r = await enviarRecuperacionEmpresa(clienteId);
+      if (!r.ok) return void toast.error(r.error);
+      toast.success(`Código enviado a ${r.data.correo}. Que entre a /login/recuperar para crear su contraseña nueva.`);
+    });
 
   return (
     <div className="space-y-4">
@@ -114,27 +117,22 @@ function Restablecer({ clienteId, usuarioId, correo }: { clienteId: string; usua
         <Badge variant="ok" dot>
           Acceso activo
         </Badge>
-        <span className="font-mono text-sm">{correo ?? usuarioId}</span>
+        {correo ? <span className="font-mono text-sm">{correo}</span> : null}
       </div>
-      {abierto ? (
-        <form onSubmit={onSubmit} noValidate className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <Campo id="nueva-pass" etiqueta="Nueva contraseña" requerido error={formState.errors.contrasena?.message} className="flex-1">
-            <Input {...register("contrasena")} {...propsCampo("nueva-pass", formState.errors.contrasena?.message)} type="text" autoComplete="off" className="font-mono" autoFocus />
-          </Campo>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={() => setAbierto(false)} disabled={pendiente}>
-              Cancelar
-            </Button>
-            <Button type="submit" variant="mint" disabled={pendiente}>
-              {pendiente ? <Loader2 className="animate-spin" aria-hidden /> : <KeyRound aria-hidden />} Guardar
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <Button variant="outline" onClick={() => setAbierto(true)}>
-          <KeyRound /> Restablecer contraseña
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" onClick={recuperar} disabled={pendiente}>
+          {pendiente ? <Loader2 className="animate-spin" aria-hidden /> : <KeyRound aria-hidden />} Enviar código de recuperación
         </Button>
-      )}
+        <ConfirmarEliminar
+          titulo="¿Quitar el acceso de esta empresa?"
+          descripcion="Su usuario deja de entrar al workspace al instante. Sus datos y documentos se conservan, y puedes invitarla de nuevo cuando quieras."
+          accion={quitarAccesoEmpresa.bind(null, clienteId)}
+          textoExito="Acceso quitado."
+          variant="ghost"
+        >
+          <UserX aria-hidden /> Quitar acceso
+        </ConfirmarEliminar>
+      </div>
     </div>
   );
 }

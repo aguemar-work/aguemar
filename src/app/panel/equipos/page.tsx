@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listarEquipos } from "@/lib/datos/equipos";
 import { opcionesClientes } from "@/lib/datos/clientes";
+import { EnlaceEmpresa } from "@/components/panel/enlace-empresa";
 
 export const metadata: Metadata = { title: "Equipos" };
 
@@ -97,9 +98,7 @@ export default async function EquiposPage({ searchParams }: Props) {
                 </TableCell>
                 <TableCell>
                   {e.clientes ? (
-                    <Link href={`/panel/clientes/${e.clientes.id}`} className="underline-offset-4 hover:underline">
-                      {e.clientes.nombre}
-                    </Link>
+                    <EnlaceEmpresa id={e.clientes.id} nombre={e.clientes.nombre} />
                   ) : (
                     "—"
                   )}

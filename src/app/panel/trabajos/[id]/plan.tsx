@@ -27,19 +27,22 @@ interface Props {
   etapas: TrabajoEtapaRow[];
   tareas: TrabajoTareaRow[];
   hoy: string;
+  /** false para el colaborador: trabaja tareas, pero no crea, mueve, renombra, marca ni borra etapas. */
+  gestionaEtapas?: boolean;
 }
 
 /** Etapas con sus tareas, editables en línea. Las tareas sin etapa van en "General". */
 /** Marcar etapas y tareas se ve al instante (optimista); si falla, vuelve atrás y avisa. */
-const Alternar = createContext<{ tarea: (id: string, hecha: boolean) => void; etapa: (id: string, hecha: boolean) => void }>({
+const Alternar = createContext<{ tarea: (id: string, hecha: boolean) => void; etapa: (id: string, hecha: boolean) => void; gestionaEtapas: boolean }>({
   tarea: () => {},
   etapa: () => {},
+  gestionaEtapas: true,
 });
 
 type Cambio = { id: string; hecha: boolean };
 const aplicar = <T extends { id: string; hecha: boolean }>(lista: T[], c: Cambio) => lista.map((x) => (x.id === c.id ? { ...x, hecha: c.hecha } : x));
 
-export function Plan({ trabajoId, etapas: etapasServidor, tareas: tareasServidor, hoy }: Props) {
+export function Plan({ trabajoId, etapas: etapasServidor, tareas: tareasServidor, hoy, gestionaEtapas = true }: Props) {
   const [pendiente, iniciar] = useTransition();
   const [, iniciarMarca] = useTransition();
   const [tareas, marcarTareaOptimista] = useOptimistic(tareasServidor, aplicar<TrabajoTareaRow>);
@@ -60,6 +63,7 @@ export function Plan({ trabajoId, etapas: etapasServidor, tareas: tareasServidor
         const r = await marcarEtapa(id, trabajoId, hecha);
         if (!r.ok) toast.error(r.error ?? "No se pudo marcar la etapa.");
       }),
+    gestionaEtapas,
   };
 
   const ejecutar = (fn: () => Promise<{ ok: boolean; error?: string }>, exitoMsg?: string) =>
@@ -106,7 +110,7 @@ export function Plan({ trabajoId, etapas: etapasServidor, tareas: tareasServidor
           {etapas.length === 0 && tareas.length === 0 ? (
             <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
               <ListChecks className="size-5 shrink-0" aria-hidden />
-              Sin plan todavía. Crea una etapa, por ejemplo Diagnóstico o Diseño, y agrégale tareas.
+              {gestionaEtapas ? "Sin plan todavía. Crea una etapa, por ejemplo Diagnóstico o Diseño, y agrégale tareas." : "Sin plan todavía. Agrega las tareas que vas a hacer."}
             </div>
           ) : null}
 
@@ -135,12 +139,14 @@ export function Plan({ trabajoId, etapas: etapasServidor, tareas: tareasServidor
             <NuevaTarea trabajoId={trabajoId} etapaId={null} pendiente={pendiente} ejecutar={ejecutar} />
           ) : null}
 
-          <form onSubmit={crearEtapa} className="flex gap-2 border-t border-border pt-4">
-            <Input value={nuevaEtapa} onChange={(e) => setNuevaEtapa(e.target.value)} placeholder="Nueva etapa, p. ej. Diagnóstico" aria-label="Nueva etapa" />
-            <Button type="submit" variant="outline" disabled={pendiente || !nuevaEtapa.trim()}>
-              <Plus /> Etapa
-            </Button>
-          </form>
+          {gestionaEtapas ? (
+            <form onSubmit={crearEtapa} className="flex gap-2 border-t border-border pt-4">
+              <Input value={nuevaEtapa} onChange={(e) => setNuevaEtapa(e.target.value)} placeholder="Nueva etapa, p. ej. Diagnóstico" aria-label="Nueva etapa" />
+              <Button type="submit" variant="outline" disabled={pendiente || !nuevaEtapa.trim()}>
+                <Plus /> Etapa
+              </Button>
+            </form>
+          ) : null}
         </CardContent>
       </Card>
     </Alternar.Provider>
@@ -181,6 +187,7 @@ function Etapa({
           type="checkbox"
           className="size-4 accent-mint-ink dark:accent-mint"
           checked={etapa.hecha}
+          disabled={!alternar.gestionaEtapas}
           aria-label={`Marcar etapa ${etapa.titulo} como hecha`}
           onChange={(e) => alternar.etapa(etapa.id, e.target.checked)}
         />
@@ -210,6 +217,7 @@ function Etapa({
         <span className="font-mono text-xs text-muted-foreground">
           {avance.hechas}/{avance.total}
         </span>
+        {alternar.gestionaEtapas ? (
         <div className="flex gap-0.5">
           <Button variant="ghost" size="icon" className="size-7" aria-label="Subir etapa" disabled={!onSubir || pendiente} onClick={onSubir}>
             <ArrowUp className="size-3.5" />
@@ -234,6 +242,7 @@ function Etapa({
             <Trash2 className="size-3.5" />
           </Button>
         </div>
+        ) : null}
       </header>
       <div className="space-y-2 p-3">
         <ListaTareas tareas={tareas} hoy={hoy} trabajoId={trabajoId} pendiente={pendiente} ejecutar={ejecutar} />

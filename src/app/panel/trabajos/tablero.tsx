@@ -16,7 +16,8 @@ import { cambiarEstadoTrabajo } from "./acciones";
 
 const COLUMNAS: EstadoTrabajo[] = ["propuesta", "en_curso", "en_revision", "entregado", "cerrado"];
 
-export function Tablero({ trabajos, hoy }: { trabajos: TrabajoResumen[]; hoy: string }) {
+/** Con `soloLectura` (colaborador) no se mueven tarjetas: el estado del trabajo lo cambia el propietario. */
+export function Tablero({ trabajos, hoy, soloLectura = false }: { trabajos: TrabajoResumen[]; hoy: string; soloLectura?: boolean }) {
   const [pendiente, iniciar] = useTransition();
 
   const mover = (id: string, estado: EstadoTrabajo) =>
@@ -58,6 +59,7 @@ export function Tablero({ trabajos, hoy }: { trabajos: TrabajoResumen[]; hoy: st
                           </Badge>
                         ) : null}
                       </div>
+                      {soloLectura ? null : (
                       <div className="mt-2 flex justify-between">
                         <Button variant="ghost" size="sm" className="h-7 px-2" disabled={ci === 0 || pendiente} aria-label="Mover a la columna anterior" onClick={() => mover(t.id, COLUMNAS[ci - 1])}>
                           <ChevronLeft className="size-3.5" />
@@ -66,6 +68,7 @@ export function Tablero({ trabajos, hoy }: { trabajos: TrabajoResumen[]; hoy: st
                           <ChevronRight className="size-3.5" />
                         </Button>
                       </div>
+                      )}
                     </li>
                   );
                 })}

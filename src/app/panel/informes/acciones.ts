@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { datosDelPeriodo } from "@/lib/datos/informes";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
@@ -67,6 +67,8 @@ export async function publicarInforme(id: string, publicar: boolean): Promise<Re
 
 export async function eliminarInforme(id: string): Promise<Resultado<void>> {
   try {
+    // Solo el propietario (el colaborador no borra ni reorganiza): mensaje claro en vez de un falso éxito.
+    await exigirPropietario();
     const { db } = await conSesion();
     await Promise.all([
       db.from("enlaces_publicos").delete().eq("tipo", "informe").eq("documento_id", id),

@@ -3,10 +3,13 @@ import { PageHeader } from "@/components/panel/page-header";
 import { listarPlantillas, obtenerPerfilMarca } from "@/lib/datos/marca";
 import { FormularioMarca } from "./formulario-marca";
 import { EditorPlantillas } from "./editor-plantillas";
+import { soloPropietario } from "@/lib/datos/base";
 
 export const metadata: Metadata = { title: "Mi marca" };
 
 export default async function ConfiguracionPage() {
+  // Solo el propietario (el colaborador recibe 404).
+  await soloPropietario();
   const [perfil, plantillas] = await Promise.all([obtenerPerfilMarca(), listarPlantillas()]);
 
   return (

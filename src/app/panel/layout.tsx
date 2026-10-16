@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/panel/sidebar";
 import { Topbar } from "@/components/panel/topbar";
 import { AvisoBackend } from "@/components/panel/aviso-backend";
-import { obtenerRol, rutaInicio } from "@/lib/insforge/server";
+import { esEquipo, obtenerRol, rutaInicio } from "@/lib/insforge/server";
 import { backendConfigurado } from "@/lib/env";
 import { cerrarSesion } from "@/app/(auth)/acciones";
 
@@ -21,17 +21,18 @@ export default async function PanelLayout({ children, modal }: { children: React
 
   if (backendConfigurado) {
     if (rol.tipo === "anonimo") redirect("/login?siguiente=/panel");
-    if (rol.tipo !== "propietario") redirect(rutaInicio(rol));
+    if (!esEquipo(rol)) redirect(rutaInicio(rol));
   }
+  const rolPanel = rol.tipo === "colaborador" ? "colaborador" : "propietario";
 
   return (
     <div className="flex min-h-dvh">
       <SaltarContenido />
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 md:block">
-        <Sidebar />
+        <Sidebar rol={rolPanel} />
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar correo={usuario?.email} cerrarSesion={cerrarSesion} />
+        <Topbar correo={usuario?.email} cerrarSesion={cerrarSesion} rol={rolPanel} />
         <main id="contenido" className="flex-1 p-4 md:p-6 lg:p-8">
           {!backendConfigurado ? (
             <div className="mb-6">

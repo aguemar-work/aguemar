@@ -4,6 +4,7 @@
  *   - propietario (E2E_EMAIL / E2E_PASSWORD) con el seed de db/seed.sql (marca, servicios, SGC…)
  *   - empresa A (E2E_EMPRESA_EMAIL) vinculada a SGC
  *   - empresa B (E2E_EMPRESA_B_EMAIL) vinculada a una segunda empresa, para los tests de aislamiento
+ *   - colaborador (E2E_COLABORADOR_EMAIL) asignado solo a SGC, que entra por una invitación real
  *
  * Uso: npm run staging:cuentas
  *
@@ -22,7 +23,7 @@ for (const linea of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
   const m = linea.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
   if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
-const obligatorias = ["NEXT_PUBLIC_INSFORGE_URL", "NEXT_PUBLIC_INSFORGE_ANON_KEY", "E2E_EMAIL", "E2E_PASSWORD", "E2E_EMPRESA_EMAIL", "E2E_EMPRESA_PASSWORD", "E2E_EMPRESA_B_EMAIL", "E2E_EMPRESA_B_PASSWORD"];
+const obligatorias = ["NEXT_PUBLIC_INSFORGE_URL", "NEXT_PUBLIC_INSFORGE_ANON_KEY", "E2E_EMAIL", "E2E_PASSWORD", "E2E_EMPRESA_EMAIL", "E2E_EMPRESA_PASSWORD", "E2E_EMPRESA_B_EMAIL", "E2E_EMPRESA_B_PASSWORD", "E2E_COLABORADOR_EMAIL", "E2E_COLABORADOR_PASSWORD"];
 const faltan = obligatorias.filter((k) => !env[k]);
 if (faltan.length) {
   console.error(`Faltan en .env.local: ${faltan.join(", ")}`);
@@ -101,7 +102,36 @@ insert into public.trabajos (owner_id, cliente_id, area, titulo, estado, visible
 select '${propietario}', c.id, 'desarrollo', 'Trabajo de la empresa B (visible)', 'en_curso', true
   from public.clientes c where c.owner_id = '${propietario}' and c.slug = 'empresa-b'
    and not exists (select 1 from public.trabajos t where t.cliente_id = c.id);
+-- Un trabajo de SGC con monto, para comprobar que el colaborador no lo ve.
+insert into public.trabajos (owner_id, cliente_id, area, titulo, estado, visible_empresa, monto_estimado, notas)
+select '${propietario}', c.id, 'soporte', 'Mantenimiento SGC (prueba)', 'en_curso', true, 150000, 'Nota interna de prueba'
+  from public.clientes c where c.owner_id = '${propietario}' and c.slug = 'sgc'
+   and not exists (select 1 from public.trabajos t where t.cliente_id = c.id and t.titulo = 'Mantenimiento SGC (prueba)');
 `);
+
+// ---------- colaborador por invitación ----------
+const yaColabora = consulta(`select count(*)::int as n from public.miembros m join auth.users u on u.id = m.user_id where u.email = '${env.E2E_COLABORADOR_EMAIL}' and m.rol = 'colaborador'`);
+if (Array.isArray(yaColabora) && yaColabora[0]?.n > 0) {
+  console.log("· El colaborador ya era parte del equipo.");
+} else {
+  const duenio = createClient({ baseUrl: env.NEXT_PUBLIC_INSFORGE_URL, anonKey: env.NEXT_PUBLIC_INSFORGE_ANON_KEY, isServerMode: true });
+  const e1 = await duenio.auth.signInWithPassword({ email: env.E2E_EMAIL, password: env.E2E_PASSWORD });
+  if (e1.error) throw new Error(`No pude entrar como propietario: ${e1.error.message}`);
+  const sgc = await duenio.database.from("clientes").select("id").eq("slug", "sgc").single();
+  const inv = await duenio.database
+    .from("invitaciones")
+    .insert([{ owner_id: propietario, tipo: "colaborador", correo: env.E2E_COLABORADOR_EMAIL, nombre: "Colaborador de prueba", empresas: [sgc.data.id] }])
+    .select("token")
+    .single();
+  if (inv.error) throw new Error(`No pude crear la invitación: ${inv.error.message}`);
+  await asegurarUsuario(env.E2E_COLABORADOR_EMAIL, env.E2E_COLABORADOR_PASSWORD, "Colaborador de prueba");
+  const colab = createClient({ baseUrl: env.NEXT_PUBLIC_INSFORGE_URL, anonKey: env.NEXT_PUBLIC_INSFORGE_ANON_KEY, isServerMode: true });
+  const e2 = await colab.auth.signInWithPassword({ email: env.E2E_COLABORADOR_EMAIL, password: env.E2E_COLABORADOR_PASSWORD });
+  if (e2.error) throw new Error(`No pude entrar como colaborador: ${e2.error.message}`);
+  const ok = await colab.database.rpc("invitacion_aceptar", { p_token: inv.data.token });
+  if (ok.error) throw new Error(`No pude aceptar la invitación: ${ok.error.message}`);
+  console.log("✔ Colaborador aceptó su invitación (asignado a SGC).");
+}
 const resumen = consulta(`select c.slug, c.usuario_id is not null as con_acceso, (select count(*)::int from public.trabajos t where t.cliente_id = c.id) as trabajos from public.clientes c where c.owner_id = '${propietario}' order by c.slug`);
 console.log("✔ Empresas en staging:", JSON.stringify(resumen));
-console.log("Listo. Entra en http://localhost:3000/login con E2E_EMAIL para ver el panel, o con E2E_EMPRESA_EMAIL para el workspace /w/sgc.");
+console.log("Listo. Entra en http://localhost:3000/login con E2E_EMAIL para ver el panel, con E2E_EMPRESA_EMAIL para el workspace /w/sgc, o con E2E_COLABORADOR_EMAIL para el panel del colaborador.");

@@ -9,6 +9,7 @@ import { obtenerPerfilMarca } from "@/lib/datos/marca";
 import { cn } from "@/lib/utils";
 import type { EstadoLead } from "@/types/database";
 import { TarjetaLead } from "./tarjeta-lead";
+import { soloPropietario } from "@/lib/datos/base";
 
 export const metadata: Metadata = { title: "Leads" };
 
@@ -20,6 +21,8 @@ const PESTANAS: { valor: "" | EstadoLead; etiqueta: string }[] = [
 ];
 
 export default async function LeadsPage({ searchParams }: { searchParams: Promise<{ estado?: string }> }) {
+  // Solo el propietario (el colaborador recibe 404).
+  await soloPropietario();
   const { estado: param } = await searchParams;
   // Por defecto, los nuevos; "todos" muestra todo.
   const estado: "" | EstadoLead = param === "todos" ? "" : param === "contactado" || param === "convertido" ? param : "nuevo";

@@ -13,6 +13,8 @@ import { comentariosDe } from "@/lib/datos/comentarios";
 import { obtenerPerfilMarca } from "@/lib/datos/marca";
 import { comentarPropietario } from "@/app/panel/bandeja/acciones";
 import { eliminarInforme, publicarInforme } from "../acciones";
+import { EnlaceEmpresa } from "@/components/panel/enlace-empresa";
+import { SoloPropietario } from "@/components/panel/solo-propietario";
 
 export const metadata: Metadata = { title: "Informe" };
 
@@ -31,9 +33,7 @@ export default async function InformePage({ params }: { params: Promise<{ id: st
         descripcion={
           <span className="flex flex-wrap items-center gap-2">
             {empresa ? (
-              <Link href={`/panel/clientes/${empresa.id}`} className="underline-offset-4 hover:underline">
-                {empresa.nombre}
-              </Link>
+              <EnlaceEmpresa id={empresa.id} nombre={empresa.nombre} />
             ) : null}
             {i.publicado ? <Badge variant="ok">Publicado</Badge> : <Badge variant="outline">Borrador</Badge>}
           </span>
@@ -87,18 +87,20 @@ export default async function InformePage({ params }: { params: Promise<{ id: st
         />
       </div>
       <div className="mt-10 border-t border-border pt-4">
-        <ConfirmarEliminar
-          titulo={`¿Eliminar ${i.numero}?`}
-          descripcion="Se elimina el informe con sus comentarios, y su enlace público deja de funcionar."
-          accion={eliminarInforme.bind(null, i.id)}
-          irA="/panel/informes"
-          textoExito="Informe eliminado."
-          variant="ghost"
-          size="sm"
-        >
-          Eliminar informe
-        </ConfirmarEliminar>
-      </div>
-    </>
+        <SoloPropietario>
+          <ConfirmarEliminar
+            titulo={`¿Eliminar ${i.numero}?`}
+            descripcion="Se elimina el informe con sus comentarios, y su enlace público deja de funcionar."
+            accion={eliminarInforme.bind(null, i.id)}
+            irA="/panel/informes"
+            textoExito="Informe eliminado."
+            variant="ghost"
+            size="sm"
+          >
+            Eliminar informe
+          </ConfirmarEliminar>
+        </SoloPropietario>
+        </div>
+      </>
   );
 }

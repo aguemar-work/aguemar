@@ -4,15 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
-import { NAV_PANEL } from "./nav";
+import { navPara, type RolPanel } from "./nav";
 
 interface SidebarProps {
   /** Llamado al navegar (para cerrar el sheet en móvil). */
   onNavegar?: () => void;
   className?: string;
+  rol?: RolPanel;
 }
 
-export function Sidebar({ onNavegar, className }: SidebarProps) {
+export function Sidebar({ onNavegar, className, rol = "propietario" }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -23,7 +24,7 @@ export function Sidebar({ onNavegar, className }: SidebarProps) {
         </Link>
       </div>
       <ul className="flex-1 space-y-1 overflow-y-auto p-3">
-        {NAV_PANEL.map(({ href, etiqueta, icono: Icono, tambien }) => {
+        {navPara(rol).map(({ href, etiqueta, icono: Icono, tambien }) => {
           const activo = href === "/panel" ? pathname === href : [href, ...(tambien ?? [])].some((r) => pathname.startsWith(r));
           return (
             <li key={href}>
@@ -45,7 +46,7 @@ export function Sidebar({ onNavegar, className }: SidebarProps) {
         })}
       </ul>
       <div className="border-t border-white/10 p-4 font-mono text-[11px] text-sidebar-foreground/60">
-        agueMar · soporte técnico
+        {rol === "colaborador" ? "agueMar · equipo" : "agueMar · soporte técnico"}
       </div>
     </nav>
   );

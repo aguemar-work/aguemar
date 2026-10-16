@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FASE_ACTUAL, MODULOS, type ClaveModulo } from "@/lib/modulos";
+import { PERFILES_ACCESO, perfilDeModulos } from "@/lib/invitaciones";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { actualizarModulosEmpresa, cambiarAvisosEmpresa } from "../acciones";
 
 export function ModulosEmpresa({ clienteId, modulos, avisos }: { clienteId: string; modulos: string[]; avisos: boolean }) {
@@ -27,6 +30,16 @@ export function ModulosEmpresa({ clienteId, modulos, avisos }: { clienteId: stri
       if (!r.ok) toast.error(r.error);
     });
 
+  const perfil = perfilDeModulos(modulos);
+  const aplicarPerfil = (clave: string) =>
+    iniciar(async () => {
+      const p = PERFILES_ACCESO.find((x) => x.clave === clave);
+      if (!p) return;
+      const r = await actualizarModulosEmpresa(clienteId, p.modulos);
+      if (!r.ok) toast.error(r.error);
+      else toast.success(`Perfil ${p.etiqueta} aplicado.`);
+    });
+
   return (
     <Card>
       <CardHeader>
@@ -34,6 +47,22 @@ export function ModulosEmpresa({ clienteId, modulos, avisos }: { clienteId: stri
         <CardDescription>Lo que esta empresa ve al entrar. El inicio siempre está.</CardDescription>
       </CardHeader>
       <CardContent>
+        <div role="group" aria-label="Perfiles de acceso" className="mb-4 grid gap-2 sm:grid-cols-3">
+          {PERFILES_ACCESO.map((p) => (
+            <Button
+              key={p.clave}
+              type="button"
+              variant="outline"
+              disabled={pendiente}
+              aria-pressed={perfil === p.clave}
+              onClick={() => aplicarPerfil(p.clave)}
+              className={cn("h-auto flex-col items-start gap-0.5 whitespace-normal px-3 py-2 text-left", perfil === p.clave && "border-mint-ink bg-mint-soft/60 dark:border-mint dark:bg-success-bg/40")}
+            >
+              <span className="text-sm font-semibold">{p.etiqueta}</span>
+              <span className="text-xs font-normal text-muted-foreground">{p.descripcion}</span>
+            </Button>
+          ))}
+        </div>
         <ul className="divide-y divide-border">
           {MODULOS.map((m) => {
             const activo = modulos.includes(m.clave);

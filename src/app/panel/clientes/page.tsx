@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listarClientes } from "@/lib/datos/clientes";
+import { soloPropietario } from "@/lib/datos/base";
 
 export const metadata: Metadata = { title: "Empresas" };
 
@@ -16,6 +17,8 @@ interface Props {
 }
 
 export default async function ClientesPage({ searchParams }: Props) {
+  // Solo el propietario (el colaborador recibe 404).
+  await soloPropietario();
   const { q } = await searchParams;
   const clientes = await listarClientes(q);
 

@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { contextoDocumento, obtenerActa } from "@/lib/datos/briefs-actas";
 import { eliminarActa, publicarActa } from "@/app/panel/documentos/acciones";
 import { RegistrarConformidad } from "./conformidad";
+import { EnlaceEmpresa } from "@/components/panel/enlace-empresa";
+import { SoloPropietario } from "@/components/panel/solo-propietario";
 
 export const metadata: Metadata = { title: "Acta de entrega" };
 
@@ -28,9 +30,7 @@ export default async function ActaPage({ params }: { params: Promise<{ id: strin
         descripcion={
           <span className="flex flex-wrap items-center gap-2">
             {empresa ? (
-              <Link href={`/panel/clientes/${empresa.id}`} className="underline-offset-4 hover:underline">
-                {empresa.nombre}
-              </Link>
+              <EnlaceEmpresa id={empresa.id} nombre={empresa.nombre} />
             ) : null}
             {a.aceptacion ? <Badge variant="ok">Aceptada</Badge> : a.publicada ? <Badge variant="warn">Por aceptar</Badge> : <Badge variant="outline">Borrador</Badge>}
           </span>
@@ -79,19 +79,21 @@ export default async function ActaPage({ params }: { params: Promise<{ id: strin
       ) : null}
       {!a.aceptacion ? (
         <div className="mt-10 border-t border-border pt-4">
-          <ConfirmarEliminar
-            titulo={`¿Eliminar ${a.numero}?`}
-            descripcion="Se elimina el acta y su enlace público deja de funcionar."
-            accion={eliminarActa.bind(null, a.id)}
-            irA="/panel/documentos"
-            textoExito="Acta eliminada."
-            variant="ghost"
-            size="sm"
-          >
-            Eliminar acta
-          </ConfirmarEliminar>
-        </div>
-      ) : null}
-    </>
+          <SoloPropietario>
+            <ConfirmarEliminar
+              titulo={`¿Eliminar ${a.numero}?`}
+              descripcion="Se elimina el acta y su enlace público deja de funcionar."
+              accion={eliminarActa.bind(null, a.id)}
+              irA="/panel/documentos"
+              textoExito="Acta eliminada."
+              variant="ghost"
+              size="sm"
+            >
+              Eliminar acta
+            </ConfirmarEliminar>
+          </SoloPropietario>
+          </div>
+        ) : null}
+      </>
   );
 }

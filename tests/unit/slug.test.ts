@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { esSlugValido, generarSlug } from "@/lib/slug";
-import { accesoEmpresaSchema, modulosSchema } from "@/lib/validators/empresa";
+import { invitarEmpresaSchema, modulosSchema } from "@/lib/validators/empresa";
 
 describe("generarSlug", () => {
   it("quita acentos, símbolos y espacios", () => {
@@ -16,10 +16,9 @@ describe("generarSlug", () => {
 });
 
 describe("validadores de empresa", () => {
-  it("exige contraseña de 8 y correo válido en el acceso", () => {
-    expect(accesoEmpresaSchema.safeParse({ correo: "sgc@empresa.pe", contrasena: "12345678" }).success).toBe(true);
-    expect(accesoEmpresaSchema.safeParse({ correo: "sgc@empresa.pe", contrasena: "1234567" }).success).toBe(false);
-    expect(accesoEmpresaSchema.safeParse({ correo: "no-correo", contrasena: "12345678" }).success).toBe(false);
+  it("exige un correo válido para invitar a la empresa", () => {
+    expect(invitarEmpresaSchema.safeParse({ correo: "sgc@empresa.pe" }).success).toBe(true);
+    expect(invitarEmpresaSchema.safeParse({ correo: "no-correo" }).success).toBe(false);
   });
   it("solo acepta claves de módulo conocidas", () => {
     expect(modulosSchema.safeParse(["proyectos", "calendario"]).success).toBe(true);

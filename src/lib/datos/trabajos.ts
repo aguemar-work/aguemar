@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { Area, EstadoTrabajo, TrabajoEntregableRow, TrabajoEtapaRow, TrabajoRow, TrabajoTareaRow } from "@/types/database";
-import { conSesion } from "./base";
+import { conSesionPanel } from "./base";
 import { filtroOr } from "./busqueda";
 
 export interface TrabajoResumen extends TrabajoRow {
@@ -18,7 +18,7 @@ export interface FiltrosTrabajos {
 const ACTIVOS: EstadoTrabajo[] = ["propuesta", "en_curso", "en_revision"];
 
 export async function listarTrabajos(filtros: FiltrosTrabajos = {}): Promise<TrabajoResumen[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   let consulta = db
     .from("trabajos")
     .select("*, clientes(id, nombre), trabajo_tareas(hecha)")
@@ -41,7 +41,7 @@ export interface TrabajoDetalle extends TrabajoRow {
 }
 
 export const obtenerTrabajo = cache(async function obtenerTrabajo(id: string): Promise<TrabajoDetalle | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("trabajos").select("*, clientes(id, nombre, contacto, telefono)").eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as TrabajoDetalle | null) ?? null;
@@ -54,7 +54,7 @@ export interface PlanTrabajo {
 }
 
 export const planTrabajo = cache(async function planTrabajo(id: string): Promise<PlanTrabajo> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const [etapas, tareas, entregables] = await Promise.all([
     db.from("trabajo_etapas").select("*").eq("trabajo_id", id).order("orden").order("created_at"),
     db.from("trabajo_tareas").select("*").eq("trabajo_id", id).order("orden").order("created_at"),
@@ -69,7 +69,7 @@ export const planTrabajo = cache(async function planTrabajo(id: string): Promise
 });
 
 export async function trabajosDeCliente(clienteId: string): Promise<TrabajoResumen[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db
     .from("trabajos")
     .select("*, clientes(id, nombre), trabajo_tareas(hecha)")

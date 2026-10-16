@@ -21,17 +21,21 @@ import { comentariosDe } from "@/lib/datos/comentarios";
 import { obtenerPerfilMarca } from "@/lib/datos/marca";
 import { comentarPropietario } from "@/app/panel/bandeja/acciones";
 import { cotizacionDeTrabajo } from "@/lib/datos/cotizaciones";
+import { obtenerRol } from "@/lib/insforge/server";
 
 /** Detalle de un trabajo. Se usa en la página completa y en el panel lateral (@modal). */
 export async function DetalleTrabajo({ id }: { id: string }) {
   // Todo en paralelo: una sola espera a InsForge.
-  const [trabajo, plan, comentarios, marca, cotizacion] = await Promise.all([
+  const [trabajo, plan, comentarios, marca, cotizacion, rol] = await Promise.all([
     obtenerTrabajo(id),
     planTrabajo(id),
     comentariosDe("trabajo", id),
     obtenerPerfilMarca(),
     cotizacionDeTrabajo(id),
+    obtenerRol(),
   ]);
+  // El colaborador ve el plan, entregables y comentarios; no edita el trabajo ni ve dinero.
+  const propietario = rol.tipo === "propietario";
   if (!trabajo) notFound();
   const hoy = hoyLima();
   const venc = textoVencimiento(trabajo.fecha_compromiso, hoy);
@@ -41,9 +45,13 @@ export async function DetalleTrabajo({ id }: { id: string }) {
     [
       "Empresa",
       trabajo.clientes ? (
-        <Link href={`/panel/clientes/${trabajo.clientes.id}`} className="underline-offset-4 hover:underline">
-          {trabajo.clientes.nombre}
-        </Link>
+        propietario ? (
+          <Link href={`/panel/clientes/${trabajo.clientes.id}`} className="underline-offset-4 hover:underline">
+            {trabajo.clientes.nombre}
+          </Link>
+        ) : (
+          trabajo.clientes.nombre
+        )
       ) : (
         <span className="text-muted-foreground">Sin empresa</span>
       ),
@@ -64,7 +72,9 @@ export async function DetalleTrabajo({ id }: { id: string }) {
       ),
     ],
     ["Entregado", trabajo.fecha_entrega ? formatearFecha(trabajo.fecha_entrega) : "—"],
-    ["Monto estimado", trabajo.monto_estimado != null ? <span className="font-mono">{formatearMonto(trabajo.monto_estimado, trabajo.moneda)}</span> : "—"],
+    ...(propietario
+      ? ([["Monto estimado", trabajo.monto_estimado != null ? <span className="font-mono">{formatearMonto(trabajo.monto_estimado, trabajo.moneda)}</span> : "—"]] as [string, React.ReactNode][])
+      : []),
   ];
 
   return (
@@ -74,6 +84,7 @@ export async function DetalleTrabajo({ id }: { id: string }) {
         titulo={trabajo.titulo}
         descripcion={<EtiquetaArea area={trabajo.area} />}
         acciones={
+          propietario ? (
           <>
             <VisibilidadTrabajo id={id} visible={trabajo.visible_empresa} tieneEmpresa={Boolean(trabajo.cliente_id)} />
             <CambiarEstado id={id} estado={trabajo.estado} />
@@ -90,6 +101,7 @@ export async function DetalleTrabajo({ id }: { id: string }) {
               textoExito="Trabajo eliminado."
             />
           </>
+          ) : null
         }
       />
 
@@ -125,10 +137,10 @@ export async function DetalleTrabajo({ id }: { id: string }) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Dinero y documentos</CardTitle>
+              <CardTitle>{propietario ? "Dinero y documentos" : "Documentos"}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
-              {cotizacion ? (
+              {!propietario ? null : cotizacion ? (
                 <>
                   <Link href={`/panel/cotizaciones/${cotizacion.id}`} className="flex items-center gap-2 text-foreground underline-offset-4 hover:underline">
                     <FileText className="size-4" aria-hidden /> Viene de <span className="font-mono">{cotizacion.numero}</span> · {formatearMonto(cotizacion.total, cotizacion.moneda)}
@@ -170,7 +182,7 @@ export async function DetalleTrabajo({ id }: { id: string }) {
         </div>
 
         <div className="space-y-6 lg:col-span-2">
-          <Plan trabajoId={id} etapas={plan.etapas} tareas={plan.tareas} hoy={hoy} />
+          <Plan trabajoId={id} etapas={plan.etapas} tareas={plan.tareas} hoy={hoy} gestionaEtapas={propietario} />
           <Entregables trabajoId={id} entregables={plan.entregables} />
           {trabajo.cliente_id ? (
             <div id="comentarios">

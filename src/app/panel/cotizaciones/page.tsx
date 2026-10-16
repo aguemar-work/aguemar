@@ -13,6 +13,7 @@ import { estadoEfectivo, saldo } from "@/lib/cotizacion";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 import type { EstadoCotizacion } from "@/types/database";
 import { FiltrosCotizaciones } from "./filtros";
+import { soloPropietario } from "@/lib/datos/base";
 
 export const metadata: Metadata = { title: "Cotizaciones" };
 
@@ -23,6 +24,8 @@ interface Props {
 const ESTADOS: EstadoCotizacion[] = ["borrador", "enviada", "aceptada", "rechazada", "vencida"];
 
 export default async function CotizacionesPage({ searchParams }: Props) {
+  // Solo el propietario (el colaborador recibe 404).
+  await soloPropietario();
   const sp = await searchParams;
   const pedido = ESTADOS.includes(sp.estado as EstadoCotizacion) ? (sp.estado as EstadoCotizacion) : undefined;
   // "enviada" y "vencida" se filtran después: una enviada cuya validez pasó se muestra como vencida.

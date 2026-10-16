@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { ClienteRow, EquipoRow, FichaRow, CotizacionRow, TrabajoRow, CobroRow } from "@/types/database";
-import { conSesion } from "./base";
+import { conSesion, conSesionPanel } from "./base";
 import { filtroOr } from "./busqueda";
 
 export interface ClienteResumen extends ClienteRow {
@@ -67,9 +67,9 @@ export async function correoDeUsuario(usuarioId: string | null): Promise<string 
   return (data as string | null) ?? null;
 }
 
-/** Lista corta para selects: id y nombre. */
+/** Lista corta para selects: id y nombre (el colaborador ve solo sus empresas). */
 export const opcionesClientes = cache(async function opcionesClientes(): Promise<{ id: string; nombre: string }[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("clientes").select("id, nombre").order("nombre").limit(500);
   if (error) throw error;
   return (data ?? []) as { id: string; nombre: string }[];

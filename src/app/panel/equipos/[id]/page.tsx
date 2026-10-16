@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { fichasDeEquipo, obtenerEquipo } from "@/lib/datos/equipos";
 import { formatearFecha } from "@/lib/format";
 import { eliminarEquipo } from "../acciones";
+import { EnlaceEmpresa } from "@/components/panel/enlace-empresa";
+import { SoloPropietario } from "@/components/panel/solo-propietario";
 
 export const metadata: Metadata = { title: "Equipo" };
 
@@ -41,9 +43,7 @@ export default async function EquipoDetallePage({ params }: { params: Promise<{ 
           equipo.clientes ? (
             <>
               De{" "}
-              <Link href={`/panel/clientes/${equipo.clientes.id}`} className="underline-offset-4 hover:underline">
-                {equipo.clientes.nombre}
-              </Link>
+              <EnlaceEmpresa id={equipo.clientes.id} nombre={equipo.clientes.nombre} />
             </>
           ) : undefined
         }
@@ -54,13 +54,15 @@ export default async function EquipoDetallePage({ params }: { params: Promise<{ 
                 <Pencil /> Editar
               </Link>
             </Button>
-            <ConfirmarEliminar
-              titulo={`¿Eliminar ${nombre}?`}
-              descripcion="Solo se puede eliminar si no tiene fichas técnicas."
-              accion={eliminarEquipo.bind(null, id, equipo.cliente_id)}
-              irA={`/panel/clientes/${equipo.cliente_id}`}
-              textoExito="Equipo eliminado."
-            />
+            <SoloPropietario>
+              <ConfirmarEliminar
+                titulo={`¿Eliminar ${nombre}?`}
+                descripcion="Solo se puede eliminar si no tiene fichas técnicas."
+                accion={eliminarEquipo.bind(null, id, equipo.cliente_id)}
+                irA={`/panel/clientes/${equipo.cliente_id}`}
+                textoExito="Equipo eliminado."
+              />
+            </SoloPropietario>
           </>
         }
       />

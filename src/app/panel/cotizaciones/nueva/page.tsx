@@ -8,10 +8,13 @@ import { opcionesClientes } from "@/lib/datos/clientes";
 import { listarServicios } from "@/lib/datos/servicios";
 import { obtenerPerfilMarca } from "@/lib/datos/marca";
 import { FormularioCotizacion } from "../formulario-cotizacion";
+import { soloPropietario } from "@/lib/datos/base";
 
 export const metadata: Metadata = { title: "Nueva cotización" };
 
 export default async function NuevaCotizacionPage({ searchParams }: { searchParams: Promise<{ cliente?: string }> }) {
+  // Solo el propietario (el colaborador recibe 404).
+  await soloPropietario();
   const { cliente } = await searchParams;
   const [clientes, servicios, marca] = await Promise.all([opcionesClientes(), listarServicios(), obtenerPerfilMarca()]);
 

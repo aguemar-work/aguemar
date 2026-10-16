@@ -2,7 +2,7 @@ import { cache } from "react";
 import type { InformeJson } from "@/lib/documentos";
 import type { DatosPeriodo, IndicadorInforme, SeccionInforme } from "@/lib/informe";
 import type { Area } from "@/types/database";
-import { conSesion } from "./base";
+import { conSesion, conSesionPanel } from "./base";
 import { filtroOr } from "./busqueda";
 
 /** Fila editable de un informe (incluye notas internas). */
@@ -37,7 +37,7 @@ export interface InformeListado {
 }
 
 export const obtenerInformeFila = cache(async function obtenerInformeFila(id: string): Promise<InformeFila | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("informes").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return (data as InformeFila | null) ?? null;
@@ -45,7 +45,7 @@ export const obtenerInformeFila = cache(async function obtenerInformeFila(id: st
 
 /** Documento completo (misma forma que el workspace, el portal y el PDF). */
 export const obtenerInforme = cache(async function obtenerInforme(id: string): Promise<InformeJson | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.rpc("informe_panel", { p_id: id });
   if (error) throw error;
   return (data as InformeJson | null) ?? null;
@@ -53,7 +53,7 @@ export const obtenerInforme = cache(async function obtenerInforme(id: string): P
 
 /** Lo que no va en el documento: empresa (mensajes y workspace), trabajo, notas y enlace. */
 export async function contextoInforme(id: string) {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const [doc, enlace] = await Promise.all([
     db
       .from("informes")
@@ -77,7 +77,7 @@ export async function contextoInforme(id: string) {
 }
 
 export async function listarInformes(filtros: { q?: string; cliente?: string; estado?: string } = {}): Promise<InformeListado[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   let consulta = db
     .from("informes")
     .select("id, numero, fecha, titulo, periodo_inicio, periodo_fin, publicado, area, cliente_id, clientes(nombre)")
@@ -97,7 +97,7 @@ export async function listarInformes(filtros: { q?: string; cliente?: string; es
 
 /** Informes de una empresa (ficha de la empresa y detalle del trabajo). */
 export async function informesDe(filtro: { cliente?: string; trabajo?: string }): Promise<Pick<InformeListado, "id" | "numero" | "titulo" | "periodo_inicio" | "periodo_fin" | "publicado">[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   let consulta = db.from("informes").select("id, numero, titulo, periodo_inicio, periodo_fin, publicado").order("periodo_fin", { ascending: false }).limit(20);
   if (filtro.cliente) consulta = consulta.eq("cliente_id", filtro.cliente);
   if (filtro.trabajo) consulta = consulta.eq("trabajo_id", filtro.trabajo);
@@ -108,6 +108,7 @@ export async function informesDe(filtro: { cliente?: string; trabajo?: string })
 
 /** Lo hecho para una empresa (o un trabajo) en el periodo: base para armar el informe. */
 export async function datosDelPeriodo(clienteId: string, desde: string, hasta: string, trabajoId?: string | null): Promise<DatosPeriodo> {
+  // Se llama desde una Server Action y es una RPC: no necesita el rol (panel_informe_periodo ya mira tabla y vista).
   const { db } = await conSesion();
   const { data, error } = await db.rpc("panel_informe_periodo", { p_cliente: clienteId, p_desde: desde, p_hasta: hasta, p_trabajo: trabajoId || null });
   if (error) throw error;

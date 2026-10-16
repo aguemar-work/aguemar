@@ -55,12 +55,14 @@ export async function iniciarSesion(_: EstadoLogin, formData: FormData): Promise
     return { ok: false, mensaje: `No pudimos iniciar tu sesión: ${error?.message ?? "error desconocido"}.` };
   }
 
-  // Según el rol: propietario → /panel, empresa → /w/[slug]. Si pidió una ruta concreta y le corresponde, se respeta.
+  // Según el rol: propietario y colaborador → /panel, empresa → /w/[slug]. Una invitación pendiente siempre se respeta. Si pidió una ruta concreta y le corresponde, se respeta.
   const rol = await obtenerRol();
   const inicio = rutaInicio(rol);
   const pedida = rutaSegura(formData.get("siguiente"));
   const permitida =
-    (rol.tipo === "propietario" && pedida.startsWith("/panel")) || (rol.tipo === "empresa" && pedida.startsWith(`/w/${rol.slug}`));
+    ((rol.tipo === "propietario" || rol.tipo === "colaborador") && pedida.startsWith("/panel")) ||
+    (rol.tipo === "empresa" && pedida.startsWith(`/w/${rol.slug}`)) ||
+    pedida.startsWith("/invitacion/");
   redirect(permitida ? pedida : inicio);
 }
 

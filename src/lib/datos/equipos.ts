@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { EquipoRow, FichaRow } from "@/types/database";
-import { conSesion } from "./base";
+import { conSesionPanel } from "./base";
 import { filtroOr } from "./busqueda";
 
 export interface EquipoConCliente extends EquipoRow {
@@ -9,7 +9,7 @@ export interface EquipoConCliente extends EquipoRow {
 }
 
 export async function listarEquipos(opciones?: { clienteId?: string; busqueda?: string }): Promise<EquipoConCliente[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   let consulta = db
     .from("equipos")
     .select("*, clientes(id, nombre), fichas(count)")
@@ -24,7 +24,7 @@ export async function listarEquipos(opciones?: { clienteId?: string; busqueda?: 
 }
 
 export const obtenerEquipo = cache(async function obtenerEquipo(id: string): Promise<EquipoConCliente | null> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db
     .from("equipos")
     .select("*, clientes(id, nombre), fichas(count)")
@@ -35,7 +35,7 @@ export const obtenerEquipo = cache(async function obtenerEquipo(id: string): Pro
 });
 
 export async function fichasDeEquipo(id: string): Promise<FichaRow[]> {
-  const { db } = await conSesion();
+  const { db } = await conSesionPanel();
   const { data, error } = await db.from("fichas").select("*").eq("equipo_id", id).order("fecha", { ascending: false });
   if (error) throw error;
   return (data ?? []) as FichaRow[];

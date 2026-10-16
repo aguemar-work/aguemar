@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { equipoSchema, type EquipoInput } from "@/lib/validators/equipo";
@@ -47,6 +47,8 @@ export async function guardarEquipo(input: EquipoInput, id?: string): Promise<Re
 
 export async function eliminarEquipo(id: string, clienteId: string): Promise<Resultado<void>> {
   try {
+    // Solo el propietario (el colaborador no borra ni reorganiza): mensaje claro en vez de un falso éxito.
+    await exigirPropietario();
     const { db } = await conSesion();
     const fichas = await db.from("fichas").select("id", { count: "exact", head: true }).eq("equipo_id", id);
     if ((fichas.count ?? 0) > 0) {
