@@ -46,7 +46,7 @@ export function Sidebar({ onNavegar, className, rol = "propietario" }: SidebarPr
         })}
       </ul>
       <div className="border-t border-white/10 p-4 font-mono text-[11px] text-sidebar-foreground/60">
-        {rol === "colaborador" ? "agueMar · equipo" : "agueMar · soporte técnico"}
+        {rol === "colaborador" ? "aguemar · equipo" : "aguemar · soporte técnico"}
       </div>
     </nav>
   );

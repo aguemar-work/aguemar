@@ -37,7 +37,7 @@ export default async function InformeWorkspace({ params }: { params: Promise<{ s
       <Hilo
         comentarios={comentarios}
         vista="empresa"
-        nombrePropietario={empresa?.marca?.responsable ?? "agueMar"}
+        nombrePropietario={empresa?.marca?.responsable ?? "aguemar"}
         nombreEmpresa={empresa?.nombre ?? "Tú"}
         enviar={comentarEmpresa.bind(null, slug, "informe", id)}
         descripcion="¿Algo no quedó claro o quieres priorizar algo para el próximo periodo? Escríbenos aquí."

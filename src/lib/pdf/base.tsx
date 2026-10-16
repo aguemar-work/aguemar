@@ -1,5 +1,5 @@
 /**
- * Piezas comunes de los PDF de agueMar: fuentes, logo, corchetes, colores,
+ * Piezas comunes de los PDF de aguemar: fuentes, logo, corchetes, colores,
  * estilos y títulos de sección. Las usan la cotización y la ficha técnica.
  */
 import { readFileSync } from "node:fs";
@@ -118,7 +118,7 @@ export function Encabezado({ derecha }: { derecha: string }) {
   );
 }
 
-/** Pie: "agueMar · área" y "NN / TT". */
+/** Pie: "aguemar · área" y "NN / TT". */
 export function Pie({ izquierda }: { izquierda: string }) {
   return (
     <View style={s.pie} fixed>

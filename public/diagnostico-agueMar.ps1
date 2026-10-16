@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  Diagnóstico del equipo para la ficha técnica de agueMar.
+  Diagnóstico del equipo para la ficha técnica de aguemar.
 
 .DESCRIPTION
   Reúne datos del equipo, discos (salud y desgaste), batería, espacio libre,
@@ -37,7 +37,7 @@ function Redondear($valor, [int]$decimales = 1) {
 }
 
 Write-Host ''
-Write-Host '  agueMar · diagnóstico del equipo' -ForegroundColor Green
+Write-Host '  aguemar · diagnóstico del equipo' -ForegroundColor Green
 Write-Host '  Reuniendo información, tarda menos de un minuto...'
 Write-Host ''
 
@@ -104,7 +104,7 @@ $volumenes = @(Get-Volume | Where-Object { $_.DriveLetter -and $_.DriveType -eq 
 # ---------- Batería (powercfg /batteryreport) ----------
 $bateria = $null
 if (Get-CimInstance Win32_Battery) {
-  $xmlRuta = Join-Path $env:TEMP 'agueMar-bateria.xml'
+  $xmlRuta = Join-Path $env:TEMP 'aguemar-bateria.xml'
   powercfg /batteryreport /xml /output "$xmlRuta" | Out-Null
   if (Test-Path $xmlRuta) {
     [xml]$reporte = Get-Content $xmlRuta -Raw

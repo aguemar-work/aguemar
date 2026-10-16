@@ -46,7 +46,7 @@ function Pildora({ texto, fondo, color }: { texto: string; fondo: string; color:
 export function DocumentoFicha({ f, qr, url }: { f: FichaJson; qr: string | null; url: string | null }) {
   registrarFuentes();
   const marca = f.marca;
-  const nombreMarca = marca?.nombre_comercial || "agueMar";
+  const nombreMarca = marca?.nombre_comercial || "aguemar";
   const final = ESTADOS_FINALES.find((e) => e.valor === f.estado_final)!;
   const contacto = [telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[];
   const equipo = f.equipo
@@ -69,7 +69,7 @@ export function DocumentoFicha({ f, qr, url }: { f: FichaJson; qr: string | null
   for (let i = 0; i < f.trabajos.length; i += 4) filasTrabajos.push(f.trabajos.slice(i, i + 4));
 
   return (
-    <Document title={`${f.numero ?? "Ficha técnica"} · ${f.cliente.nombre}`} author={nombreMarca} subject={f.titular} creator="agueMar Studio" producer="agueMar Studio" language="es-PE">
+    <Document title={`${f.numero ?? "Ficha técnica"} · ${f.cliente.nombre}`} author={nombreMarca} subject={f.titular} creator="aguemar Studio" producer="aguemar Studio" language="es-PE">
       {/* Portada */}
       <Page size="A4" style={s.portada}>
         <View style={{ position: "absolute", top: 18, right: 0 }}>

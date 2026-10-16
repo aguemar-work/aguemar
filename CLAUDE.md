@@ -1,12 +1,12 @@
-# agueMar Studio — guía para Claude Code
+# aguemar Studio — guía para Claude Code
 
 ## Rol
 
-Eres un ingeniero full-stack senior y diseñador de producto. Construyes **agueMar Studio** para Alejandro Fritz Guevara Martínez (marca: agueMar, Perú), que trabaja en tres áreas: **diseño**, **desarrollo** y **soporte técnico**. La idea es simple y tiene tres piezas:
+Eres un ingeniero full-stack senior y diseñador de producto. Construyes **aguemar Studio** para Alejandro Fritz Guevara Martínez (marca: aguemar, Perú), que trabaja en tres áreas: **diseño**, **desarrollo** y **soporte técnico**. La idea es simple y tiene tres piezas:
 
 | Pieza | Para quién | Ruta | Qué hace |
 |---|---|---|---|
-| **Landing** | público | `/` | Una sola página que presenta a agueMar: áreas, servicios, cómo trabaja, contacto. Botón "Ingresar". |
+| **Landing** | público | `/` | Una sola página que presenta a aguemar: áreas, servicios, cómo trabaja, contacto. Botón "Ingresar". |
 | **Panel** | Alejandro (propietario) y su equipo (colaboradores) | `/panel/*` | El propietario administra empresas, accesos, módulos, equipo, trabajos, documentos, cotizaciones y cobros. Un colaborador ve solo las empresas que le asignan: trabaja tareas, actividades, fichas, informes, briefs y actas, y comenta; nunca dinero, leads, servicios, marca ni accesos. |
 | **Workspace** | cada empresa que atiende (SGC, BELMANGROUP…) con **un usuario por empresa** | `/w/[slug]/*` | La empresa ve solo lo suyo según los **módulos que Alejandro le activa**, comenta y crea solicitudes. |
 
@@ -35,7 +35,7 @@ Trabaja por fases. Al terminar cada fase: ejecuta el proyecto, corre los tests, 
 | line | #E2E5EB | Bordes |
 | soft | #F5F7FA | Fondos de bloques |
 
-Tipografía: Sora (400–700) y JetBrains Mono (números de documento, códigos, series, montos), con `next/font`. Logo: `LOGO.svg` → `public/logo.svg` (viewBox `4470 12270 12720 5835`) y `public/logo-light.svg`; script `scripts/crop-logo.mjs`; mientras no exista `LOGO.svg` hay un logo provisional. Rasgo visual: corchetes `< >` grandes y semitransparentes en portadas y heros; títulos de sección de documentos con numeración mono verde (00, 01…). Tono cercano, directo, español neutro de Perú, tuteando. Modo claro y oscuro en panel y workspace; los PDF siempre claros.
+El nombre se escribe **aguemar**, en minúsculas como en el logo (nunca "agueMar"); el archivo `diagnostico-agueMar.ps1` conserva su nombre porque ya hay fichas y enlaces que lo usan. Tipografía: Sora (400–700) y JetBrains Mono (números de documento, códigos, series, montos), con `next/font`. Logo: `LOGO.svg` → `public/logo.svg` (viewBox `4470 12270 12720 5835`) y `public/logo-light.svg`; script `scripts/crop-logo.mjs`; mientras no exista `LOGO.svg` hay un logo provisional. Rasgo visual: corchetes `< >` grandes y semitransparentes en portadas y heros; títulos de sección de documentos con numeración mono verde (00, 01…). Tono cercano, directo, español neutro de Perú, tuteando. Modo claro y oscuro en panel y workspace; los PDF siempre claros.
 
 ## Áreas
 
@@ -75,7 +75,7 @@ Módulos activables por empresa (`clientes.modulos text[]`); la navegación del 
 
 ## Documentos PDF
 
-A4, márgenes laterales 56 px a 96 dpi. Portada oscura con logo claro; tipo, número y fecha en mono; rótulo mono verde con `//` y el área; titular blanco; resumen; píldora de estado. Corchetes al 12 % arriba a la derecha. Páginas siguientes con encabezado delgado y pie "agueMar · <área>" + "NN / TT". Filas que no se cortan, encabezados repetidos, títulos nunca huérfanos. Cierre con conformidad (dos firmas) y tarjeta de contacto. Archivo `{NUMERO}_{Empresa}.pdf`.
+A4, márgenes laterales 56 px a 96 dpi. Portada oscura con logo claro; tipo, número y fecha en mono; rótulo mono verde con `//` y el área; titular blanco; resumen; píldora de estado. Corchetes al 12 % arriba a la derecha. Páginas siguientes con encabezado delgado y pie "aguemar · <área>" + "NN / TT". Filas que no se cortan, encabezados repetidos, títulos nunca huérfanos. Cierre con conformidad (dos firmas) y tarjeta de contacto. Archivo `{NUMERO}_{Empresa}.pdf`.
 
 ## Modelo de datos (InsForge / Postgres)
 

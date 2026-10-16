@@ -1,6 +1,6 @@
-# agueMar Studio
+# aguemar Studio
 
-Sistema de **agueMar** (Alejandro Fritz Guevara Martínez, Perú) para sus tres áreas: diseño, desarrollo y soporte técnico. Tres piezas: una landing que presenta sus servicios, un panel privado donde administra empresas, trabajos, documentos y cobros, y un **workspace por empresa** (`/w/[slug]`) donde cada empresa entra con su usuario a ver sus proyectos, calendario, informes y cotizaciones según los módulos que él le active.
+Sistema de **aguemar** (Alejandro Fritz Guevara Martínez, Perú) para sus tres áreas: diseño, desarrollo y soporte técnico. Tres piezas: una landing que presenta sus servicios, un panel privado donde administra empresas, trabajos, documentos y cobros, y un **workspace por empresa** (`/w/[slug]`) donde cada empresa entra con su usuario a ver sus proyectos, calendario, informes y cotizaciones según los módulos que él le active.
 
 ## Stack
 
@@ -120,8 +120,8 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 
 1. Crea la cuenta en resend.com y, en **Domains**, agrega `aguemar.com`.
 2. Copia en Namecheap (Advanced DNS) los registros que te muestra Resend (MX y TXT de `send`, y el TXT de DKIM `resend._domainkey`). No toques el registro `korax`.
-3. Cuando el dominio aparezca como verificado, crea una API key y agrégala en Vercel (y en `.env.local` si quieres probar en local): `RESEND_API_KEY`, `RESEND_FROM="agueMar <avisos@aguemar.com>"` y, opcional, `AVISOS_PARA`.
-4. Vuelve a desplegar. Sin dominio verificado, Resend solo deja enviar a tu propio correo (`RESEND_FROM="agueMar <onboarding@resend.dev>"`).
+3. Cuando el dominio aparezca como verificado, crea una API key y agrégala en Vercel (y en `.env.local` si quieres probar en local): `RESEND_API_KEY`, `RESEND_FROM="aguemar <avisos@aguemar.com>"` y, opcional, `AVISOS_PARA`.
+4. Vuelve a desplegar. Sin dominio verificado, Resend solo deja enviar a tu propio correo (`RESEND_FROM="aguemar <onboarding@resend.dev>"`).
 
 | Aviso | Para | Cuándo |
 |---|---|---|

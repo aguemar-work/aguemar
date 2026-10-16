@@ -1,5 +1,5 @@
 /**
- * Plantilla HTML de los correos de agueMar: tabla simple con estilos en línea
+ * Plantilla HTML de los correos de aguemar: tabla simple con estilos en línea
  * (lo que soportan Gmail y Outlook), cabecera oscura con el rótulo mono y un botón mint.
  */
 

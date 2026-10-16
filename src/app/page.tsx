@@ -15,6 +15,7 @@ import { Palabras, TituloSeccion } from "@/components/landing/titulo-seccion";
 import { ServiciosAreas } from "@/components/landing/servicios-areas";
 import { EvidenciaFicha } from "@/components/landing/evidencia-ficha";
 import { EspacioDemo } from "@/components/landing/espacio-demo";
+import { Proyectos } from "@/components/landing/proyectos";
 import { datosLanding } from "@/lib/datos/landing";
 import {
   AREAS_LANDING,
@@ -40,18 +41,18 @@ const DESCRIPCION =
   "Diseño, desarrollo web y soporte técnico para empresas en Perú. Cotizaciones claras, avance a la vista en tu propio espacio y documentos verificables.";
 
 export const metadata: Metadata = {
-  title: { absolute: "agueMar · Diseño, desarrollo y soporte técnico en Perú" },
+  title: { absolute: "aguemar · Diseño, desarrollo y soporte técnico en Perú" },
   description: DESCRIPCION,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "es_PE",
     url: "/",
-    siteName: "agueMar",
-    title: "agueMar · Diseño, desarrollo y soporte técnico",
+    siteName: "aguemar",
+    title: "aguemar · Diseño, desarrollo y soporte técnico",
     description: DESCRIPCION,
   },
-  twitter: { card: "summary_large_image", title: "agueMar · Diseño, desarrollo y soporte técnico", description: DESCRIPCION },
+  twitter: { card: "summary_large_image", title: "aguemar · Diseño, desarrollo y soporte técnico", description: DESCRIPCION },
 };
 
 const PASOS = [
@@ -86,6 +87,7 @@ const PRINCIPIOS = [
 const NAV = [
   { href: "#servicios", texto: "Servicios" },
   { href: "#evidencia", texto: "Evidencia" },
+  { href: "#proyectos", texto: "Proyectos" },
   { href: "#como-trabajo", texto: "Cómo trabajo" },
   { href: "#tu-espacio", texto: "Tu espacio" },
   { href: "#contacto", texto: "Contacto" },
@@ -97,8 +99,8 @@ export default async function Inicio() {
   const { marca, servicios } = await datosLanding();
   const porArea = serviciosPorArea(servicios);
   const telefono = marca?.telefono ?? envPublico.NEXT_PUBLIC_WHATSAPP ?? null;
-  const whatsapp = enlaceWhatsApp(telefono, "Hola, vengo de la web de agueMar y quiero hacer una consulta.");
-  const nombre = "agueMar";
+  const whatsapp = enlaceWhatsApp(telefono, "Hola, vengo de la web de aguemar y quiero hacer una consulta.");
+  const nombre = "aguemar";
   const anio = new Date().getFullYear();
   const qr = await QRCode.toDataURL(`${envPublico.NEXT_PUBLIC_SITE_URL}/#evidencia`, {
     margin: 0,
@@ -135,10 +137,10 @@ export default async function Inicio() {
 
       <header className="cabecera-scroll sticky top-0 z-40 border-b border-white/[0.08] bg-ink/70 backdrop-blur-md">
         <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/" aria-label="agueMar, inicio" className="rounded-md">
+          <Link href="/" aria-label="aguemar, inicio" className="rounded-md">
             <Logo variante="claro" alto={30} priority />
           </Link>
-          <nav aria-label="Secciones" className="hidden items-center gap-6 text-sm text-white/60 lg:flex">
+          <nav aria-label="Secciones" className="hidden items-center gap-5 text-sm text-white/60 lg:flex">
             {NAV.map((n) => (
               <a key={n.href} href={n.href} className="transition-colors hover:text-white">
                 {n.texto}
@@ -241,11 +243,26 @@ export default async function Inicio() {
             </div>
           </section>
 
-          {/* ---------- 03 Cómo trabajo ---------- */}
+          {/* ---------- 03 Proyectos ---------- */}
+          <section id="proyectos" aria-labelledby="t-proyectos" data-forma="red" data-lado="0.45" data-escala="0.7" data-intensidad="0.3" className="scroll-mt-20">
+            <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
+              <TituloSeccion
+                n="03"
+                id="t-proyectos"
+                titulo="Lo que he construido"
+                texto="Proyectos propios y para clientes. No te muestro nombres, porque cada empresa merece discreción, pero sí qué problema había y cómo lo resolví."
+              />
+              <div className="mt-14">
+                <Proyectos />
+              </div>
+            </div>
+          </section>
+
+          {/* ---------- 04 Cómo trabajo ---------- */}
           <section id="como-trabajo" aria-labelledby="t-como" data-forma="linea" data-lado="0.5" data-escala="0.85" data-intensidad="0.9" className="scroll-mt-20">
             <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
               <div className="max-w-xl">
-                <TituloSeccion n="03" id="t-como" titulo="Cómo trabajo" texto="Sin sorpresas: sabes qué se hará, cuánto cuesta y en qué va, en cada momento." />
+                <TituloSeccion n="04" id="t-como" titulo="Cómo trabajo" texto="Sin sorpresas: sabes qué se hará, cuánto cuesta y en qué va, en cada momento." />
                 <ol className="relative mt-14">
                   <span aria-hidden className="absolute bottom-6 left-5 top-5 w-px -translate-x-1/2 bg-white/10">
                     <span className="trazo-scroll block h-full w-full bg-mint" />
@@ -267,11 +284,11 @@ export default async function Inicio() {
             </div>
           </section>
 
-          {/* ---------- 04 Tu espacio ---------- */}
+          {/* ---------- 05 Tu espacio ---------- */}
           <section id="tu-espacio" aria-labelledby="t-espacio" data-forma="plano" data-intensidad="0.5" className="scroll-mt-20">
             <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
               <TituloSeccion
-                n="04"
+                n="05"
                 id="t-espacio"
                 titulo="Tu empresa, con su propio espacio"
                 texto="Cada empresa que atiendo entra con su usuario y ve solo lo suyo. Nada de preguntar “¿cómo vamos?” por chat: está ahí, al día. Pruébalo."
@@ -292,27 +309,27 @@ export default async function Inicio() {
             </div>
           </section>
 
-          {/* ---------- 05 Quién está detrás ---------- */}
+          {/* ---------- 06 Quién está detrás ---------- */}
           <section id="quien" aria-labelledby="t-quien" data-forma="huella" data-lado="0.5" data-escala="0.95" className="scroll-mt-20">
             <div className="mx-auto grid max-w-6xl gap-12 px-4 py-24 sm:px-6 md:py-36 lg:grid-cols-2">
               <div>
-                <TituloSeccion n="05" id="t-quien" titulo="Quién está detrás" texto="Detrás de agueMar hay una persona, no una plantilla." />
+                <TituloSeccion n="06" id="t-quien" titulo="Quién está detrás" texto="Detrás de aguemar hay una persona, no una plantilla." />
                 <div className="revelar mt-10 flex items-center gap-4">
                   {FOTO_LANDING ? (
-                    <Image src={FOTO_LANDING} alt={marca?.responsable ?? "Responsable de agueMar"} width={64} height={64} className="size-16 rounded-full object-cover" />
+                    <Image src={FOTO_LANDING} alt={marca?.responsable ?? "Responsable de aguemar"} width={64} height={64} className="size-16 rounded-full object-cover" />
                   ) : (
                     <span aria-hidden className="flex size-16 items-center justify-center rounded-full border border-mint/40 bg-mint/10 font-mono text-lg font-semibold text-mint">
                       {iniciales(marca?.responsable)}
                     </span>
                   )}
                   <div>
-                    <p className="font-semibold">{marca?.responsable ?? "agueMar"}</p>
+                    <p className="font-semibold">{marca?.responsable ?? "aguemar"}</p>
                     {marca?.cargo ? <p className="text-sm text-white/55">{marca.cargo}</p> : null}
                     {desarrollo && !FOTO_LANDING ? <p className="font-mono text-[11px] text-[#f2c35b]">[PENDIENTE: foto en FOTO_LANDING]</p> : null}
                   </div>
                 </div>
                 <p className="revelar mt-6 max-w-lg text-white/70">
-                  agueMar es mi marca y mi forma de trabajar: diseño, programo y reviso equipos con la misma regla. Si lleva mi nombre, tiene que estar bien hecho.
+                  aguemar es mi marca y mi forma de trabajar: diseño, programo y reviso equipos con la misma regla. Si lleva mi nombre, tiene que estar bien hecho.
                 </p>
                 <ol className="mt-8 space-y-6">
                   {PRINCIPIOS.map((p, i) => (
@@ -346,11 +363,11 @@ export default async function Inicio() {
             </div>
           </section>
 
-          {/* ---------- 06 Contacto ---------- */}
+          {/* ---------- 07 Contacto ---------- */}
           <section id="contacto" aria-labelledby="t-contacto" data-forma="corchetes" data-escala="1.25" data-intensidad="0.3" className="scroll-mt-20">
             <div className="mx-auto grid max-w-6xl gap-12 px-4 py-24 sm:px-6 md:py-36 lg:grid-cols-[1fr_1.3fr]">
               <div>
-                <TituloSeccion n="06" id="t-contacto" titulo="Conversemos" texto="Cuéntame qué necesitas. Te respondo yo, no un bot, con los siguientes pasos." />
+                <TituloSeccion n="07" id="t-contacto" titulo="Conversemos" texto="Cuéntame qué necesitas. Te respondo yo, no un bot, con los siguientes pasos." />
                 <ul className="revelar mt-10 space-y-3">
                   {whatsapp ? (
                     <li>
@@ -395,7 +412,7 @@ export default async function Inicio() {
 
         <footer className="relative overflow-hidden border-t border-white/10">
           <p aria-hidden className="pointer-events-none select-none whitespace-nowrap px-4 pt-10 text-center font-mono text-[13vw] font-semibold leading-none tracking-tighter text-white/[0.04] sm:px-6">
-            {"<agueMar/>"}
+            {"<aguemar/>"}
           </p>
           <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-center gap-3">

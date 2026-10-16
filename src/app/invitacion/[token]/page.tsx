@@ -16,14 +16,14 @@ export const metadata: Metadata = {
 
 const MOTIVO: Record<string, string> = {
   usada: "Esta invitación ya se usó. Si ya creaste tu contraseña, entra con ella.",
-  vencida: "Esta invitación venció. Pide a agueMar un enlace nuevo.",
-  revocada: "Esta invitación fue anulada. Pide a agueMar un enlace nuevo.",
+  vencida: "Esta invitación venció. Pide a aguemar un enlace nuevo.",
+  revocada: "Esta invitación fue anulada. Pide a aguemar un enlace nuevo.",
 };
 
 export default async function InvitacionPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const [inv, usuario] = await Promise.all([verInvitacion(token), obtenerUsuario()]);
-  const estudio = inv?.estudio ?? "agueMar";
+  const estudio = inv?.estudio ?? "aguemar";
 
   return (
     <main className="relative flex min-h-dvh items-center justify-center overflow-hidden p-6">
@@ -35,7 +35,7 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
         </div>
 
         {!inv ? (
-          <Mensaje titulo="Enlace no válido" texto="Revisa que el enlace esté completo o pide a agueMar uno nuevo." />
+          <Mensaje titulo="Enlace no válido" texto="Revisa que el enlace esté completo o pide a aguemar uno nuevo." />
         ) : inv.estado !== "vigente" ? (
           <Mensaje titulo="Esta invitación no está disponible" texto={MOTIVO[inv.estado] ?? MOTIVO.vencida} />
         ) : (

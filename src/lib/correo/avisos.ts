@@ -18,7 +18,7 @@ type Db = Awaited<ReturnType<typeof conSesion>>["db"];
 type Diferido<T> = T | Promise<T>;
 
 const url = (ruta: string) => `${envPublico.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}${ruta}`;
-const PIE_PROPIO = "Aviso automático de agueMar Studio.";
+const PIE_PROPIO = "Aviso automático de aguemar Studio.";
 
 /** true si hay API key de Resend: sin ella no vale la pena ni consultar datos para el aviso. */
 export const avisosActivos = () => Boolean(envServidor().RESEND_API_KEY);
@@ -156,7 +156,7 @@ async function destinoEmpresa(db: Db, clienteId: string): Promise<Destino | null
 }
 
 const saludo = (d: Destino) => (d.contacto ? `Hola ${d.contacto.split(" ")[0]},` : "Hola,");
-const pieEmpresa = (d: Destino) => `Recibes este correo porque ${d.nombre} trabaja con agueMar. Si prefieres no recibir avisos, responde a este correo y los desactivamos.`;
+const pieEmpresa = (d: Destino) => `Recibes este correo porque ${d.nombre} trabaja con aguemar. Si prefieres no recibir avisos, responde a este correo y los desactivamos.`;
 
 async function aLaEmpresa(db: Db, clienteId: string, armar: (d: Destino) => Omit<Envio, "para" | "pie" | "responderA"> | null) {
   const d = await destinoEmpresa(db, clienteId);
@@ -281,7 +281,7 @@ export async function avisarSolicitudRespondida(solicitudId: string) {
  */
 export function avisarInvitacion(i: { correo: string; enlace: string; tipo: "empresa" | "colaborador"; empresa?: string | null; nombre?: string | null }) {
   despues(async () => {
-    const estudio = "agueMar";
+    const estudio = "aguemar";
     const saludoInv = i.nombre ? `Hola ${i.nombre.split(" ")[0]},` : "Hola,";
     const esEmpresa = i.tipo === "empresa";
     await enviarCorreo({

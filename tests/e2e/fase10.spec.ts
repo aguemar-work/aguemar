@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 test("la landing muestra las secciones y el botón Ingresar", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  for (const nombre of ["Lo que hago", "Así se ve un trabajo terminado", "Cómo trabajo", "Tu empresa, con su propio espacio", "Quién está detrás", "Conversemos"]) {
+  for (const nombre of ["Lo que hago", "Así se ve un trabajo terminado", "Lo que he construido", "Cómo trabajo", "Tu empresa, con su propio espacio", "Quién está detrás", "Conversemos"]) {
     await expect(page.getByRole("heading", { name: nombre })).toBeVisible();
   }
   await expect(page.getByRole("link", { name: "Ingresar" }).first()).toHaveAttribute("href", "/login");
@@ -12,12 +12,17 @@ test("la landing muestra las secciones y el botón Ingresar", async ({ page }) =
 
 test("las pestañas de servicios y del espacio se recorren con el teclado", async ({ page }) => {
   await page.goto("/#desarrollo");
-  await expect(page.getByRole("tab", { name: "// desarrollo" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: "// desarrollo", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#servicios")).toHaveAttribute("data-forma", "llaves");
-  await page.getByRole("tab", { name: "// desarrollo" }).focus();
+  await page.getByRole("tab", { name: "// desarrollo", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("tab", { name: "// soporte" })).toBeFocused();
+  await expect(page.getByRole("tab", { name: "// soporte", exact: true })).toBeFocused();
   await expect(page.locator("#servicios")).toHaveAttribute("data-forma", "chip");
+
+  await page.getByRole("tab", { name: /Sistema ITMS/ }).click();
+  await expect(page.getByRole("tabpanel", { name: /Sistema ITMS/ })).toContainText("un solo uso");
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("tab", { name: /Agenda y tareas/ })).toHaveAttribute("aria-selected", "true");
 
   await page.getByRole("tab", { name: "Cotizaciones" }).click();
   await expect(page.getByRole("tabpanel", { name: "Cotizaciones" })).toContainText("COT-2026-012");

@@ -6,7 +6,7 @@
  * Unidades: la cámara ve unas ±3,1 unidades de alto en z = 0; las formas miden ~±2,2.
  */
 
-export const FORMAS = ["corchetes", "espiral", "llaves", "chip", "nube", "linea", "plano", "huella"] as const;
+export const FORMAS = ["corchetes", "espiral", "llaves", "chip", "nube", "linea", "plano", "huella", "red"] as const;
 export type Forma = (typeof FORMAS)[number];
 
 export function esForma(valor: unknown): valor is Forma {
@@ -291,6 +291,47 @@ function huella(n: number, r: Aleatorio) {
   return sobreTrazos(lineas, n, r, 0.02, 0.05);
 }
 
+/** Nodos unidos con sus vecinos más cercanos: sistemas conectados. Proyectos. */
+function red(n: number, r: Aleatorio) {
+  const nodos: [number, number, number][] = [];
+  for (let i = 0; i < 26; i++) nodos.push([(r() * 2 - 1) * 3.4, (r() * 2 - 1) * 2.3, (r() * 2 - 1) * 1.6]);
+  const aristas: [number, number][] = [];
+  nodos.forEach((a, i) => {
+    const cercanos = nodos
+      .map((b, j) => ({ j, d: Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) }))
+      .filter((x) => x.j !== i)
+      .sort((x, y) => x.d - y.d)
+      .slice(0, 2);
+    for (const { j } of cercanos) if (!aristas.some(([p, q]) => (p === j && q === i) || (p === i && q === j))) aristas.push([i, j]);
+  });
+  const salida = new Float32Array(n * 3);
+  const enNodos = Math.round(n * 0.35);
+  for (let i = 0; i < n; i++) {
+    let x: number;
+    let y: number;
+    let z: number;
+    if (i < enNodos) {
+      // Un racimo en cada nodo.
+      const c = nodos[i % nodos.length]!;
+      x = c[0] + campana(r) * 0.1;
+      y = c[1] + campana(r) * 0.1;
+      z = c[2] + campana(r) * 0.1;
+    } else {
+      const [p, q] = aristas[Math.floor(r() * aristas.length)]!;
+      const a = nodos[p]!;
+      const b = nodos[q]!;
+      const t = r();
+      x = a[0] + (b[0] - a[0]) * t + campana(r) * 0.015;
+      y = a[1] + (b[1] - a[1]) * t + campana(r) * 0.015;
+      z = a[2] + (b[2] - a[2]) * t + campana(r) * 0.015;
+    }
+    salida[i * 3] = x;
+    salida[i * 3 + 1] = y;
+    salida[i * 3 + 2] = z;
+  }
+  return salida;
+}
+
 const GENERADORES: Record<Forma, (n: number, r: Aleatorio) => Float32Array> = {
   corchetes,
   espiral,
@@ -300,6 +341,7 @@ const GENERADORES: Record<Forma, (n: number, r: Aleatorio) => Float32Array> = {
   linea,
   plano,
   huella,
+  red,
 };
 
 /** Los puntos de una forma: Float32Array de n × 3. */

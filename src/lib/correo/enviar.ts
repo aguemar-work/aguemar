@@ -23,7 +23,7 @@ export async function enviarCorreo(e: Envio): Promise<{ ok: boolean; omitido?: s
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: RESEND_FROM ?? "agueMar <onboarding@resend.dev>",
+        from: RESEND_FROM ?? "aguemar <onboarding@resend.dev>",
         to: [e.para],
         subject: e.asunto,
         html: correoHtml(e),

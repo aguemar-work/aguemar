@@ -72,7 +72,7 @@ export default async function ActividadWorkspace({ params }: { params: Promise<{
       <Hilo
         comentarios={comentarios}
         vista="empresa"
-        nombrePropietario={empresa?.marca?.responsable ?? "agueMar"}
+        nombrePropietario={empresa?.marca?.responsable ?? "aguemar"}
         nombreEmpresa={empresa?.nombre ?? "Tú"}
         enviar={comentarEmpresa.bind(null, slug, "actividad", id)}
         descripcion="¿Necesitas cambiar la fecha o tienes una duda? Escríbenos aquí."

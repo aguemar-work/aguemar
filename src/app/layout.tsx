@@ -20,11 +20,11 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "agueMar · diseño, desarrollo y soporte técnico",
-    template: "%s · agueMar",
+    default: "aguemar · diseño, desarrollo y soporte técnico",
+    template: "%s · aguemar",
   },
   description:
-    "agueMar: diseño, desarrollo web y soporte técnico en Perú. Cada empresa sigue sus proyectos, informes y documentos en su propio espacio.",
+    "aguemar: diseño, desarrollo web y soporte técnico en Perú. Cada empresa sigue sus proyectos, informes y documentos en su propio espacio.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
 };
 

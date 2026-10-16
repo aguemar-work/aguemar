@@ -37,7 +37,7 @@ export function Portada({ tipo, numero, fecha, area, titulo, resumen, pildora, e
       ) : null}
       <View style={{ marginTop: 56, borderTopWidth: 0.6, borderTopColor: "#2A3140", paddingTop: 10, flexDirection: "row", justifyContent: "space-between", fontSize: 8.5, color: "#AEB6C4" }}>
         <Text>
-          {marca?.nombre_comercial ?? "agueMar"}
+          {marca?.nombre_comercial ?? "aguemar"}
           {marca?.ruc ? ` · RUC ${marca.ruc}` : ""}
         </Text>
         <Text style={s.mono}>{contacto.join("  ·  ")}</Text>
@@ -73,7 +73,7 @@ export function Lista({ items }: { items: string[] }) {
 }
 
 export function Cierre({ marca, firmaCliente, empresa, aceptado }: { marca: MarcaJson | null; firmaCliente: string; empresa: string; aceptado?: string | null }) {
-  const nombreMarca = marca?.nombre_comercial ?? "agueMar";
+  const nombreMarca = marca?.nombre_comercial ?? "aguemar";
   const contacto = [telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[];
   return (
     <View>
@@ -102,7 +102,7 @@ export function Cierre({ marca, firmaCliente, empresa, aceptado }: { marca: Marc
 export function DocumentoBrief({ b }: { b: BriefJson }) {
   registrarFuentes();
   const area = rotuloArea(b.area);
-  const nombreMarca = b.marca?.nombre_comercial ?? "agueMar";
+  const nombreMarca = b.marca?.nombre_comercial ?? "aguemar";
   const secciones: [string, string | null, "texto" | "lista"][] = [
     ["Objetivo", b.objetivo, "texto"],
     ["Contexto", b.contexto, "texto"],
@@ -114,7 +114,7 @@ export function DocumentoBrief({ b }: { b: BriefJson }) {
   ];
   let n = 1;
   return (
-    <Document title={`${b.numero ?? "Brief"} · ${b.cliente.nombre}`} author={nombreMarca} subject={b.titulo} creator="agueMar Studio" producer="agueMar Studio" language="es-PE">
+    <Document title={`${b.numero ?? "Brief"} · ${b.cliente.nombre}`} author={nombreMarca} subject={b.titulo} creator="aguemar Studio" producer="aguemar Studio" language="es-PE">
       <Portada tipo="BRIEF" numero={b.numero} fecha={b.fecha} area={area} titulo={b.titulo} resumen={b.objetivo ? b.objetivo.split(/\r?\n/)[0] : null} empresa={b.cliente.nombre} marca={b.marca} />
       <Page size="A4" style={s.pagina}>
         <Encabezado derecha={`${b.numero ?? "BORRADOR"} · ${b.cliente.nombre}`} />
@@ -147,9 +147,9 @@ export function DocumentoBrief({ b }: { b: BriefJson }) {
 export function DocumentoActa({ a }: { a: ActaJson }) {
   registrarFuentes();
   const area = rotuloArea(a.area);
-  const nombreMarca = a.marca?.nombre_comercial ?? "agueMar";
+  const nombreMarca = a.marca?.nombre_comercial ?? "aguemar";
   return (
-    <Document title={`${a.numero ?? "Acta de entrega"} · ${a.cliente.nombre}`} author={nombreMarca} subject={a.titulo} creator="agueMar Studio" producer="agueMar Studio" language="es-PE">
+    <Document title={`${a.numero ?? "Acta de entrega"} · ${a.cliente.nombre}`} author={nombreMarca} subject={a.titulo} creator="aguemar Studio" producer="aguemar Studio" language="es-PE">
       <Portada
         tipo="ACTA DE ENTREGA"
         numero={a.numero}

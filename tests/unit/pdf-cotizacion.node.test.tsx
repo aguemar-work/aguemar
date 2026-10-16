@@ -24,7 +24,7 @@ const ejemplo: DatosCotizacionPdf = {
   aceptacion: null,
   cliente: { nombre: "SGC", tipo_doc: "RUC", num_doc: "20123456789", contacto: "Ana Pérez", direccion: "Lima" },
   marca: {
-    nombre_comercial: "agueMar",
+    nombre_comercial: "aguemar",
     responsable: "Alejandro Guevara Martínez",
     cargo: "Diseño, desarrollo y soporte técnico",
     ruc: null,

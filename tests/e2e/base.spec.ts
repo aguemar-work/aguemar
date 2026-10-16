@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test";
  */
 test("la landing carga con el logo y los llamados a la acción", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("img", { name: "agueMar" }).first()).toBeVisible();
+  await expect(page.getByRole("img", { name: "aguemar" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /cuéntame tu proyecto/i }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /privacidad/i }).first()).toBeAttached();
   // El botón de WhatsApp solo aparece si hay número (Mi marca o NEXT_PUBLIC_WHATSAPP).

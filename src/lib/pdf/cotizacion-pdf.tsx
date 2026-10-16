@@ -56,7 +56,7 @@ const cantidadTexto = (c: number | string) => String(Number(c)).replace(".", ","
 export function DocumentoCotizacion({ d }: { d: DatosCotizacionPdf }) {
   registrarFuentes();
   const marca = d.marca;
-  const nombreMarca = marca?.nombre_comercial || "agueMar";
+  const nombreMarca = marca?.nombre_comercial || "aguemar";
   const area = rotuloArea(d.area);
   const estado = ESTADO[d.estado];
   const condiciones = (d.condiciones ?? "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
@@ -72,7 +72,7 @@ export function DocumentoCotizacion({ d }: { d: DatosCotizacionPdf }) {
   const sig = () => String(n++).padStart(2, "0");
 
   return (
-    <Document title={`${d.numero ?? "Cotización"} · ${d.cliente.nombre}`} author={nombreMarca} subject={d.asunto} creator="agueMar Studio" producer="agueMar Studio" language="es-PE">
+    <Document title={`${d.numero ?? "Cotización"} · ${d.cliente.nombre}`} author={nombreMarca} subject={d.asunto} creator="aguemar Studio" producer="aguemar Studio" language="es-PE">
       {/* Portada */}
       <Page size="A4" style={s.portada}>
         <View style={{ position: "absolute", top: 18, right: 0 }}>

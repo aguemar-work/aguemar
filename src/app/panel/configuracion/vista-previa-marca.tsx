@@ -12,7 +12,7 @@ const vacio = (v: unknown) => (typeof v === "string" ? v.trim() : "");
  * oscura y tarjeta de contacto del cierre. Se actualiza mientras escribes.
  */
 export function VistaPreviaMarca({ valores }: { valores: Partial<MarcaInput> }) {
-  const nombre = vacio(valores.nombre_comercial) || "agueMar";
+  const nombre = vacio(valores.nombre_comercial) || "aguemar";
   const responsable = vacio(valores.responsable) || "Tu nombre";
   const cargo = vacio(valores.cargo) || "Cargo";
   const contacto = [vacio(valores.telefono), vacio(valores.correo), vacio(valores.web)].filter(Boolean);

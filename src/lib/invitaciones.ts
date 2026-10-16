@@ -13,8 +13,8 @@ export const TOKEN_INVITACION = /^[A-Za-z0-9_-]{40,64}$/;
 export function whatsappInvitacion(enlace: string, tipo: "empresa" | "colaborador"): string {
   const texto =
     tipo === "empresa"
-      ? `Hola, te comparto el acceso a tu espacio en agueMar. Crea tu contraseña aquí (vence en 7 días): ${enlace}`
-      : `Hola, te sumo al equipo de agueMar. Crea tu contraseña aquí (vence en 7 días): ${enlace}`;
+      ? `Hola, te comparto el acceso a tu espacio en aguemar. Crea tu contraseña aquí (vence en 7 días): ${enlace}`
+      : `Hola, te sumo al equipo de aguemar. Crea tu contraseña aquí (vence en 7 días): ${enlace}`;
   return `https://wa.me/?text=${encodeURIComponent(texto)}`;
 }
 

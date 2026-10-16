@@ -12,13 +12,13 @@ interface LogoProps {
 
 const PROPORCION = 12720 / 5835;
 
-/** Logo de agueMar recortado desde LOGO.svg (ver scripts/crop-logo.mjs). */
+/** Logo de aguemar recortado desde LOGO.svg (ver scripts/crop-logo.mjs). */
 export function Logo({ variante = "oscuro", className, alto = 36, priority }: LogoProps) {
   const src = variante === "claro" ? "/logo-light.svg" : "/logo.svg";
   return (
     <Image
       src={src}
-      alt="agueMar"
+      alt="aguemar"
       height={alto}
       width={Math.round(alto * PROPORCION)}
       priority={priority}

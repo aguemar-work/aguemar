@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ---------- Tokens de marca agueMar ---------- */
+/* ---------- Tokens de marca aguemar ---------- */
 @theme {
   --color-ink: #0a0f1a;
   --color-mint: #1ce783;

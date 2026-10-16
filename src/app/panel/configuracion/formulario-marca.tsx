@@ -28,7 +28,7 @@ export function FormularioMarca({ perfil }: Props) {
   const form = useForm<MarcaInput, unknown, MarcaDatos>({
     resolver: zodResolver(marcaSchema),
     defaultValues: {
-      nombre_comercial: perfil?.nombre_comercial ?? "agueMar",
+      nombre_comercial: perfil?.nombre_comercial ?? "aguemar",
       responsable: perfil?.responsable ?? "Alejandro Fritz Guevara Martínez",
       cargo: perfil?.cargo ?? "Diseño, desarrollo y soporte técnico",
       ruc: perfil?.ruc ?? "",

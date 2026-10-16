@@ -8,7 +8,7 @@ const datos = {
   parrafos: ["En «Web corporativa»."],
   cita: "¿Podemos <b>adelantar</b> la entrega?\nGracias",
   boton: { texto: "Responder", url: "https://aguemar.com/panel/trabajos/1?a=1&b=2" },
-  pie: "Aviso automático de agueMar Studio.",
+  pie: "Aviso automático de aguemar Studio.",
 };
 
 describe("plantilla de correo", () => {
@@ -24,7 +24,7 @@ describe("plantilla de correo", () => {
     const texto = correoTexto(datos);
     expect(texto).toContain("> ¿Podemos <b>adelantar</b> la entrega?\n> Gracias");
     expect(texto).toContain("Responder: https://aguemar.com/panel/trabajos/1?a=1&b=2");
-    expect(texto.endsWith("Aviso automático de agueMar Studio.")).toBe(true);
+    expect(texto.endsWith("Aviso automático de aguemar Studio.")).toBe(true);
   });
 });
 
@@ -44,7 +44,7 @@ describe("envío con Resend", () => {
 
   it("con API key llama a Resend con remitente, destinatario y reply_to", async () => {
     vi.stubEnv("RESEND_API_KEY", "re_prueba");
-    vi.stubEnv("RESEND_FROM", "agueMar <avisos@aguemar.com>");
+    vi.stubEnv("RESEND_FROM", "aguemar <avisos@aguemar.com>");
     const f = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", f);
     const r = await enviarCorreo({ ...datos, para: "ana@empresa.pe", asunto: "Hola", responderA: "yo@aguemar.com" });
@@ -53,7 +53,7 @@ describe("envío con Resend", () => {
     expect(urlLlamada).toBe("https://api.resend.com/emails");
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer re_prueba");
     const cuerpo = JSON.parse(init.body as string);
-    expect(cuerpo).toMatchObject({ from: "agueMar <avisos@aguemar.com>", to: ["ana@empresa.pe"], subject: "Hola", reply_to: "yo@aguemar.com" });
+    expect(cuerpo).toMatchObject({ from: "aguemar <avisos@aguemar.com>", to: ["ana@empresa.pe"], subject: "Hola", reply_to: "yo@aguemar.com" });
   });
 
   it("no envía a correos inválidos ni rompe si Resend falla", async () => {

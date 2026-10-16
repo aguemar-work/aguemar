@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
   const { token } = await params;
   const doc = await portalDocumento(token);
   if (!doc) return { title: "Enlace no válido", robots: NOINDEX };
-  const marca = doc.documento.marca?.nombre_comercial ?? "agueMar";
+  const marca = doc.documento.marca?.nombre_comercial ?? "aguemar";
   const titulo = `${doc.documento.numero} · ${NOMBRE_DOCUMENTO[doc.tipo]}`;
   return { title: { absolute: `${titulo} · ${marca}` }, robots: NOINDEX };
 }
@@ -53,7 +53,7 @@ export default async function PortalDocumento({ params }: { params: Promise<{ to
         <>
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="inline-flex items-center gap-2 rounded-full bg-success-bg px-3 py-1 text-sm text-success-foreground">
-              <ShieldCheck className="size-4" aria-hidden /> Ficha auténtica emitida por {marca?.nombre_comercial ?? "agueMar"}
+              <ShieldCheck className="size-4" aria-hidden /> Ficha auténtica emitida por {marca?.nombre_comercial ?? "aguemar"}
             </p>
             <Botones pdf={pdf} />
           </div>

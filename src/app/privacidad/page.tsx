@@ -10,7 +10,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Política de privacidad",
-  description: "Qué datos personales trata agueMar, para qué, por cuánto tiempo y cómo ejercer tus derechos.",
+  description: "Qué datos personales trata aguemar, para qué, por cuánto tiempo y cómo ejercer tus derechos.",
   alternates: { canonical: "/privacidad" },
 };
 
@@ -63,7 +63,7 @@ export default async function PrivacidadPage() {
 
         <Seccion numero="01" titulo="Quién trata tus datos">
           <p>
-            <strong>{responsable}</strong> (agueMar), con RUC <span className="font-mono">{ruc}</span>, domicilio en {direccion}. Para cualquier consulta sobre
+            <strong>{responsable}</strong> (aguemar), con RUC <span className="font-mono">{ruc}</span>, domicilio en {direccion}. Para cualquier consulta sobre
             tus datos escribe a <a href={`mailto:${correo}`} className="underline underline-offset-2">{correo}</a>.
           </p>
         </Seccion>
@@ -128,7 +128,7 @@ export default async function PrivacidadPage() {
         <Seccion numero="06" titulo="Cómo los protejo">
           <p>
             Conexiones cifradas (HTTPS), acceso a la base restringido por usuario y por empresa, contraseñas cifradas, enlaces de documentos con tokens
-            aleatorios que puedes pedir que revoque, y copias de seguridad del proveedor. Nadie fuera de agueMar ve los datos de otra empresa.
+            aleatorios que puedes pedir que revoque, y copias de seguridad del proveedor. Nadie fuera de aguemar ve los datos de otra empresa.
           </p>
         </Seccion>
 

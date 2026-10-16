@@ -28,7 +28,7 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
       <PageHeader
         codigo="00"
         titulo={`Hola, ${empresa?.nombre ?? ""}`}
-        descripcion={`Resumen de tu espacio con ${empresa?.marca?.nombre_comercial ?? "agueMar"} · ${formatearFecha(hoy)}`}
+        descripcion={`Resumen de tu espacio con ${empresa?.marca?.nombre_comercial ?? "aguemar"} · ${formatearFecha(hoy)}`}
       />
 
       <section aria-label="Resumen" className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -194,7 +194,7 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
 
         <section aria-labelledby="respuestas">
           <h2 id="respuestas" className="mb-3 text-base font-semibold">
-            Últimas respuestas de {empresa?.marca?.responsable ?? "agueMar"}
+            Últimas respuestas de {empresa?.marca?.responsable ?? "aguemar"}
           </h2>
           {!inicio || inicio.respuestas.length === 0 ? (
             <EmptyState icono={MessageSquare} titulo="Sin respuestas recientes." descripcion="Cuando comentes un proyecto y te respondan, lo verás aquí." className="py-8" />

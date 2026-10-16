@@ -69,7 +69,7 @@ export function ServiciosAreas({ porArea }: { porArea: Record<Area, ServicioLand
 
         <div className="mt-14 grid gap-10 lg:grid-cols-2">
           <div className="revelar">
-            <div role="tablist" aria-label="Áreas" onKeyDown={alTeclear} className="flex gap-1 overflow-x-auto border-b border-white/10">
+            <div role="tablist" aria-label="Áreas" onKeyDown={alTeclear} className="flex overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_rgb(255_255_255/0.1)] [scrollbar-width:none] sm:gap-1 [&::-webkit-scrollbar]:hidden">
               {AREAS_LANDING.map((a) => {
                 const sel = a.area === activa;
                 return (
@@ -86,7 +86,7 @@ export function ServiciosAreas({ porArea }: { porArea: Record<Area, ServicioLand
                     tabIndex={sel ? 0 : -1}
                     onClick={() => setActiva(a.area)}
                     className={cn(
-                      "relative -mb-px shrink-0 rounded-t-md border-b-2 px-4 py-3 font-mono text-sm transition-colors",
+                      "relative shrink-0 rounded-t-md border-b-2 px-3 py-3 font-mono text-[13px] transition-colors sm:px-4 sm:text-sm",
                       sel ? "border-mint bg-white/[0.04] text-white" : "border-transparent text-white/50 hover:text-white/80",
                     )}
                   >

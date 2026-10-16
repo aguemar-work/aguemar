@@ -1,5 +1,5 @@
 -- =====================================================================
--- agueMar Studio · seed
+-- aguemar Studio · seed
 -- Crea el perfil de marca, los servicios iniciales, las plantillas de
 -- checklist, el cliente SGC, su equipo Lenovo y la ficha FT-2026-001.
 --
@@ -27,7 +27,7 @@ begin
   insert into public.perfil_marca (owner_id, nombre_comercial, responsable, cargo, ruc, telefono, correo, web, direccion,
                                    igv_pct, moneda_default, validez_dias_default, condiciones_default,
                                    pago_cuenta, pago_cci, pago_yape, pago_plin)
-  values (v_owner, 'agueMar', 'Alejandro Fritz Guevara Martínez', 'Soporte técnico',
+  values (v_owner, 'aguemar', 'Alejandro Fritz Guevara Martínez', 'Soporte técnico',
           '[PENDIENTE: RUC]', '[PENDIENTE: teléfono]', '[PENDIENTE: correo]', '[PENDIENTE: web]', '[PENDIENTE: dirección]',
           1800, 'PEN', 15,
           E'Precios expresados en soles. Validez según la fecha indicada.\nEl servicio incluye la ficha técnica del trabajo realizado.\nForma de pago: 50 % al aceptar y 50 % al entregar, salvo acuerdo distinto.',

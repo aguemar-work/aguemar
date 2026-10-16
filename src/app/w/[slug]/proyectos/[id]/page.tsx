@@ -152,7 +152,7 @@ export default async function ProyectoWorkspace({ params }: { params: Promise<{ 
           <Hilo
             comentarios={comentarios}
             vista="empresa"
-            nombrePropietario={empresa?.marca?.responsable ?? "agueMar"}
+            nombrePropietario={empresa?.marca?.responsable ?? "aguemar"}
             nombreEmpresa={empresa?.nombre ?? "Tú"}
             enviar={comentarEmpresa.bind(null, slug, "trabajo", id)}
             descripcion="Pregunta o comenta sobre este proyecto; te respondemos aquí mismo."

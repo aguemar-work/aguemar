@@ -11,7 +11,7 @@ type Tipo = "comando" | "marca" | "texto" | "listo" | "comentario" | "dato" | "v
 const LINEAS: { tipo: Tipo; texto: string; dato?: string }[] = [
   { tipo: "comando", texto: ".\\diagnostico-agueMar.ps1" },
   { tipo: "vacio", texto: "" },
-  { tipo: "marca", texto: "  agueMar · diagnóstico del equipo" },
+  { tipo: "marca", texto: "  aguemar · diagnóstico del equipo" },
   { tipo: "texto", texto: "  Reuniendo información, tarda menos de un minuto..." },
   { tipo: "vacio", texto: "" },
   { tipo: "listo", texto: "  Listo: Escritorio\\diagnostico-••••••••-2026••••.json" },

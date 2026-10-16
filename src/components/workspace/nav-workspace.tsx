@@ -56,7 +56,7 @@ export function NavWorkspace({ slug, nombreEmpresa, modulos, onNavegar, classNam
           );
         })}
       </ul>
-      <div className="border-t border-white/10 p-4 font-mono text-[11px] text-sidebar-foreground/60">agueMar · workspace</div>
+      <div className="border-t border-white/10 p-4 font-mono text-[11px] text-sidebar-foreground/60">aguemar · workspace</div>
     </nav>
   );
 }

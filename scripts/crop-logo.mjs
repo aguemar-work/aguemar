@@ -60,7 +60,7 @@ svg = svg.replace(/<svg\b([^>]*)>/i, (_, attrs) => {
     .replace(/\sheight="[^"]*"/i, "")
     .replace(/\sstyle="[^"]*"/i, "");
   if (!/xmlns=/.test(a)) a += ' xmlns="http://www.w3.org/2000/svg"';
-  return `<svg${a} viewBox="${VIEWBOX}" role="img" aria-label="agueMar">`;
+  return `<svg${a} viewBox="${VIEWBOX}" role="img" aria-label="aguemar">`;
 });
 
 // 4. Quitar comentarios y metadatos de CorelDRAW.

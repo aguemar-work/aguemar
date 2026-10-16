@@ -31,7 +31,7 @@ export default async function LoginPage({ searchParams }: Props) {
           </h1>
           <p className="mt-3 text-white/70">Gestiona clientes, equipos y documentos desde un solo lugar.</p>
         </div>
-        <p className="font-mono text-[11px] text-white/50">agueMar · soporte técnico</p>
+        <p className="font-mono text-[11px] text-white/50">aguemar · soporte técnico</p>
       </section>
 
       {/* Formulario */}

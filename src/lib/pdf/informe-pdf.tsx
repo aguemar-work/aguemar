@@ -42,7 +42,7 @@ function Contenido({ texto }: { texto: string }) {
 /** Cierre del informe: quién lo emite y cómo contactarlo (no requiere firma de la empresa). */
 function Cierre({ i }: { i: InformeJson }) {
   const marca = i.marca;
-  const nombreMarca = marca?.nombre_comercial ?? "agueMar";
+  const nombreMarca = marca?.nombre_comercial ?? "aguemar";
   const contacto = [telefonoLegible(marca?.telefono), marca?.correo, marca?.web].filter(Boolean) as string[];
   return (
     <View>
@@ -64,11 +64,11 @@ function Cierre({ i }: { i: InformeJson }) {
 export function DocumentoInforme({ i }: { i: InformeJson }) {
   registrarFuentes();
   const area = rotuloArea(i.area);
-  const nombreMarca = i.marca?.nombre_comercial ?? "agueMar";
+  const nombreMarca = i.marca?.nombre_comercial ?? "aguemar";
   const periodo = textoPeriodo(i.periodo_inicio, i.periodo_fin);
   let n = 1;
   return (
-    <Document title={`${i.numero ?? "Informe"} · ${i.cliente.nombre}`} author={nombreMarca} subject={i.titulo} creator="agueMar Studio" producer="agueMar Studio" language="es-PE">
+    <Document title={`${i.numero ?? "Informe"} · ${i.cliente.nombre}`} author={nombreMarca} subject={i.titulo} creator="aguemar Studio" producer="aguemar Studio" language="es-PE">
       <Portada
         tipo="INFORME DE AVANCE"
         numero={i.numero}

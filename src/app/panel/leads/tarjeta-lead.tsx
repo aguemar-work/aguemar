@@ -23,7 +23,7 @@ export function TarjetaLead({ l, responsable }: { l: LeadFila; responsable: stri
   const router = useRouter();
   const [pendiente, iniciar] = useTransition();
   const e = ESTADO[l.estado];
-  const saludo = `Hola ${l.nombre.split(" ")[0]}, soy ${responsable.split(" ")[0]} de agueMar. Recibí tu mensaje desde la web`;
+  const saludo = `Hola ${l.nombre.split(" ")[0]}, soy ${responsable.split(" ")[0]} de aguemar. Recibí tu mensaje desde la web`;
   const wa = enlaceWhatsApp(l.telefono, `${saludo}${l.servicio ? ` sobre ${l.servicio.toLowerCase()}` : ""}.`);
 
   const estado = (nuevo: "nuevo" | "contactado") =>
@@ -72,7 +72,7 @@ export function TarjetaLead({ l, responsable }: { l: LeadFila; responsable: stri
         ) : null}
         {l.correo ? (
           <Button asChild size="sm" variant="outline">
-            <a href={`mailto:${l.correo}?subject=${encodeURIComponent("Tu mensaje a agueMar")}`} onClick={() => (l.estado === "nuevo" ? estado("contactado") : undefined)}>
+            <a href={`mailto:${l.correo}?subject=${encodeURIComponent("Tu mensaje a aguemar")}`} onClick={() => (l.estado === "nuevo" ? estado("contactado") : undefined)}>
               <Mail /> Correo
             </a>
           </Button>
