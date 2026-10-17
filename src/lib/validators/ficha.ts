@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TIPOS_SERVICIO_FICHA } from "@/lib/documentos";
 
 const texto = (max: number) =>
   z
@@ -48,7 +49,7 @@ export const fichaSchema = z
     actualizar_equipo: z.boolean().optional(),
     trabajo_id: idOpcional,
     fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida."),
-    tipo_servicio: z.string().trim().min(2, "Escribe el tipo de servicio.").max(120),
+    tipo_servicio: z.enum(TIPOS_SERVICIO_FICHA, "Elige el tipo de servicio."),
     modalidad: z.enum(["remota", "presencial"]),
     titular: z.string().trim().min(3, "Escribe el titular de la portada.").max(200),
     resumen: texto(2000),

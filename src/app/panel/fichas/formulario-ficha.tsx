@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { ListRestart, Plus, Trash2 } from "lucide-react";
+import { Link2, ListRestart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -15,7 +15,7 @@ import { Campo, propsCampo } from "@/components/formulario/campo";
 import { BarraAcciones } from "@/components/formulario/barra-acciones";
 import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
 import { usePanelLateral } from "@/components/panel/panel-lateral";
-import { ESTADOS_DIAGNOSTICO, ESTADOS_FINALES, ESTADOS_INCIDENCIA, MODALIDADES, nombreEquipo, proximoMantenimientoSugerido } from "@/lib/documentos";
+import { ESTADOS_DIAGNOSTICO, ESTADOS_FINALES, ESTADOS_INCIDENCIA, MODALIDADES, TIPOS_SERVICIO_FICHA, nombreEquipo, proximoMantenimientoSugerido } from "@/lib/documentos";
 import { hoyLima } from "@/lib/format";
 import { EQUIPO_NUEVO, fichaSchema, type FichaDatos, type FichaInput } from "@/lib/validators/ficha";
 import type { PlantillaChecklistRow } from "@/types/database";
@@ -69,7 +69,12 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
   const hoy = hoyLima();
-  const tipoInicial = ficha?.tipo_servicio ?? plantillas[0]?.tipo_servicio ?? "Mantenimiento preventivo";
+  // Una ficha antigua con otro tipo de servicio obliga a elegir uno de los vigentes al guardar.
+  const tipoInicial = ficha ? ((TIPOS_SERVICIO_FICHA as readonly string[]).includes(ficha.tipo_servicio) ? ficha.tipo_servicio : "") : TIPOS_SERVICIO_FICHA[0];
+  // Desde la ficha de un equipo o de una empresa ya se sabe de quién es: no se vuelve a elegir.
+  const empresaFija = !ficha ? clientes.find((c) => c.id === inicial?.cliente) : undefined;
+  const equipoFijo = empresaFija ? equipos.find((e) => e.id === inicial?.equipo && e.cliente_id === empresaFija.id) : undefined;
+  const [conTrabajo, setConTrabajo] = useState(Boolean(ficha?.trabajo_id || inicial?.trabajo));
 
   const form = useForm<FichaInput, unknown, FichaDatos>({
     resolver: zodResolver(fichaSchema),
@@ -80,7 +85,7 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
       actualizar_equipo: false,
       trabajo_id: ficha?.trabajo_id ?? inicial?.trabajo ?? "",
       fecha: ficha?.fecha ?? hoy,
-      tipo_servicio: tipoInicial,
+      tipo_servicio: tipoInicial as FichaInput["tipo_servicio"],
       modalidad: ficha?.modalidad ?? "remota",
       titular: ficha?.titular ?? "",
       resumen: ficha?.resumen ?? "",
@@ -141,7 +146,12 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
           <ImportarDiagnostico
             deshabilitado={!clienteId}
             onAplicar={(i, crudo, o) => {
-              if (o.equipo) {
+              if (o.equipo && equipoFijo) {
+                const otraSerie = i.equipo.serie && i.equipo.serie.toLowerCase() !== equipoFijo.serie.toLowerCase();
+                setValue("actualizar_equipo", true, opts);
+                setValue("equipo_datos", { ...(Object.fromEntries(CAMPOS_EQUIPO.map(([k]) => [k, i.equipo[k] ?? ""])) as FichaInput["equipo_datos"]), serie: equipoFijo.serie }, opts);
+                if (otraSerie) toast.warning(`El diagnóstico es de la serie ${i.equipo.serie} y este equipo es ${equipoFijo.serie}. Revisa que sea el equipo correcto.`);
+              } else if (o.equipo) {
                 const existente = i.equipo.serie ? equiposEmpresa.find((e) => e.serie.toLowerCase() === i.equipo.serie!.toLowerCase()) : undefined;
                 setValue("equipo_id", existente ? existente.id : EQUIPO_NUEVO, opts);
                 setValue("actualizar_equipo", Boolean(existente), opts);
@@ -159,6 +169,11 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
           />
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {empresaFija ? (
+            <Campo id="cliente_id" etiqueta="Empresa">
+              <Input id="cliente_id" value={empresaFija.nombre} readOnly className="bg-secondary" />
+            </Campo>
+          ) : (
           <Campo id="cliente_id" etiqueta="Empresa" requerido error={errores.cliente_id?.message}>
             <Select
               {...register("cliente_id", {
@@ -178,6 +193,12 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
               ))}
             </Select>
           </Campo>
+          )}
+          {equipoFijo ? (
+            <Campo id="equipo_id" etiqueta="Equipo">
+              <Input id="equipo_id" value={nombreEquipo(equipoFijo)} readOnly className="bg-secondary" />
+            </Campo>
+          ) : (
           <Campo id="equipo_id" etiqueta="Equipo" error={errores.equipo_id?.message}>
             <Select {...register("equipo_id", { onChange: () => setValue("actualizar_equipo", false, opts) })} {...propsCampo("equipo_id", errores.equipo_id?.message)} disabled={!clienteId}>
               <option value="">Sin equipo</option>
@@ -189,16 +210,19 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
               <option value={EQUIPO_NUEVO}>+ Nuevo equipo</option>
             </Select>
           </Campo>
-          <Campo id="trabajo_id" etiqueta="Trabajo vinculado" ayuda="Opcional">
-            <Select {...register("trabajo_id")} {...propsCampo("trabajo_id", undefined, "si")} disabled={!clienteId}>
-              <option value="">Sin trabajo</option>
-              {trabajosEmpresa.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.titulo}
-                </option>
-              ))}
-            </Select>
-          </Campo>
+          )}
+          {conTrabajo ? (
+            <Campo id="trabajo_id" etiqueta="Trabajo (proyecto)" ayuda="Opcional: la ficha queda enlazada a ese trabajo.">
+              <Select {...register("trabajo_id")} {...propsCampo("trabajo_id", undefined, "si")} disabled={!clienteId}>
+                <option value="">Sin trabajo</option>
+                {trabajosEmpresa.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.titulo}
+                  </option>
+                ))}
+              </Select>
+            </Campo>
+          ) : null}
 
           {mostrarEquipo ? (
             <div className="rounded-md border border-dashed border-border p-3 sm:col-span-2 lg:col-span-3">
@@ -224,12 +248,14 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
           ) : null}
 
           <Campo id="tipo_servicio" etiqueta="Tipo de servicio" requerido error={errores.tipo_servicio?.message}>
-            <Input {...register("tipo_servicio")} {...propsCampo("tipo_servicio", errores.tipo_servicio?.message)} list="tipos-servicio" />
-            <datalist id="tipos-servicio">
-              {plantillas.map((p) => (
-                <option key={p.id} value={p.tipo_servicio} />
+            <Select {...register("tipo_servicio")} {...propsCampo("tipo_servicio", errores.tipo_servicio?.message)}>
+              {tipoInicial ? null : <option value="">Elige el tipo de servicio</option>}
+              {TIPOS_SERVICIO_FICHA.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
-            </datalist>
+            </Select>
           </Campo>
           <Campo id="modalidad" etiqueta="Modalidad">
             <Select {...register("modalidad")} {...propsCampo("modalidad")}>
@@ -252,6 +278,13 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
               className="font-mono"
             />
           </Campo>
+          {!conTrabajo && trabajosEmpresa.length > 0 ? (
+            <div className="sm:col-span-2 lg:col-span-3">
+              <Button type="button" variant="link" size="sm" className="h-auto px-0" onClick={() => setConTrabajo(true)}>
+                <Link2 /> ¿Es parte de un trabajo (proyecto) de la empresa? Vincúlalo
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 

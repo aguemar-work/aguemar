@@ -102,7 +102,7 @@ test("lo que crea queda a nombre del propietario y con su numeración", async ()
   const { c, uid } = await sesion(COLABORADOR);
   const ficha = await c.database
     .from("fichas")
-    .insert([{ owner_id: uid, cliente_id: sgc, fecha: "2026-10-16", tipo_servicio: "Soporte remoto", modalidad: "remota", titular: "e2e ficha del colaborador" }])
+    .insert([{ owner_id: uid, cliente_id: sgc, fecha: "2026-10-16", tipo_servicio: "Mantenimiento correctivo", modalidad: "remota", titular: "e2e ficha del colaborador" }])
     .select("id, numero, owner_id")
     .single();
   expect(ficha.error).toBeNull();

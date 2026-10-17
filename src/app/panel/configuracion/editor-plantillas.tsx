@@ -7,10 +7,12 @@ import { toast } from "sonner";
 import { ArrowDown, ArrowUp, ListChecks, Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/panel/empty-state";
 import { ConfirmarEliminar } from "@/components/panel/confirmar-eliminar";
 import { Campo, propsCampo } from "@/components/formulario/campo";
+import { TIPOS_SERVICIO_FICHA } from "@/lib/documentos";
 import { plantillaSchema, type PlantillaDatos, type PlantillaInput } from "@/lib/validators/plantilla";
 import type { PlantillaChecklistRow } from "@/types/database";
 import { eliminarPlantilla, guardarPlantilla } from "./acciones";
@@ -37,7 +39,7 @@ export function EditorPlantillas({ plantillas }: Props) {
       {creando ? <TarjetaPlantilla onListo={() => setCreando(false)} abiertaInicial /> : null}
 
       {plantillas.length === 0 && !creando ? (
-        <EmptyState icono={ListChecks} titulo="Aún no hay plantillas." descripcion="Crea una por tipo de servicio, por ejemplo Mantenimiento preventivo." className="py-8" />
+        <EmptyState icono={ListChecks} titulo="Aún no hay plantillas." descripcion="Crea una para Mantenimiento preventivo y otra para Mantenimiento correctivo." className="py-8" />
       ) : (
         plantillas.map((p) => <TarjetaPlantilla key={p.id} plantilla={p} />)
       )}
@@ -53,7 +55,7 @@ function TarjetaPlantilla({ plantilla, onListo, abiertaInicial }: { plantilla?: 
   const form = useForm<PlantillaInput, unknown, PlantillaDatos>({
     resolver: zodResolver(plantillaSchema),
     defaultValues: {
-      tipo_servicio: plantilla?.tipo_servicio ?? "",
+      tipo_servicio: ((TIPOS_SERVICIO_FICHA as readonly string[]).includes(plantilla?.tipo_servicio ?? "") ? plantilla!.tipo_servicio : "") as PlantillaInput["tipo_servicio"],
       items: plantilla?.items?.length ? plantilla.items.map((i) => ({ titulo: i.titulo, detalle: i.detalle ?? "" })) : [{ titulo: "", detalle: "" }],
     },
   });
@@ -110,7 +112,14 @@ function TarjetaPlantilla({ plantilla, onListo, abiertaInicial }: { plantilla?: 
         <CardContent>
           <form onSubmit={onSubmit} noValidate className="space-y-4">
             <Campo id={`p-tipo-${plantilla?.id ?? "nueva"}`} etiqueta="Tipo de servicio" requerido error={errores.tipo_servicio?.message}>
-              <Input {...register("tipo_servicio")} {...propsCampo(`p-tipo-${plantilla?.id ?? "nueva"}`, errores.tipo_servicio?.message)} placeholder="Mantenimiento preventivo" />
+              <Select {...register("tipo_servicio")} {...propsCampo(`p-tipo-${plantilla?.id ?? "nueva"}`, errores.tipo_servicio?.message)}>
+                <option value="">Elige el tipo de servicio</option>
+                {TIPOS_SERVICIO_FICHA.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </Select>
             </Campo>
 
             <ol className="space-y-2">

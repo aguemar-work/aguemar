@@ -79,7 +79,11 @@ export const MODALIDADES: { valor: ModalidadServicio; etiqueta: string }[] = [
   { valor: "presencial", etiqueta: "Presencial" },
 ];
 
-export const etiquetaDe = <T extends string>(lista: { valor: T; etiqueta: string }[], valor: T) => lista.find((x) => x.valor === valor)?.etiqueta ?? valor;
+/** Tipos de servicio de una ficha técnica; cada uno puede tener su plantilla de checklist en Mi marca. */
+export const TIPOS_SERVICIO_FICHA = ["Mantenimiento preventivo", "Mantenimiento correctivo"] as const;
+export type TipoServicioFicha = (typeof TIPOS_SERVICIO_FICHA)[number];
+
+export const etiquetaDe =<T extends string>(lista: { valor: T; etiqueta: string }[], valor: T) => lista.find((x) => x.valor === valor)?.etiqueta ?? valor;
 
 /** Próximo mantenimiento sugerido: 6 meses después del servicio. */
 export function proximoMantenimientoSugerido(fecha: string): string {

@@ -17,6 +17,22 @@ function responder(pdf: Uint8Array, archivo: string, request: Request): Response
   });
 }
 
+/**
+ * Genera el PDF y, si falla, deja el error en los registros (con el documento) y responde
+ * con un mensaje claro en lugar de la página genérica de error del navegador.
+ */
+async function generar(documento: string, crear: () => Promise<Uint8Array>, archivo: string, request: Request): Promise<Response> {
+  try {
+    return responder(await crear(), archivo, request);
+  } catch (e) {
+    console.error(`[pdf] No se pudo generar ${documento}:`, e);
+    return new Response(`No se pudo generar el PDF de ${documento}. Ya quedó registrado el error; inténtalo en unos minutos o escríbenos.`, {
+      status: 500,
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" },
+    });
+  }
+}
+
 /** Origen público para los enlaces del portal: el dominio configurado o el de la petición. */
 export function origenPublico(request: Request): string {
   return process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
@@ -24,23 +40,23 @@ export function origenPublico(request: Request): string {
 
 /** Respuesta HTTP con el PDF de una cotización: en línea para la vista previa, o como descarga con ?descargar=1. */
 export async function responderPdfCotizacion(datos: DatosCotizacionPdf, request: Request): Promise<Response> {
-  return responder(await pdfCotizacion(datos), nombreArchivo(datos.numero, datos.cliente.nombre), request);
+  return generar(datos.numero ?? "la cotización (borrador)", () => pdfCotizacion(datos), nombreArchivo(datos.numero, datos.cliente.nombre), request);
 }
 
 /** PDF de una ficha; si está publicada y tiene enlace, lleva el QR de verificación. */
 export async function responderPdfFicha(f: FichaJson, request: Request): Promise<Response> {
   const url = f.publicada && f.token ? urlPortal(origenPublico(request), f.token) : null;
-  return responder(await pdfFicha(f, url), nombreArchivo(f.numero ?? "FT-borrador", f.cliente.nombre), request);
+  return generar(f.numero ?? "la ficha (borrador)", () => pdfFicha(f, url), nombreArchivo(f.numero ?? "FT-borrador", f.cliente.nombre), request);
 }
 
 export async function responderPdfBrief(b: BriefJson, request: Request): Promise<Response> {
-  return responder(await pdfBrief(b), nombreArchivo(b.numero ?? "BR-borrador", b.cliente.nombre), request);
+  return generar(b.numero ?? "el brief (borrador)", () => pdfBrief(b), nombreArchivo(b.numero ?? "BR-borrador", b.cliente.nombre), request);
 }
 
 export async function responderPdfActa(a: ActaJson, request: Request): Promise<Response> {
-  return responder(await pdfActa(a), nombreArchivo(a.numero ?? "AE-borrador", a.cliente.nombre), request);
+  return generar(a.numero ?? "el acta (borrador)", () => pdfActa(a), nombreArchivo(a.numero ?? "AE-borrador", a.cliente.nombre), request);
 }
 
 export async function responderPdfInforme(i: InformeJson, request: Request): Promise<Response> {
-  return responder(await pdfInforme(i), nombreArchivo(i.numero ?? "INF-borrador", i.cliente.nombre), request);
+  return generar(i.numero ?? "el informe (borrador)", () => pdfInforme(i), nombreArchivo(i.numero ?? "INF-borrador", i.cliente.nombre), request);
 }

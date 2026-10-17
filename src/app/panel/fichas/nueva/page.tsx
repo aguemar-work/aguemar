@@ -17,7 +17,11 @@ export default async function NuevaFichaPage({ searchParams }: { searchParams: P
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader codigo="06" titulo="Nueva ficha técnica" descripcion="Elige la empresa e importa el diagnóstico del equipo. Queda en borrador hasta que la publiques." />
+      <PageHeader codigo="06" titulo="Nueva ficha técnica" descripcion={
+          inicial.equipo
+            ? "Importa el diagnóstico del equipo y completa el servicio. Queda en borrador hasta que la publiques."
+            : "Elige la empresa e importa el diagnóstico del equipo. Queda en borrador hasta que la publiques."
+        } />
       {clientes.length === 0 ? (
         <EmptyState
           icono={Users}
