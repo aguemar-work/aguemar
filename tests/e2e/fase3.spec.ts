@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { ESPERA_LOGIN, abrir, listo } from "./esperas";
 
 /**
  * Flujo de Trabajos con sesión real (E2E_EMAIL / E2E_PASSWORD en .env.local).
@@ -12,16 +13,17 @@ test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
 
 async function iniciarSesion(page: Page) {
-  await page.goto("/login");
+  await abrir(page, "/login");
   await page.getByLabel("Correo").fill(EMAIL!);
   await page.getByLabel("Contraseña").fill(PASSWORD!);
   await page.getByRole("button", { name: /^entrar$/i }).click();
-  await expect(page).toHaveURL(/\/panel/);
+  await expect(page).toHaveURL(/\/panel/, { timeout: ESPERA_LOGIN });
+  await listo(page);
 }
 
 test("crea un trabajo de desarrollo sin cliente", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto("/panel/trabajos/nuevo");
+  await abrir(page, "/panel/trabajos/nuevo");
   await page.getByLabel(/^área/i).selectOption("desarrollo");
   await page.getByLabel(/^título/i).fill(`Trabajo ${SUFIJO}`);
   await page.getByLabel(/fecha comprometida/i).fill("2030-01-15");
@@ -34,7 +36,7 @@ test("crea un trabajo de desarrollo sin cliente", async ({ page }) => {
 
 test("agrega etapa y tarea, y la marca como hecha", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto("/panel/trabajos");
+  await abrir(page, "/panel/trabajos");
   await page.getByRole("link", { name: `Trabajo ${SUFIJO}` }).click();
   await page.getByLabel("Nueva etapa").fill("Diagnóstico");
   await page.getByRole("button", { name: /^etapa$/i }).click();
@@ -48,18 +50,21 @@ test("agrega etapa y tarea, y la marca como hecha", async ({ page }) => {
 
 test("cambia el estado desde el detalle y lo ve en el tablero", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto("/panel/trabajos");
+  await abrir(page, "/panel/trabajos");
   await page.getByRole("link", { name: `Trabajo ${SUFIJO}` }).click();
-  await page.getByLabel("Estado").selectOption("en_curso");
+  await expect(page).toHaveURL(/\/panel\/trabajos\/[0-9a-f-]{36}/);
+  await listo(page);
+  // El selector del detalle (la lista de abajo también tiene un filtro "Estado").
+  await page.locator("#estado-trabajo").selectOption("en_curso");
   await expect(page.getByText("Estado actualizado.")).toBeVisible();
-  await page.goto("/panel/trabajos?vista=tablero");
+  await abrir(page, "/panel/trabajos?vista=tablero");
   const columna = page.getByRole("region", { name: /en curso/i });
   await expect(columna.getByRole("link", { name: `Trabajo ${SUFIJO}` })).toBeVisible();
 });
 
 test("limpieza: elimina el trabajo de prueba", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto("/panel/trabajos");
+  await abrir(page, "/panel/trabajos");
   await page.getByRole("link", { name: `Trabajo ${SUFIJO}` }).click();
   await page.getByRole("button", { name: /^eliminar$/i }).click();
   await page.getByRole("button", { name: /sí, eliminar/i }).click();

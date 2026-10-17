@@ -19,6 +19,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // En local todos los workers comparten tu `npm run dev`, que compila cada ruta la primera vez:
+  // con 8 a la vez se satura y los tests fallan por tiempo, no por errores.
+  workers: process.env.CI ? undefined : 2,
+  expect: { timeout: process.env.CI ? 5_000 : 15_000 },
+  timeout: process.env.CI ? 30_000 : 90_000,
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL,

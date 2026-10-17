@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { ESPERA_LOGIN, abrir, listo } from "./esperas";
 
 /**
  * Fase 6: cotización → envío → aceptación (crea el trabajo) → cobro → saldo.
@@ -12,18 +13,19 @@ test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
 
 async function iniciarSesion(page: Page) {
-  await page.goto("/login");
+  await abrir(page, "/login");
   await page.getByLabel("Correo").fill(EMAIL!);
   await page.getByLabel("Contraseña").fill(PASSWORD!);
   await page.getByRole("button", { name: /^entrar$/i }).click();
-  await expect(page).toHaveURL(/\/panel/);
+  await expect(page).toHaveURL(/\/panel/, { timeout: ESPERA_LOGIN });
+  await listo(page);
 }
 
 let urlCotizacion = "";
 
 test("arma una cotización con una línea libre y ve el total con IGV", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto("/panel/cotizaciones/nueva");
+  await abrir(page, "/panel/cotizaciones/nueva");
   await page.getByLabel("Empresa").selectOption({ index: 1 });
   await page.getByLabel(/^asunto/i).fill(`Cotización ${SUFIJO}`);
   await page.getByRole("button", { name: /línea libre/i }).click();
@@ -48,7 +50,7 @@ test("el PDF se genera", async ({ page, request }) => {
 
 test("envía, acepta (crea el trabajo) y registra un cobro parcial", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto(urlCotizacion);
+  await abrir(page, urlCotizacion);
   await page.getByRole("button", { name: /^enviar$/i }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
@@ -64,11 +66,14 @@ test("envía, acepta (crea el trabajo) y registra un cobro parcial", async ({ pa
 
 test("limpieza: elimina el cobro y el trabajo de prueba (la cotización aceptada queda como registro)", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto(urlCotizacion);
+  await abrir(page, urlCotizacion);
   // Una cotización aceptada no se elimina desde la app: queda con el sufijo E2E para identificarla.
   page.on("dialog", (d) => d.accept());
   await page.getByRole("button", { name: /eliminar cobro/i }).click({ force: true });
+  // Esperar a que el cobro desaparezca: navegar con la acción en curso la deja a medias (pasaba en móvil).
+  await expect(page.getByRole("button", { name: /eliminar cobro/i })).toHaveCount(0);
   await page.getByText("Trabajo creado").click();
+  await expect(page).toHaveURL(/\/panel\/trabajos\/[0-9a-f-]{36}/);
   await page.getByRole("button", { name: /^eliminar$/i }).first().click();
   await page.getByRole("button", { name: /sí, eliminar/i }).click();
   await expect(page).toHaveURL(/\/panel\/trabajos$/);

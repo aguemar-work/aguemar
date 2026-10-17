@@ -1,4 +1,5 @@
 import path from "node:path";
+import { ESPERA_LOGIN, abrir, listo } from "./esperas";
 import { test, expect, type Page } from "@playwright/test";
 
 /**
@@ -14,18 +15,19 @@ test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
 
 async function iniciarSesion(page: Page) {
-  await page.goto("/login");
+  await abrir(page, "/login");
   await page.getByLabel("Correo").fill(EMAIL!);
   await page.getByLabel("Contraseña").fill(PASSWORD!);
   await page.getByRole("button", { name: /^entrar$/i }).click();
-  await expect(page).toHaveURL(/\/panel/);
+  await expect(page).toHaveURL(/\/panel/, { timeout: ESPERA_LOGIN });
+  await listo(page);
 }
 
 let urlFicha = "";
 
 test("crea una ficha importando el diagnóstico del script", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto("/panel/fichas/nueva");
+  await abrir(page, "/panel/fichas/nueva");
   await page.getByLabel("Empresa").selectOption({ index: 1 });
   await page.getByRole("button", { name: /importar diagnóstico/i }).click();
   await page.locator('input[type="file"]').setInputFiles(DIAGNOSTICO);
@@ -36,7 +38,7 @@ test("crea una ficha importando el diagnóstico del script", async ({ page }) =>
   await expect(page).toHaveURL(/\/panel\/fichas\/[0-9a-f-]{36}$/);
   urlFicha = page.url();
   await expect(page.getByText(`Ficha ${SUFIJO}`).first()).toBeVisible();
-  await expect(page.getByText("Diagnóstico inicial")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Diagnóstico inicial" }).first()).toBeVisible();
 });
 
 test("el PDF de la ficha se genera", async ({ page }) => {
@@ -48,7 +50,7 @@ test("el PDF de la ficha se genera", async ({ page }) => {
 
 test("al publicarla, el enlace público la muestra sin sesión", async ({ page, browser }) => {
   await iniciarSesion(page);
-  await page.goto(urlFicha);
+  await abrir(page, urlFicha);
   await page.getByRole("button", { name: /^publicar$/i }).click();
   const mensaje = page.getByRole("dialog");
   await expect(mensaje).toBeVisible();
@@ -66,8 +68,9 @@ test("al publicarla, el enlace público la muestra sin sesión", async ({ page, 
 
 test("limpieza: elimina la ficha de prueba", async ({ page }) => {
   await iniciarSesion(page);
-  await page.goto(urlFicha);
+  await abrir(page, urlFicha);
   await page.getByRole("button", { name: /eliminar ficha/i }).click();
   await page.getByRole("button", { name: /sí, eliminar/i }).click();
-  await expect(page).toHaveURL(/\/panel\/fichas$/);
+  // Las fichas viven en el listado general de documentos.
+  await expect(page).toHaveURL(/\/panel\/(fichas|documentos)/);
 });

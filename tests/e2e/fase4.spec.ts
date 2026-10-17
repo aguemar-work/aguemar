@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { ESPERA_LOGIN, abrir, listo } from "./esperas";
 
 /**
  * Fase 4 con sesión del propietario (E2E_EMAIL / E2E_PASSWORD en .env.local).
@@ -14,16 +15,18 @@ test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
 
 async function iniciarSesion(page: Page, correo: string, contrasena: string) {
-  await page.goto("/login");
+  await abrir(page, "/login");
   await page.getByLabel("Correo").fill(correo);
   await page.getByLabel("Contraseña").fill(contrasena);
   await page.getByRole("button", { name: /^entrar$/i }).click();
+  await expect(page).not.toHaveURL(/\/login/, { timeout: ESPERA_LOGIN });
+  await listo(page);
 }
 
 test("la ficha de una empresa muestra acceso y módulos", async ({ page }) => {
   await iniciarSesion(page, EMAIL!, PASSWORD!);
-  await expect(page).toHaveURL(/\/panel/);
-  await page.goto("/panel/clientes");
+  await expect(page).toHaveURL(/\/panel/, { timeout: ESPERA_LOGIN });
+  await abrir(page, "/panel/clientes");
   await page.getByRole("link", { name: "SGC" }).first().click();
   await expect(page.getByRole("heading", { name: "Acceso al workspace" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Módulos del workspace" })).toBeVisible();
@@ -37,15 +40,15 @@ test("la ficha de una empresa muestra acceso y módulos", async ({ page }) => {
 
 test("la bandeja carga y el detalle de un trabajo tiene comentarios", async ({ page }) => {
   await iniciarSesion(page, EMAIL!, PASSWORD!);
-  await page.goto("/panel/bandeja");
+  await abrir(page, "/panel/bandeja");
   await expect(page.getByRole("heading", { name: "Bandeja" })).toBeVisible();
 });
 
 test("el usuario de empresa entra a su workspace y no al panel", async ({ page }) => {
   test.skip(!EMPRESA_EMAIL || !EMPRESA_PASSWORD, "Define E2E_EMPRESA_EMAIL y E2E_EMPRESA_PASSWORD para este flujo.");
   await iniciarSesion(page, EMPRESA_EMAIL!, EMPRESA_PASSWORD!);
-  await expect(page).toHaveURL(/\/w\/[a-z0-9-]+$/);
+  await expect(page).toHaveURL(/\/w\/[a-z0-9-]+$/, { timeout: ESPERA_LOGIN });
   await expect(page.getByRole("heading", { name: /^hola,/i })).toBeVisible();
-  await page.goto("/panel");
+  await abrir(page, "/panel");
   await expect(page).toHaveURL(/\/w\/[a-z0-9-]+/);
 });

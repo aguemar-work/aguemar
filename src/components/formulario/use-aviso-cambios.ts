@@ -12,6 +12,8 @@ export function useAvisoCambios(hayCambios: boolean) {
 
   useEffect(() => {
     panel?.marcarCambios(hayCambios);
+    // Al desmontarse (p. ej. tras guardar y pasar al detalle en el mismo panel), ya no hay cambios pendientes.
+    return () => panel?.marcarCambios(false);
   }, [panel, hayCambios]);
 
   useEffect(() => {
