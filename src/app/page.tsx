@@ -1,10 +1,8 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import QRCode from "qrcode";
-import { ArrowRight, Fingerprint, Mail, MessageCircle } from "lucide-react";
+import { ArrowRight, Mail, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Brackets } from "@/components/brand/brackets";
 import { Button } from "@/components/ui/button";
@@ -13,20 +11,10 @@ import { EscenaFondo } from "@/components/landing/escena/escena-fondo";
 import { HoraPeru, Magnetico } from "@/components/landing/detalles";
 import { Palabras, TituloSeccion } from "@/components/landing/titulo-seccion";
 import { ServiciosAreas } from "@/components/landing/servicios-areas";
-import { EvidenciaFicha } from "@/components/landing/evidencia-ficha";
 import { EspacioDemo } from "@/components/landing/espacio-demo";
 import { Proyectos } from "@/components/landing/proyectos";
 import { datosLanding } from "@/lib/datos/landing";
-import {
-  AREAS_LANDING,
-  CIFRAS_LANDING,
-  FOTO_LANDING,
-  enlaceWhatsApp,
-  iniciales,
-  numeroWhatsApp,
-  serviciosPorArea,
-  telefonoLegible,
-} from "@/lib/landing";
+import { AREAS_LANDING, enlaceWhatsApp, numeroWhatsApp, serviciosPorArea, telefonoLegible } from "@/lib/landing";
 import { envPublico } from "@/lib/env";
 
 // El formulario (React Hook Form + Zod) se carga aparte: la landing es casi estática y así pesa menos al entrar.
@@ -78,15 +66,8 @@ const PASOS = [
   },
 ];
 
-const PRINCIPIOS = [
-  { titulo: "Te hablo claro.", texto: "Lo técnico te lo explico en simple. Y si algo no te conviene, te lo digo antes de cotizarlo." },
-  { titulo: "Lo reviso dos veces.", texto: "Nada sale sin probarse: las webs, en celular y en computadora; los equipos, con su diagnóstico antes y después." },
-  { titulo: "Dejo evidencia.", texto: "Cotización por escrito, avance a la vista y un documento al cerrar. Lo que hago, lo puedes comprobar." },
-];
-
 const NAV = [
   { href: "#servicios", texto: "Servicios" },
-  { href: "#evidencia", texto: "Evidencia" },
   { href: "#proyectos", texto: "Proyectos" },
   { href: "#como-trabajo", texto: "Cómo trabajo" },
   { href: "#tu-espacio", texto: "Tu espacio" },
@@ -102,12 +83,6 @@ export default async function Inicio() {
   const whatsapp = enlaceWhatsApp(telefono, "Hola, vengo de la web de aguemar y quiero hacer una consulta.");
   const nombre = "aguemar";
   const anio = new Date().getFullYear();
-  const qr = await QRCode.toDataURL(`${envPublico.NEXT_PUBLIC_SITE_URL}/#evidencia`, {
-    margin: 0,
-    width: 160,
-    color: { dark: "#0A0F1A", light: "#FFFFFF" },
-  }).catch(() => null);
-  const desarrollo = process.env.NODE_ENV !== "production";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -120,7 +95,6 @@ export default async function Inicio() {
     ...(marca?.responsable ? { founder: { "@type": "Person", name: marca.responsable } } : {}),
     ...(numeroWhatsApp(telefono) ? { telephone: `+${numeroWhatsApp(telefono)}` } : {}),
     ...(marca?.correo ? { email: marca.correo } : {}),
-    ...(marca?.ruc ? { taxID: marca.ruc } : {}),
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Servicios",
@@ -224,30 +198,11 @@ export default async function Inicio() {
           {/* ---------- 01 Servicios ---------- */}
           <ServiciosAreas porArea={porArea} />
 
-          {/* ---------- 02 Evidencia ---------- */}
-          <section id="evidencia" aria-labelledby="t-evidencia" data-forma="nube" data-intensidad="0.45" className="scroll-mt-20">
-            <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
-              <TituloSeccion
-                n="02"
-                id="t-evidencia"
-                titulo="Así se ve un trabajo terminado"
-                texto="Un mantenimiento real, con los datos de la empresa ocultos. Corro mi script de diagnóstico, reviso lo que encuentra, resuelvo lo que falla y te entrego una ficha que puedes verificar."
-              >
-                <a href="/diagnostico-agueMar.ps1" download className="revelar mt-5 inline-flex font-mono text-xs text-white/45 transition-colors hover:text-mint">
-                  ↓ descarga el script · solo lee, no cambia nada
-                </a>
-              </TituloSeccion>
-              <div className="mt-14">
-                <EvidenciaFicha qr={qr} />
-              </div>
-            </div>
-          </section>
-
-          {/* ---------- 03 Proyectos ---------- */}
+          {/* ---------- 02 Proyectos ---------- */}
           <section id="proyectos" aria-labelledby="t-proyectos" data-forma="red" data-lado="0.45" data-escala="0.7" data-intensidad="0.3" className="scroll-mt-20">
             <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
               <TituloSeccion
-                n="03"
+                n="02"
                 id="t-proyectos"
                 titulo="Lo que he construido"
                 texto="Proyectos propios y para clientes. No te muestro nombres, porque cada empresa merece discreción, pero sí qué problema había y cómo lo resolví."
@@ -258,11 +213,11 @@ export default async function Inicio() {
             </div>
           </section>
 
-          {/* ---------- 04 Cómo trabajo ---------- */}
+          {/* ---------- 03 Cómo trabajo ---------- */}
           <section id="como-trabajo" aria-labelledby="t-como" data-forma="linea" data-lado="0.5" data-escala="0.85" data-intensidad="0.9" className="scroll-mt-20">
             <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
               <div className="max-w-xl">
-                <TituloSeccion n="04" id="t-como" titulo="Cómo trabajo" texto="Sin sorpresas: sabes qué se hará, cuánto cuesta y en qué va, en cada momento." />
+                <TituloSeccion n="03" id="t-como" titulo="Cómo trabajo" texto="Sin sorpresas: sabes qué se hará, cuánto cuesta y en qué va, en cada momento." />
                 <ol className="relative mt-14">
                   <span aria-hidden className="absolute bottom-6 left-5 top-5 w-px -translate-x-1/2 bg-white/10">
                     <span className="trazo-scroll block h-full w-full bg-mint" />
@@ -284,11 +239,11 @@ export default async function Inicio() {
             </div>
           </section>
 
-          {/* ---------- 05 Tu espacio ---------- */}
+          {/* ---------- 04 Tu espacio ---------- */}
           <section id="tu-espacio" aria-labelledby="t-espacio" data-forma="plano" data-intensidad="0.5" className="scroll-mt-20">
             <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
               <TituloSeccion
-                n="05"
+                n="04"
                 id="t-espacio"
                 titulo="Tu empresa, con su propio espacio"
                 texto="Cada empresa que atiendo entra con su usuario y ve solo lo suyo. Nada de preguntar “¿cómo vamos?” por chat: está ahí, al día. Pruébalo."
@@ -309,65 +264,11 @@ export default async function Inicio() {
             </div>
           </section>
 
-          {/* ---------- 06 Quién está detrás ---------- */}
-          <section id="quien" aria-labelledby="t-quien" data-forma="huella" data-lado="0.5" data-escala="0.95" className="scroll-mt-20">
-            <div className="mx-auto grid max-w-6xl gap-12 px-4 py-24 sm:px-6 md:py-36 lg:grid-cols-2">
-              <div>
-                <TituloSeccion n="06" id="t-quien" titulo="Quién está detrás" texto="Detrás de aguemar hay una persona, no una plantilla." />
-                <div className="revelar mt-10 flex items-center gap-4">
-                  {FOTO_LANDING ? (
-                    <Image src={FOTO_LANDING} alt={marca?.responsable ?? "Responsable de aguemar"} width={64} height={64} className="size-16 rounded-full object-cover" />
-                  ) : (
-                    <span aria-hidden className="flex size-16 items-center justify-center rounded-full border border-mint/40 bg-mint/10 font-mono text-lg font-semibold text-mint">
-                      {iniciales(marca?.responsable)}
-                    </span>
-                  )}
-                  <div>
-                    <p className="font-semibold">{marca?.responsable ?? "aguemar"}</p>
-                    {marca?.cargo ? <p className="text-sm text-white/55">{marca.cargo}</p> : null}
-                    {desarrollo && !FOTO_LANDING ? <p className="font-mono text-[11px] text-[#f2c35b]">[PENDIENTE: foto en FOTO_LANDING]</p> : null}
-                  </div>
-                </div>
-                <p className="revelar mt-6 max-w-lg text-white/70">
-                  aguemar es mi marca y mi forma de trabajar: diseño, programo y reviso equipos con la misma regla. Si lleva mi nombre, tiene que estar bien hecho.
-                </p>
-                <ol className="mt-8 space-y-6">
-                  {PRINCIPIOS.map((p, i) => (
-                    <li key={p.titulo} className="revelar grid grid-cols-[2.5rem_1fr] gap-2">
-                      <span className="pt-1 font-mono text-xs text-mint">{String(i + 1).padStart(2, "0")}</span>
-                      <p className="text-white/65">
-                        <span className="font-semibold text-white">{p.titulo}</span> {p.texto}
-                      </p>
-                    </li>
-                  ))}
-                </ol>
-                {CIFRAS_LANDING.length ? (
-                  <dl className="revelar mt-10 grid grid-cols-2 gap-6 border-t border-white/10 pt-8 sm:grid-cols-3">
-                    {CIFRAS_LANDING.map((c) => (
-                      <div key={c.texto} className="flex flex-col">
-                        <dt className="order-2 text-sm text-white/55">{c.texto}</dt>
-                        <dd className="font-mono text-3xl font-semibold text-mint">{c.valor}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                ) : desarrollo ? (
-                  <p className="mt-10 rounded-lg border border-dashed border-[#f2c35b]/40 p-3 font-mono text-[11px] text-[#f2c35b]">
-                    [PENDIENTE: cifras reales en CIFRAS_LANDING: años, empresas atendidas, equipos revisados…] Solo se ve en desarrollo.
-                  </p>
-                ) : null}
-              </div>
-              {/* Espacio para la huella 3D; sin escena, un ícono hace de respaldo. */}
-              <div aria-hidden className="hidden items-center justify-center lg:flex">
-                <Fingerprint className="solo-sin-escena size-64 text-mint/15" strokeWidth={0.75} />
-              </div>
-            </div>
-          </section>
-
-          {/* ---------- 07 Contacto ---------- */}
+          {/* ---------- 05 Contacto ---------- */}
           <section id="contacto" aria-labelledby="t-contacto" data-forma="corchetes" data-escala="1.25" data-intensidad="0.3" className="scroll-mt-20">
             <div className="mx-auto grid max-w-6xl gap-12 px-4 py-24 sm:px-6 md:py-36 lg:grid-cols-[1fr_1.3fr]">
               <div>
-                <TituloSeccion n="07" id="t-contacto" titulo="Conversemos" texto="Cuéntame qué necesitas. Te respondo yo, no un bot, con los siguientes pasos." />
+                <TituloSeccion n="05" id="t-contacto" titulo="Conversemos" texto="Cuéntame qué necesitas. Te respondo yo, no un bot, con los siguientes pasos." />
                 <ul className="revelar mt-10 space-y-3">
                   {whatsapp ? (
                     <li>
@@ -419,7 +320,6 @@ export default async function Inicio() {
               <Logo variante="claro" alto={24} />
               <span>
                 © {anio} {nombre}
-                {marca?.ruc ? <span className="font-mono"> · RUC {marca.ruc}</span> : null}
               </span>
             </div>
             <nav aria-label="Pie" className="flex flex-wrap gap-4">

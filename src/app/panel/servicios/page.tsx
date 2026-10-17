@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/panel/page-header";
+import { PestanasAjustes } from "@/components/panel/pestanas-ajustes";
 import { listarServicios } from "@/lib/datos/servicios";
 import { ListaServicios } from "./lista-servicios";
 import { soloPropietario } from "@/lib/datos/base";
@@ -12,7 +13,8 @@ export default async function ServiciosPage() {
   const servicios = await listarServicios();
   return (
     <>
-      <PageHeader codigo="03" titulo="Servicios" descripcion="Catálogo que alimenta la landing y las cotizaciones. El orden es el que se muestra." />
+      <PestanasAjustes actual="/panel/servicios" />
+      <PageHeader titulo="Servicios" descripcion="Catálogo que alimenta la landing y las cotizaciones. El orden es el que se muestra." />
       <ListaServicios servicios={servicios} />
     </>
   );

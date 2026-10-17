@@ -3,8 +3,9 @@ import { test, expect } from "@playwright/test";
 /** Fase 10: la landing pública (sin sesión). No envía el formulario para no crear leads de prueba. */
 test("la landing muestra las secciones y el botón Ingresar", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByText(/RUC/)).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  for (const nombre of ["Lo que hago", "Así se ve un trabajo terminado", "Lo que he construido", "Cómo trabajo", "Tu empresa, con su propio espacio", "Quién está detrás", "Conversemos"]) {
+  for (const nombre of ["Lo que hago", "Lo que he construido", "Cómo trabajo", "Tu empresa, con su propio espacio", "Conversemos"]) {
     await expect(page.getByRole("heading", { name: nombre })).toBeVisible();
   }
   await expect(page.getByRole("link", { name: "Ingresar" }).first()).toHaveAttribute("href", "/login");
@@ -35,9 +36,8 @@ test("con «reducir movimiento» no carga la escena 3D y todo se ve completo", a
   await page.waitForTimeout(2500);
   await expect(page.locator("canvas")).toHaveCount(0);
   await expect(page.locator("html")).not.toHaveClass(/escena-3d/);
-  await page.locator("#evidencia").scrollIntoViewIfNeeded();
-  await expect(page.getByText("0 errores de integridad")).toBeVisible();
-  await expect(page.getByRole("article", { name: /FT-2026-001/ })).toBeVisible();
+  await page.locator("#proyectos").scrollIntoViewIfNeeded();
+  await expect(page.getByRole("heading", { name: "Lo que he construido" })).toBeVisible();
   await contexto.close();
 });
 

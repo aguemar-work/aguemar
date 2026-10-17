@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { UsersRound } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
+import { PestanasAjustes } from "@/components/panel/pestanas-ajustes";
 import { EmptyState } from "@/components/panel/empty-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvitacionPendiente } from "@/components/panel/invitacion-pendiente";
@@ -19,8 +20,8 @@ export default async function EquipoPage() {
 
   return (
     <>
+      <PestanasAjustes actual="/panel/equipo" />
       <PageHeader
-        codigo="10"
         titulo="Equipo"
         descripcion="Quienes te apoyan. Cada colaborador ve solo las empresas que le asignes: trabajos, actividades, fichas, informes y documentos. Nunca dinero, leads ni Mi marca."
       />

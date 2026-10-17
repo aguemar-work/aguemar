@@ -87,7 +87,6 @@ export function FormularioMarca({ perfil }: Props) {
             ["#contacto", "Contacto"],
             ["#cotizaciones", "Cotizaciones"],
             ["#pago", "Pago"],
-            ["#plantillas", "Plantillas"],
           ].map(([href, texto]) => (
             <a key={href} href={href} className="rounded-full border border-border px-3 py-1 text-muted-foreground hover:border-mint-ink/40 hover:text-foreground">
               {texto}

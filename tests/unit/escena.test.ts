@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FORMAS, aleatorio, esForma, generarForma, generarFormas } from "@/lib/escena/formas";
 import { cantidadParticulas, estadoRecorrido, puedeAnimar, type Ancla } from "@/lib/escena/recorrido";
-import { iniciales } from "@/lib/landing";
 
 describe("formas de la escena 3D", () => {
   it("cada forma da n puntos finitos y dentro del encuadre", () => {
@@ -77,14 +76,5 @@ describe("recorrido de la escena con el scroll", () => {
   it("usa menos partículas en celulares", () => {
     expect(cantidadParticulas(375)).toBeLessThan(cantidadParticulas(1440, 4));
     expect(cantidadParticulas(1440, 4)).toBeLessThan(cantidadParticulas(1440, 16));
-  });
-});
-
-describe("iniciales", () => {
-  it("toma el primer nombre y el primer apellido", () => {
-    expect(iniciales("Alejandro Fritz Guevara Martínez")).toBe("AG");
-    expect(iniciales("Ana Pérez")).toBe("AP");
-    expect(iniciales("")).toBe("aM");
-    expect(iniciales(null)).toBe("aM");
   });
 });

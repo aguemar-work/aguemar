@@ -79,7 +79,7 @@ export const MODALIDADES: { valor: ModalidadServicio; etiqueta: string }[] = [
   { valor: "presencial", etiqueta: "Presencial" },
 ];
 
-/** Tipos de servicio de una ficha técnica; cada uno puede tener su plantilla de checklist en Mi marca. */
+/** Tipos de servicio de una ficha técnica; cada uno puede tener su plantilla de checklist en Ajustes › Plantillas. */
 export const TIPOS_SERVICIO_FICHA = ["Mantenimiento preventivo", "Mantenimiento correctivo"] as const;
 export type TipoServicioFicha = (typeof TIPOS_SERVICIO_FICHA)[number];
 

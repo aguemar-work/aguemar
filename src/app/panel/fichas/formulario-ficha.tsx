@@ -376,7 +376,7 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
               size="sm"
               onClick={() => {
                 const items = trabajosDePlantilla(plantillas, tipoServicio ?? "");
-                if (!items.length) return void toast.error(`No hay plantilla para "${tipoServicio}". Créala en Mi marca.`);
+                if (!items.length) return void toast.error(`No hay plantilla para "${tipoServicio}". Créala en Ajustes › Plantillas.`);
                 if (trabajosRealizados.fields.length && !window.confirm("¿Reemplazar los trabajos actuales por la plantilla?")) return;
                 setValue("trabajos", items, opts);
               }}

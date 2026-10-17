@@ -26,11 +26,7 @@ export function EditorPlantillas({ plantillas }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold">Plantillas de checklist</h2>
-          <p className="text-sm text-muted-foreground">Los trabajos realizados de cada ficha se precargan según el tipo de servicio. Puedes editarlos en cada ficha.</p>
-        </div>
+      <div className="flex justify-end">
         <Button variant="outline" onClick={() => setCreando(true)} disabled={creando}>
           <Plus /> Nueva plantilla
         </Button>

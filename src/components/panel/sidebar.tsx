@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
-import { navPara, type RolPanel } from "./nav";
+import { itemActivo, navPara, type RolPanel } from "./nav";
 
 interface SidebarProps {
   /** Llamado al navegar (para cerrar el sheet en móvil). */
@@ -23,28 +23,43 @@ export function Sidebar({ onNavegar, className, rol = "propietario" }: SidebarPr
           <Logo variante="claro" alto={28} />
         </Link>
       </div>
-      <ul className="flex-1 space-y-1 overflow-y-auto p-3">
-        {navPara(rol).map(({ href, etiqueta, icono: Icono, tambien }) => {
-          const activo = href === "/panel" ? pathname === href : [href, ...(tambien ?? [])].some((r) => pathname.startsWith(r));
+      <div className="flex-1 space-y-5 overflow-y-auto p-3">
+        {navPara(rol).map((grupo) => {
+          const idTitulo = grupo.titulo ? `nav-${grupo.titulo.toLowerCase()}` : undefined;
           return (
-            <li key={href}>
-              <Link
-                href={href}
-                onClick={onNavegar}
-                aria-current={activo ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  "ring-offset-sidebar hover:bg-white/5 hover:text-white",
-                  activo ? "bg-white/10 text-white" : "text-sidebar-foreground/80",
-                )}
-              >
-                <Icono className={cn("size-4 shrink-0", activo && "text-mint")} aria-hidden />
-                {etiqueta}
-              </Link>
-            </li>
+            <div key={grupo.titulo ?? "inicio"}>
+              {grupo.titulo ? (
+                <p id={idTitulo} className="mb-1 px-3 font-mono text-[11px] uppercase tracking-wider text-sidebar-foreground/50">
+                  {grupo.titulo}
+                </p>
+              ) : null}
+              <ul aria-labelledby={idTitulo} className="space-y-1">
+                {grupo.items.map((item) => {
+                  const { href, etiqueta, icono: Icono } = item;
+                  const activo = itemActivo(item, pathname);
+                  return (
+                    <li key={href}>
+                      <Link
+                        href={href}
+                        onClick={onNavegar}
+                        aria-current={activo ? "page" : undefined}
+                        className={cn(
+                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                          "ring-offset-sidebar hover:bg-white/5 hover:text-white",
+                          activo ? "bg-white/10 text-white" : "text-sidebar-foreground/80",
+                        )}
+                      >
+                        <Icono className={cn("size-4 shrink-0", activo && "text-mint")} aria-hidden />
+                        {etiqueta}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           );
         })}
-      </ul>
+      </div>
       <div className="border-t border-white/10 p-4 font-mono text-[11px] text-sidebar-foreground/60">
         {rol === "colaborador" ? "aguemar · equipo" : "aguemar · soporte técnico"}
       </div>

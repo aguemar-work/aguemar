@@ -71,7 +71,8 @@ Módulos activables por empresa (`clientes.modulos text[]`); la navegación del 
 - **Cotizaciones y cobros**: `COT-AAAA-NNN`; ítems elegidos del catálogo de **servicios** (descripción, unidad y precio se llenan solos y se pueden editar) o líneas libres; IGV configurable en céntimos enteros, PDF con vista previa, estados, aceptación con nombre y DNI. **Al aceptarse (en el panel o en el workspace) crea el trabajo** con empresa, área, título y monto, vinculado a la cotización. Cobros con medio y referencia; saldo por empresa (alimenta "por cobrar" del inicio).
 - **Inicio** (dashboard): solo lo que pide atención, en una sola llamada (`panel_resumen()`): entregas vencidas y de la semana, tareas vencidas, comentarios sin leer, cotizaciones sin respuesta, por cobrar, trabajos sin movimiento, carga por área, mantenimientos.
 - **Bandeja**: comentarios sin leer y solicitudes de todas las empresas; responder en línea; convertir solicitud en trabajo.
-- **Mi marca**: vista previa en vivo de la portada y el cierre de los documentos; nombre comercial, responsable y cargo, RUC, contacto, IGV, moneda, validez, condiciones, datos de pago, plantillas de checklist.
+- **Menú por grupos** (`src/components/panel/nav.ts`): Inicio y Bandeja; Trabajo; Empresas; Ventas; **Ajustes** (Mi marca, Servicios, Plantillas, Equipo), que comparten pestañas (`PestanasAjustes`). Al colaborador no le aparecen los grupos vacíos.
+- **Mi marca**: vista previa en vivo de la portada y el cierre de los documentos; nombre comercial, responsable y cargo, RUC, contacto, IGV, moneda, validez, condiciones, datos de pago. Las plantillas de checklist están en `/panel/plantillas`.
 
 ## Documentos PDF
 

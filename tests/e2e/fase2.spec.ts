@@ -101,3 +101,20 @@ test("limpieza: elimina el equipo y el cliente de prueba", async ({ page }) => {
   await expect(page).toHaveURL(/\/panel\/clientes$/);
   await expect(page.getByRole("link", { name: `Cliente ${SUFIJO}` })).toHaveCount(0);
 });
+
+test("Servicios vive en Ajustes, con pestañas comunes a Mi marca, Plantillas y Equipo", async ({ page }) => {
+  await iniciarSesion(page);
+  if (test.info().project.name === "escritorio") {
+    const ajustes = page.getByRole("navigation", { name: "Secciones del panel" }).getByRole("list", { name: "Ajustes" });
+    await expect(ajustes.getByRole("link")).toHaveText(["Mi marca", "Servicios", "Plantillas", "Equipo"]);
+  }
+  await abrir(page, "/panel/servicios");
+  const pestanas = page.getByRole("navigation", { name: "Ajustes" });
+  await expect(pestanas.getByRole("link", { name: "Servicios" })).toHaveAttribute("aria-current", "page");
+  await pestanas.getByRole("link", { name: "Plantillas" }).click();
+  await expect(page).toHaveURL(/\/panel\/plantillas$/);
+  await expect(page.getByRole("heading", { name: "Plantillas de checklist" })).toBeVisible();
+  await expect(pestanas.getByRole("link", { name: "Plantillas" })).toHaveAttribute("aria-current", "page");
+  await pestanas.getByRole("link", { name: "Mi marca" }).click();
+  await expect(page.getByRole("heading", { name: "Mi marca", level: 1 })).toBeVisible();
+});
