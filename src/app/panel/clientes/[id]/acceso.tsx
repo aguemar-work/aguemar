@@ -108,7 +108,7 @@ function AccesoActivo({ clienteId, correo }: { clienteId: string; correo: string
     iniciar(async () => {
       const r = await enviarRecuperacionEmpresa(clienteId);
       if (!r.ok) return void toast.error(r.error);
-      toast.success(`Código enviado a ${r.data.correo}. Que entre a /login/recuperar para crear su contraseña nueva.`);
+      toast.success(`Código enviado a ${r.data.correo}. Que entre a /login/recuperar, escriba su correo y elija «Ya tengo un código».`);
     });
 
   return (

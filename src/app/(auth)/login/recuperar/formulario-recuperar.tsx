@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import {
   enviarCodigoRecuperacion,
   establecerContrasena,
+  usarCodigoRecibido,
   verificarCodigoRecuperacion,
   type EstadoRecuperacion,
 } from "../../acciones";
@@ -38,6 +39,10 @@ export function FormularioRecuperar() {
   const [estado, accion, pendiente] = useActionState<EstadoRecuperacion, FormData>(
     async (previo, formData) => {
       const paso = String(formData.get("paso") ?? previo.paso);
+      // El botón que envió el formulario ("Ya tengo un código", "Pedir otro código").
+      const ir = String(formData.get("ir") ?? "");
+      if (ir === "tengo") return usarCodigoRecibido(previo, formData);
+      if (ir === "reenviar") return enviarCodigoRecuperacion(previo, formData);
       if (paso === "contrasena") return establecerContrasena(previo, formData);
       if (paso === "codigo") return verificarCodigoRecuperacion(previo, formData);
       return enviarCodigoRecuperacion(previo, formData);
@@ -113,9 +118,15 @@ export function FormularioRecuperar() {
         </Button>
         <p className="text-center text-xs text-muted-foreground">
           ¿No llegó?{" "}
-          <Link href="/login/recuperar" className="underline-offset-4 hover:underline">
+          <button
+            type="submit"
+            name="ir"
+            value="reenviar"
+            disabled={pendiente}
+            className="underline-offset-4 hover:underline disabled:opacity-50"
+          >
             Pedir otro código
-          </Link>
+          </button>
         </p>
       </form>
     );
@@ -142,6 +153,9 @@ export function FormularioRecuperar() {
       <Button type="submit" className="w-full" disabled={pendiente}>
         {pendiente ? <Loader2 className="animate-spin" aria-hidden /> : null}
         {pendiente ? "Enviando…" : "Enviarme el código"}
+      </Button>
+      <Button type="submit" name="ir" value="tengo" variant="outline" className="w-full" disabled={pendiente}>
+        Ya tengo un código
       </Button>
     </form>
   );

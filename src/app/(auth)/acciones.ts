@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { segundosDeEspera } from "@/lib/insforge/errores";
 import { crearAccionesAuth, crearClienteServidor, obtenerRol, rutaInicio } from "@/lib/insforge/server";
 
 const correoSchema = z.string().trim().email("Escribe un correo válido.");
@@ -101,6 +102,16 @@ export async function enviarCodigoRecuperacion(
 
   const { error } = await insforge.auth.sendResetPasswordEmail({ email: correo.data });
   if (error) {
+    // Un código reciente sigue vigente: en vez de un error, se pasa a escribirlo.
+    const espera = segundosDeEspera(error);
+    if (espera !== null) {
+      return {
+        paso: "codigo",
+        correo: correo.data,
+        ok: true,
+        mensaje: `Ya enviamos un código a ${correo.data} hace poco. Revisa tu correo (también spam) y escríbelo aquí; si no llegó, podrás pedir otro en ${espera} segundos.`,
+      };
+    }
     return { paso: "correo", ok: false, mensaje: `No pudimos enviar el código: ${error.message}.` };
   }
 
@@ -110,6 +121,18 @@ export async function enviarCodigoRecuperacion(
     ok: true,
     mensaje: `Si ${correo.data} tiene una cuenta, recibirá un código de 6 dígitos en unos segundos.`,
   };
+}
+
+/** Paso 1 (alternativo): ya tiene un código (por ejemplo, el que le envió el propietario); pasa a escribirlo sin pedir otro. */
+export async function usarCodigoRecibido(
+  _: EstadoRecuperacion,
+  formData: FormData,
+): Promise<EstadoRecuperacion> {
+  const correo = correoSchema.safeParse(formData.get("correo"));
+  if (!correo.success) {
+    return { paso: "correo", ok: false, mensaje: correo.error.issues[0]?.message };
+  }
+  return { paso: "codigo", correo: correo.data, ok: true };
 }
 
 /** Paso 2: canjea el código por un token temporal. */

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { conSesion } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
-import { traducirError } from "@/lib/insforge/errores";
+import { segundosDeEspera, traducirError } from "@/lib/insforge/errores";
 import { clienteSchema, type ClienteInput } from "@/lib/validators/cliente";
 import { invitarEmpresaSchema, modulosSchema, type InvitarEmpresaInput } from "@/lib/validators/empresa";
 import { crearClienteServidor } from "@/lib/insforge/server";
@@ -187,7 +187,13 @@ export async function enviarRecuperacionEmpresa(clienteId: string): Promise<Resu
     const insforge = await crearClienteServidor();
     if (!insforge) return fallo("InsForge no está configurado.");
     const { error } = await insforge.auth.sendResetPasswordEmail({ email: correo });
-    if (error) return fallo(`No se pudo enviar el código: ${error.message}`);
+    if (error) {
+      const espera = segundosDeEspera(error);
+      if (espera !== null) {
+        return fallo(`Ya se envió un código a ${correo} hace poco y sigue vigente. Podrás enviar otro en ${espera} segundos.`);
+      }
+      return fallo(`No se pudo enviar el código: ${error.message}`);
+    }
     return exito({ correo });
   } catch (err) {
     return fallo(traducirError(err).mensaje);

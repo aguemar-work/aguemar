@@ -83,3 +83,14 @@ export function traducirError(error: unknown): ErrorTraducido {
   }
   return { mensaje: e.message ? `No se pudo completar: ${e.message}` : "Ocurrió un error inesperado. Inténtalo de nuevo." };
 }
+
+/**
+ * Segundos que InsForge pide esperar antes de reenviar un código al mismo correo
+ * ("Please wait 41 seconds before requesting another code…"). `null` si no es ese error.
+ */
+export function segundosDeEspera(error: unknown): number | null {
+  const e = (error ?? {}) as ErrorPostgrest;
+  const m = /wait (\d+) seconds?/i.exec(e.message ?? "");
+  if (m) return Number(m[1]);
+  return e.statusCode === 429 ? 60 : null;
+}

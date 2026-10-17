@@ -21,7 +21,7 @@ export default function RecuperarPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Crear o recuperar contraseña</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Te enviamos un código de 6 dígitos al correo. Con él defines tu contraseña nueva.
+            Te enviamos un código de 6 dígitos al correo. Con él defines tu contraseña nueva. Si ya recibiste uno, elige «Ya tengo un código».
           </p>
         </div>
 
