@@ -1,7 +1,6 @@
-import { writeFileSync, mkdirSync } from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { pdfCotizacion, type DatosCotizacionPdf } from "@/lib/pdf/cotizacion-pdf";
+import { guardarPdf, paginasPdf } from "./paginas-pdf";
 
 const ejemplo: DatosCotizacionPdf = {
   numero: "COT-2026-001",
@@ -44,9 +43,8 @@ describe("PDF de cotización", () => {
     const pdf = await pdfCotizacion(ejemplo);
     expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
     expect(pdf.length).toBeGreaterThan(10_000);
-    if (process.env.GUARDAR_PDF) {
-      mkdirSync(path.dirname(process.env.GUARDAR_PDF), { recursive: true });
-      writeFileSync(process.env.GUARDAR_PDF, pdf);
-    }
+    guardarPdf("cotizacion.pdf", pdf);
+    // Sin portada: una cotización corta cabe en una hoja.
+    expect(paginasPdf(pdf)).toBe(1);
   }, 30_000);
 });

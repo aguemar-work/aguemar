@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { pdfInforme } from "@/lib/pdf/informe-pdf";
 import type { InformeJson } from "@/lib/documentos";
+import { guardarPdf } from "./paginas-pdf";
 
 const informe: InformeJson = {
   id: "i1",
@@ -30,7 +31,9 @@ const informe: InformeJson = {
 
 describe("PDF del informe", () => {
   it("genera el informe con y sin indicadores", async () => {
-    expect(Buffer.from((await pdfInforme(informe)).slice(0, 5)).toString()).toBe("%PDF-");
+    const pdf = await pdfInforme(informe);
+    expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
+    guardarPdf("informe.pdf", pdf);
     expect(Buffer.from((await pdfInforme({ ...informe, indicadores: [], resumen: null, numero: null })).slice(0, 5)).toString()).toBe("%PDF-");
   }, 30_000);
 });

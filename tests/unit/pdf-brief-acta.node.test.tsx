@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { pdfActa, pdfBrief } from "@/lib/pdf/brief-acta-pdf";
 import { lineas, type ActaJson, type BriefJson } from "@/lib/documentos";
+import { guardarPdf } from "./paginas-pdf";
 
 const cliente = { nombre: "SGC", tipo_doc: "RUC", num_doc: "20123456789", contacto: "Ana Pérez", direccion: null };
 
@@ -51,9 +52,12 @@ describe("PDF de brief y acta", () => {
   it("genera el brief", async () => {
     const pdf = await pdfBrief(brief);
     expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
+    guardarPdf("brief.pdf", pdf);
   }, 30_000);
   it("genera el acta, aceptada y por aceptar", async () => {
-    expect(Buffer.from((await pdfActa(acta)).slice(0, 5)).toString()).toBe("%PDF-");
+    const pdfDelActa = await pdfActa(acta);
+    expect(Buffer.from(pdfDelActa.slice(0, 5)).toString()).toBe("%PDF-");
+    guardarPdf("acta.pdf", pdfDelActa);
     expect(Buffer.from((await pdfActa({ ...acta, aceptacion: null, observaciones: null })).slice(0, 5)).toString()).toBe("%PDF-");
   }, 30_000);
 });
