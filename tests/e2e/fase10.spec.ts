@@ -11,34 +11,33 @@ test("la landing muestra las secciones y el botón Ingresar", async ({ page }) =
   await expect(page.getByRole("link", { name: "Ingresar" }).first()).toHaveAttribute("href", "/login");
 });
 
-test("las pestañas de servicios y del espacio se recorren con el teclado", async ({ page }) => {
+test("servicios, proyectos y el espacio de ejemplo se muestran en filas", async ({ page }) => {
   await page.goto("/#desarrollo");
-  await expect(page.getByRole("tab", { name: "// desarrollo", exact: true })).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator("#servicios")).toHaveAttribute("data-forma", "llaves");
-  await page.getByRole("tab", { name: "// desarrollo", exact: true }).focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("tab", { name: "// soporte", exact: true })).toBeFocused();
-  await expect(page.locator("#servicios")).toHaveAttribute("data-forma", "chip");
+  for (const area of ["Diseño", "Desarrollo", "Soporte técnico"]) {
+    await expect(page.getByRole("heading", { name: area, exact: true })).toBeVisible();
+  }
+  await expect(page.locator("#desarrollo")).toBeInViewport();
+  // Las únicas pestañas son las del espacio de ejemplo.
+  await expect(page.getByRole("tab")).toHaveCount(3);
 
-  await page.getByRole("tab", { name: /Sistema ITMS/ }).click();
-  await expect(page.getByRole("tabpanel", { name: /Sistema ITMS/ })).toContainText("un solo uso");
-  await page.keyboard.press("ArrowDown");
-  await expect(page.getByRole("tab", { name: /Agenda y tareas/ })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: /Sistema ITMS/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Agenda y tareas/ })).toBeVisible();
+  await expect(page.locator("#proyectos")).toContainText("un solo uso");
 
   await page.getByRole("tab", { name: "Cotizaciones" }).click();
   await expect(page.getByRole("tabpanel", { name: "Cotizaciones" })).toContainText("COT-2026-012");
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByRole("tab", { name: "Proyectos" })).toHaveAttribute("aria-selected", "true");
 });
 
-test("con «reducir movimiento» no carga la escena 3D y todo se ve completo", async ({ browser }) => {
-  const contexto = await browser.newContext({ reducedMotion: "reduce" });
-  const page = await contexto.newPage();
+test("en escritorio el menú marca la sección activa al bajar", async ({ page, isMobile }) => {
+  test.skip(isMobile, "el menú lateral solo existe desde lg");
   await page.goto("/");
-  await page.waitForTimeout(2500);
-  await expect(page.locator("canvas")).toHaveCount(0);
-  await expect(page.locator("html")).not.toHaveClass(/escena-3d/);
+  const menu = page.getByRole("navigation", { name: "Secciones" });
+  await expect(menu).toBeVisible();
   await page.locator("#proyectos").scrollIntoViewIfNeeded();
-  await expect(page.getByRole("heading", { name: "Lo que he construido" })).toBeVisible();
-  await contexto.close();
+  await expect(menu.getByRole("link", { name: "Proyectos" })).toHaveAttribute("aria-current", "location");
+  await expect(menu.getByRole("link", { name: "Servicios" })).not.toHaveAttribute("aria-current", "location");
 });
 
 test("el formulario de contacto valida antes de enviar", async ({ page }) => {

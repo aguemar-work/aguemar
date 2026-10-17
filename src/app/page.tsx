@@ -1,20 +1,20 @@
-import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowRight, Mail, MessageCircle } from "lucide-react";
+import { ArrowRight, LogIn, Mail, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
-import { Brackets } from "@/components/brand/brackets";
 import { Button } from "@/components/ui/button";
 import { SaltarContenido } from "@/components/ui/saltar-contenido";
-import { EscenaFondo } from "@/components/landing/escena/escena-fondo";
-import { HoraPeru, Magnetico } from "@/components/landing/detalles";
-import { Palabras, TituloSeccion } from "@/components/landing/titulo-seccion";
-import { ServiciosAreas } from "@/components/landing/servicios-areas";
-import { EspacioDemo } from "@/components/landing/espacio-demo";
+import { BrilloCursor } from "@/components/landing/brillo-cursor";
+import { MenuSecciones } from "@/components/landing/menu-secciones";
+import { TituloSticky } from "@/components/landing/titulo-sticky";
+import { Fila, ListaFilas } from "@/components/landing/fila";
+import { Servicios } from "@/components/landing/servicios";
 import { Proyectos } from "@/components/landing/proyectos";
+import { EspacioDemo } from "@/components/landing/espacio-demo";
 import { datosLanding } from "@/lib/datos/landing";
-import { AREAS_LANDING, enlaceWhatsApp, numeroWhatsApp, serviciosPorArea, telefonoLegible } from "@/lib/landing";
+import { enlaceWhatsApp, numeroWhatsApp, serviciosPorArea, telefonoLegible } from "@/lib/landing";
+import { PASOS, SECCIONES } from "@/lib/landing-contenido";
 import { envPublico } from "@/lib/env";
 
 // El formulario (React Hook Form + Zod) se carga aparte: la landing es casi estática y así pesa menos al entrar.
@@ -43,38 +43,8 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: "aguemar · Diseño, desarrollo y soporte técnico", description: DESCRIPCION },
 };
 
-const PASOS = [
-  {
-    titulo: "Conversamos",
-    texto: "Me cuentas qué necesitas por WhatsApp, el formulario o una reunión. Pregunto hasta entender el problema, no solo el pedido.",
-    artefacto: "// brief",
-  },
-  {
-    titulo: "Cotización clara",
-    texto: "Precio, alcance y plazo por escrito, antes de empezar. La aceptas en línea con tu nombre y DNI.",
-    artefacto: "COT-AAAA-NNN · PDF",
-  },
-  {
-    titulo: "Avance a la vista",
-    texto: "Tu empresa tiene su espacio con el proyecto, el calendario y los informes. Entras cuando quieras, sin pedirme capturas.",
-    artefacto: "/w/tu-empresa",
-  },
-  {
-    titulo: "Entrega con respaldo",
-    texto: "Cierro con un acta de entrega o una ficha técnica en PDF, con un QR que abre el documento original.",
-    artefacto: "AE-AAAA-NNN · QR",
-  },
-];
-
-const NAV = [
-  { href: "#servicios", texto: "Servicios" },
-  { href: "#proyectos", texto: "Proyectos" },
-  { href: "#como-trabajo", texto: "Cómo trabajo" },
-  { href: "#tu-espacio", texto: "Tu espacio" },
-  { href: "#contacto", texto: "Contacto" },
-];
-
-const retraso = (ms: number) => ({ "--retraso": `${ms}ms` }) as CSSProperties;
+const SECCION = "mb-16 scroll-mt-16 lg:mb-24 lg:scroll-mt-24";
+const ENLACE_LATERAL = "inline-flex items-center gap-2 rounded-sm transition-colors hover:text-mint";
 
 export default async function Inicio() {
   const { marca, servicios } = await datosLanding();
@@ -103,241 +73,144 @@ export default async function Inicio() {
   };
 
   return (
-    // La landing es siempre oscura: la escena 3D va de corrido detrás de todas las secciones.
-    <div className="dark relative isolate min-h-dvh overflow-x-clip bg-ink text-white [color-scheme:dark]">
+    // La landing es siempre oscura. En escritorio: columna izquierda fija y contenido a la derecha.
+    <div className="dark min-h-dvh bg-ink text-white [color-scheme:dark]">
       <SaltarContenido />
-      <EscenaFondo />
-      <div aria-hidden className="grano pointer-events-none fixed inset-0 z-[1] opacity-[0.07] mix-blend-overlay" />
-
-      <header className="cabecera-scroll sticky top-0 z-40 border-b border-white/[0.08] bg-ink/70 backdrop-blur-md">
-        <div className="mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/" aria-label="aguemar, inicio" className="rounded-md">
-            <Logo variante="claro" alto={30} priority />
-          </Link>
-          <nav aria-label="Secciones" className="hidden items-center gap-5 text-sm text-white/60 lg:flex">
-            {NAV.map((n) => (
-              <a key={n.href} href={n.href} className="transition-colors hover:text-white">
-                {n.texto}
+      <BrilloCursor />
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8 md:px-12 md:py-16 lg:flex lg:justify-between lg:gap-4 lg:py-0">
+        {/* ---------- Columna izquierda ---------- */}
+        <header className="lg:sticky lg:top-0 lg:flex lg:max-h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24">
+          <div>
+            <Link href="/" aria-label="aguemar, inicio" className="inline-block rounded-md">
+              <Logo variante="claro" alto={28} priority />
+            </Link>
+            <p className="mt-10 font-mono text-sm text-mint">{"// diseño · desarrollo · soporte técnico"}</p>
+            <h1 className="mt-3 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
+              No te pido que confíes. <span className="text-mint">Te lo muestro.</span>
+            </h1>
+            <p className="mt-5 max-w-sm text-white/65">
+              Diseño marcas, programo webs y sistemas, y doy soporte técnico a empresas en Perú. Todo lo que hago deja evidencia que puedes revisar.
+            </p>
+            <Button asChild variant="mint" className="mt-8">
+              <a href="#contacto">
+                Cuéntame tu proyecto <ArrowRight />
               </a>
-            ))}
-          </nav>
-          <Button asChild variant="outline" className="border-white/25 bg-transparent text-white hover:bg-white/10 hover:text-white">
-            <Link href="/login">Ingresar</Link>
-          </Button>
-        </div>
-      </header>
-
-      <div className="relative z-10">
-        {/* ---------- Portada ---------- */}
-        <section data-forma="corchetes" data-lado="0.47" data-escala="0.62" className="relative">
-          <Brackets className="solo-sin-escena absolute -right-24 top-10 h-[30rem] w-auto opacity-[0.12] md:-right-10" color="#1CE783" />
-          <div id="contenido" className="relative mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-6xl flex-col justify-center px-4 pb-24 pt-10 sm:px-6">
-            <div className="max-w-[40rem]">
-              <p className="font-mono text-sm text-mint">
-                <span className="escribir cursor-mono inline-block" style={retraso(100)}>
-                  {"// diseño · desarrollo · soporte técnico"}
-                </span>
-              </p>
-              <h1 className="mt-6 text-[2.75rem] font-semibold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
-                <span className="palabras-entrada block">
-                  <Palabras texto="No te pido que confíes." />
-                </span>
-                <span className="palabras-entrada block text-mint">
-                  <Palabras texto="Te lo muestro." desde={4} />
-                </span>
-              </h1>
-              <p className="entrada mt-7 max-w-xl text-lg text-white/70" style={retraso(650)}>
-                {marca?.responsable ? `Soy ${marca.responsable}. ` : ""}Diseño marcas, programo webs y sistemas, y doy soporte técnico a empresas en Perú. Todo lo que hago deja
-                evidencia: una cotización por escrito, un avance que ves cuando quieras y un documento que puedes verificar.
-              </p>
-              <div className="entrada mt-9 flex flex-wrap items-center gap-3" style={retraso(800)}>
-                <Magnetico>
-                  <Button asChild variant="mint" size="lg">
-                    <a href="#contacto">
-                      Cuéntame tu proyecto <ArrowRight />
-                    </a>
-                  </Button>
-                </Magnetico>
-                {whatsapp ? (
-                  <Button asChild variant="outline" size="lg" className="border-white/25 bg-transparent text-white hover:bg-white/10 hover:text-white">
-                    <a href={whatsapp} target="_blank" rel="noopener noreferrer">
-                      <MessageCircle /> WhatsApp
-                    </a>
-                  </Button>
-                ) : null}
-              </div>
-              <ul className="entrada mt-10 flex flex-wrap gap-2" style={retraso(950)}>
-                {AREAS_LANDING.map((a) => (
-                  <li key={a.area}>
-                    <a
-                      href={`#${a.area}`}
-                      className="inline-flex rounded-full border border-white/15 bg-ink/40 px-3 py-1 font-mono text-xs text-white/70 transition-colors hover:border-mint/60 hover:text-white"
-                    >
-                      {a.rotulo}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="absolute inset-x-4 bottom-6 flex items-end justify-between font-mono text-[11px] text-white/40 sm:inset-x-6">
-              <span>
-                Perú · <HoraPeru />
-              </span>
-              <a href="#servicios" className="flex items-center gap-3 transition-colors hover:text-white">
-                baja y mira cómo trabajo
-                <span aria-hidden className="indicador-bajar relative block h-8 w-px overflow-hidden bg-white/15">
-                  <span className="absolute inset-0 bg-mint" />
-                </span>
-              </a>
-            </div>
+            </Button>
+            <MenuSecciones secciones={SECCIONES} />
           </div>
-        </section>
+          <ul className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
+            {whatsapp ? (
+              <li>
+                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={ENLACE_LATERAL}>
+                  <MessageCircle className="size-4" aria-hidden /> WhatsApp
+                </a>
+              </li>
+            ) : null}
+            {marca?.correo ? (
+              <li>
+                <a href={`mailto:${marca.correo}`} className={ENLACE_LATERAL}>
+                  <Mail className="size-4" aria-hidden /> Correo
+                </a>
+              </li>
+            ) : null}
+            <li>
+              <Link href="/login" className={ENLACE_LATERAL}>
+                <LogIn className="size-4" aria-hidden /> Ingresar
+              </Link>
+            </li>
+          </ul>
+        </header>
 
-        <main>
-          {/* ---------- 01 Servicios ---------- */}
-          <ServiciosAreas porArea={porArea} />
-
-          {/* ---------- 02 Proyectos ---------- */}
-          <section id="proyectos" aria-labelledby="t-proyectos" data-forma="red" data-lado="0.45" data-escala="0.7" data-intensidad="0.3" className="scroll-mt-20">
-            <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
-              <TituloSeccion
-                n="02"
-                id="t-proyectos"
-                titulo="Lo que he construido"
-                texto="Proyectos propios y para clientes. No te muestro nombres, porque cada empresa merece discreción, pero sí qué problema había y cómo lo resolví."
-              />
-              <div className="mt-14">
-                <Proyectos />
-              </div>
+        {/* ---------- Columna derecha ---------- */}
+        <main id="contenido" className="pt-16 lg:w-1/2 lg:py-24">
+          <section id="sobre-mi" aria-labelledby="t-sobre-mi" className={SECCION}>
+            <TituloSticky id="t-sobre-mi" rotulo="sobre mí" titulo="Sobre mí" />
+            <div className="space-y-4 text-white/65">
+              <p>
+                {marca?.responsable ? `Soy ${marca.responsable}. ` : ""}Hago tres cosas para empresas en Perú: diseño su identidad y sus piezas, programo sus webs y
+                sistemas, y mantengo funcionando sus equipos. Tres oficios que se cruzan todo el tiempo: cómo se ve tu empresa, qué usa cada día y qué la
+                sostiene.
+              </p>
+              <p>
+                Trabajo con evidencia. Antes de empezar, una cotización por escrito que aceptas en línea. Mientras avanzo, tu empresa tiene su propio espacio
+                donde ves el proyecto, el calendario y los informes cuando quieras. Al cerrar, un documento en PDF con un QR que lleva al original.
+              </p>
             </div>
           </section>
 
-          {/* ---------- 03 Cómo trabajo ---------- */}
-          <section id="como-trabajo" aria-labelledby="t-como" data-forma="linea" data-lado="0.5" data-escala="0.85" data-intensidad="0.9" className="scroll-mt-20">
-            <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
-              <div className="max-w-xl">
-                <TituloSeccion n="03" id="t-como" titulo="Cómo trabajo" texto="Sin sorpresas: sabes qué se hará, cuánto cuesta y en qué va, en cada momento." />
-                <ol className="relative mt-14">
-                  <span aria-hidden className="absolute bottom-6 left-5 top-5 w-px -translate-x-1/2 bg-white/10">
-                    <span className="trazo-scroll block h-full w-full bg-mint" />
-                  </span>
-                  {PASOS.map((p, i) => (
-                    <li key={p.titulo} className="revelar relative grid grid-cols-[2.5rem_1fr] gap-5 pb-12 last:pb-0">
-                      <span className="relative flex size-10 items-center justify-center rounded-full border border-mint/40 bg-ink font-mono text-sm text-mint">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <div className="pt-1.5">
-                        <h3 className="text-xl font-semibold">{p.titulo}</h3>
-                        <p className="mt-2 text-white/65">{p.texto}</p>
-                        <span className="mt-3 inline-flex rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[11px] text-white/55">{p.artefacto}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </div>
+          <Servicios porArea={porArea} />
+
+          <section id="proyectos" aria-labelledby="t-proyectos" className={SECCION}>
+            <TituloSticky id="t-proyectos" rotulo="proyectos" titulo="Lo que he construido" />
+            <p className="mb-6 text-white/65">Proyectos propios y para clientes. Sin nombres, por discreción, pero sí qué problema había y cómo lo resolví.</p>
+            <Proyectos />
           </section>
 
-          {/* ---------- 04 Tu espacio ---------- */}
-          <section id="tu-espacio" aria-labelledby="t-espacio" data-forma="plano" data-intensidad="0.5" className="scroll-mt-20">
-            <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-36">
-              <TituloSeccion
-                n="04"
-                id="t-espacio"
-                titulo="Tu empresa, con su propio espacio"
-                texto="Cada empresa que atiendo entra con su usuario y ve solo lo suyo. Nada de preguntar “¿cómo vamos?” por chat: está ahí, al día. Pruébalo."
-              />
-              <div className="mt-12">
-                <EspacioDemo />
-              </div>
-              <div className="mt-5 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-                <p className="font-mono text-xs text-white/40">Vista de ejemplo, con datos ficticios.</p>
-                <p className="text-white/60">
-                  ¿Ya trabajas conmigo?{" "}
-                  <Link href="/login" className="font-medium text-white underline underline-offset-4 hover:text-mint">
-                    Ingresa a tu espacio
-                  </Link>
-                  .
-                </p>
-              </div>
-            </div>
+          <section id="como-trabajo" aria-labelledby="t-como" className={SECCION}>
+            <TituloSticky id="t-como" rotulo="cómo trabajo" titulo="Cómo trabajo" />
+            <p className="mb-6 text-white/65">Sin sorpresas: sabes qué se hará, cuánto cuesta y en qué va, en cada momento.</p>
+            <ListaFilas ordenada>
+              {PASOS.map((p, i) => (
+                <Fila key={p.titulo} etiqueta={String(i + 1).padStart(2, "0")} titulo={p.titulo} texto={p.texto} chips={[p.artefacto]} />
+              ))}
+            </ListaFilas>
           </section>
 
-          {/* ---------- 05 Contacto ---------- */}
-          <section id="contacto" aria-labelledby="t-contacto" data-forma="corchetes" data-escala="1.25" data-intensidad="0.3" className="scroll-mt-20">
-            <div className="mx-auto grid max-w-6xl gap-12 px-4 py-24 sm:px-6 md:py-36 lg:grid-cols-[1fr_1.3fr]">
-              <div>
-                <TituloSeccion n="05" id="t-contacto" titulo="Conversemos" texto="Cuéntame qué necesitas. Te respondo yo, no un bot, con los siguientes pasos." />
-                <ul className="revelar mt-10 space-y-3">
-                  {whatsapp ? (
-                    <li>
-                      <a
-                        href={whatsapp}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex items-center gap-3 rounded-xl border border-white/10 bg-ink/50 p-4 backdrop-blur transition-colors hover:border-mint/50"
-                      >
-                        <MessageCircle className="size-5 text-mint" aria-hidden />
-                        <span className="flex-1">
-                          <span className="block text-sm text-white/55">WhatsApp</span>
-                          <span className="font-mono">{telefonoLegible(telefono)}</span>
-                        </span>
-                        <ArrowRight className="size-4 text-white/30 transition-transform group-hover:translate-x-1 group-hover:text-mint" aria-hidden />
-                      </a>
-                    </li>
-                  ) : null}
-                  {marca?.correo ? (
-                    <li>
-                      <a
-                        href={`mailto:${marca.correo}`}
-                        className="group flex items-center gap-3 rounded-xl border border-white/10 bg-ink/50 p-4 backdrop-blur transition-colors hover:border-mint/50"
-                      >
-                        <Mail className="size-5 text-mint" aria-hidden />
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-sm text-white/55">Correo</span>
-                          <span className="break-all font-mono text-sm">{marca.correo}</span>
-                        </span>
-                        <ArrowRight className="size-4 text-white/30 transition-transform group-hover:translate-x-1 group-hover:text-mint" aria-hidden />
-                      </a>
-                    </li>
-                  ) : null}
-                </ul>
-              </div>
-              <div className="revelar text-foreground">
-                <FormularioContacto servicios={servicios} whatsapp={whatsapp} />
-              </div>
-            </div>
+          <section id="tu-espacio" aria-labelledby="t-espacio" className={SECCION}>
+            <TituloSticky id="t-espacio" rotulo="tu espacio" titulo="Tu empresa, con su propio espacio" />
+            <p className="mb-6 text-white/65">
+              Cada empresa que atiendo entra con su usuario y ve solo lo suyo. Nada de preguntar “¿cómo vamos?” por chat: está ahí, al día. Pruébalo.
+            </p>
+            <EspacioDemo />
+            <p className="mt-4 text-sm text-white/60">
+              <span className="font-mono text-xs text-white/45">Vista de ejemplo, con datos ficticios.</span> ¿Ya trabajas conmigo?{" "}
+              <Link href="/login" className="text-white underline underline-offset-4 hover:text-mint">
+                Ingresa a tu espacio
+              </Link>
+              .
+            </p>
           </section>
-        </main>
 
-        <footer className="relative overflow-hidden border-t border-white/10">
-          <p aria-hidden className="pointer-events-none select-none whitespace-nowrap px-4 pt-10 text-center font-mono text-[13vw] font-semibold leading-none tracking-tighter text-white/[0.04] sm:px-6">
-            {"<aguemar/>"}
-          </p>
-          <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div className="flex items-center gap-3">
-              <Logo variante="claro" alto={24} />
-              <span>
-                © {anio} {nombre}
-              </span>
+          <section id="contacto" aria-labelledby="t-contacto" className="scroll-mt-16 lg:scroll-mt-24">
+            <TituloSticky id="t-contacto" rotulo="contacto" titulo="Conversemos" />
+            <p className="mb-6 text-white/65">Cuéntame qué necesitas. Te respondo yo, no un bot, con los siguientes pasos.</p>
+            <div className="text-foreground">
+              <FormularioContacto servicios={servicios} whatsapp={whatsapp} />
             </div>
-            <nav aria-label="Pie" className="flex flex-wrap gap-4">
-              <a href="#servicios" className="hover:text-white">
-                Servicios
-              </a>
-              <a href="#contacto" className="hover:text-white">
-                Contacto
-              </a>
+            {whatsapp || marca?.correo ? (
+              <p className="mt-5 text-sm text-white/60">
+                O directo por{" "}
+                {whatsapp ? (
+                  <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="font-mono text-white hover:text-mint">
+                    WhatsApp {telefonoLegible(telefono)}
+                  </a>
+                ) : null}
+                {whatsapp && marca?.correo ? " o " : null}
+                {marca?.correo ? (
+                  <a href={`mailto:${marca.correo}`} className="break-all font-mono text-white hover:text-mint">
+                    {marca.correo}
+                  </a>
+                ) : null}
+                .
+              </p>
+            ) : null}
+          </section>
+
+          <footer className="mt-16 text-xs leading-relaxed text-white/45 lg:mt-24">
+            <p>
+              © {anio} {nombre} · Hecho con Next.js y Tailwind, en Perú.
+            </p>
+            <p className="mt-1">
               <Link href="/privacidad" className="hover:text-white">
                 Privacidad
-              </Link>
+              </Link>{" "}
+              ·{" "}
               <Link href="/login" className="hover:text-white">
                 Ingresar
               </Link>
-            </nav>
-          </div>
-        </footer>
+            </p>
+          </footer>
+        </main>
       </div>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
