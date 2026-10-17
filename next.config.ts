@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 // Archivos que el PDF lee del disco: en Vercel hay que incluirlos explícitamente en la función.
-const archivosPdf = ["./src/lib/pdf/fuentes/**", "./public/logo.svg", "./public/logo-light.svg"];
+// pdfkit carga sus fuentes estándar (Helvetica, la de inicio del documento) con un require dinámico
+// (`#standard-fonts/*`) que el rastreo no ve: sin ellas el PDF falla con MODULE_NOT_FOUND en Vercel.
+const archivosPdf = ["./src/lib/pdf/fuentes/**", "./public/logo.svg", "./public/logo-light.svg", "./node_modules/pdfkit/js/standard-fonts/**"];
 
 // Cabeceras de seguridad para todas las rutas (HSTS lo pone Vercel en el dominio).
 const cabecerasSeguridad = [
