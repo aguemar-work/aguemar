@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 /** Última revisión del texto: cámbiala cuando edites esta página. */
-const REVISADA = "16/10/2026";
+const REVISADA = "19/10/2026";
 
 function Seccion({ numero, titulo, children }: { numero: string; titulo: string; children: React.ReactNode }) {
   return (
@@ -72,14 +72,14 @@ export default async function PrivacidadPage() {
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong>Formulario de contacto y WhatsApp:</strong> nombre, empresa, teléfono, correo y tu mensaje. Los uso solo para responderte y preparar una
-              cotización. También guardo la dirección IP y el navegador desde el que escribiste para evitar envíos automáticos.
+              cotización.
             </li>
             <li>
               <strong>Tu espacio como empresa cliente:</strong> correo de acceso, nombre de contacto, RUC o DNI, teléfono y dirección, para gestionar los
               trabajos, documentos, cotizaciones y cobros que contrates.
             </li>
             <li>
-              <strong>Aceptación de cotizaciones y actas:</strong> nombre y DNI de quien acepta, fecha, IP y navegador, como constancia de la aceptación.
+              <strong>Aceptación de cotizaciones y actas:</strong> nombre y DNI de quien acepta y fecha, como constancia de la aceptación.
             </li>
             <li>
               <strong>Fichas técnicas de equipos:</strong> marca, modelo, serie y estado del equipo. El diagnóstico no incluye tus archivos ni contraseñas.
@@ -107,28 +107,16 @@ export default async function PrivacidadPage() {
         </Seccion>
 
         <Seccion numero="05" titulo="Con quién se comparten y dónde se guardan">
-          <p>No vendo ni cedo tus datos. Solo los tratan proveedores que me prestan infraestructura, bajo sus propios contratos de confidencialidad:</p>
-          <ul className="list-disc space-y-2 pl-5">
-            <li>
-              <strong>InsForge</strong> (base de datos y autenticación, servidores en Estados Unidos).
-            </li>
-            <li>
-              <strong>Vercel</strong> (alojamiento de esta web).
-            </li>
-            <li>
-              <strong>Resend</strong> (envío de correos de aviso).
-            </li>
-          </ul>
           <p>
-            Esto supone una transferencia internacional de datos. Al escribirme o usar tu espacio aceptas ese flujo, que se hace con las medidas de seguridad
-            descritas abajo.
+            No vendo ni cedo tus datos. Para operar uso servicios de terceros: base de datos y autenticación, alojamiento web y envío de correos. Estos
+            proveedores pueden almacenar la información fuera del Perú, por lo que al escribirme o usar tu espacio aceptas esa transferencia.
           </p>
         </Seccion>
 
         <Seccion numero="06" titulo="Cómo los protejo">
           <p>
-            Conexiones cifradas (HTTPS), acceso a la base restringido por usuario y por empresa, contraseñas cifradas, enlaces de documentos con tokens
-            aleatorios que puedes pedir que revoque, y copias de seguridad del proveedor. Nadie fuera de aguemar ve los datos de otra empresa.
+            La información de cada empresa se trata de forma individual: cada una accede solo a lo suyo y recibe respuesta directa sobre sus trabajos,
+            documentos y consultas. Aplico medidas de seguridad razonables para resguardarla.
           </p>
         </Seccion>
 
@@ -148,8 +136,7 @@ export default async function PrivacidadPage() {
         </Seccion>
 
         <p className="text-xs text-muted-foreground">
-          Si cambio esta política, actualizo la fecha de revisión al inicio de la página. [PENDIENTE: confirmar con asesoría legal e inscripción del banco de
-          datos ante la ANPD si aplica.]
+          Si cambio esta política, actualizo la fecha de revisión al inicio de la página.
         </p>
       </main>
 
