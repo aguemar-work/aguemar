@@ -22,6 +22,7 @@ export function Fila({
   texto,
   chips,
   nivel = "h3",
+  lang,
   children,
 }: {
   etiqueta: string;
@@ -29,11 +30,13 @@ export function Fila({
   texto?: string | null;
   chips?: string[];
   nivel?: "h3" | "h4";
+  /** Idioma del contenido cuando difiere del de la página (los servicios vienen en español). */
+  lang?: string;
   children?: ReactNode;
 }) {
   const Titulo = nivel;
   return (
-    <li className="group/fila relative -mx-4 grid gap-1 rounded-lg px-4 py-5 transition-[opacity,background-color] duration-200 md:grid-cols-[8rem_1fr] md:gap-x-4 lg:group-hover/lista:opacity-60 lg:hover:bg-white/[0.04] lg:hover:opacity-100!">
+    <li lang={lang} className="group/fila relative -mx-4 grid gap-1 rounded-lg px-4 py-5 transition-[opacity,background-color] duration-200 md:grid-cols-[8rem_1fr] md:gap-x-4 lg:group-hover/lista:opacity-60 lg:hover:bg-white/[0.04] lg:hover:opacity-100!">
       <span className="font-mono text-xs text-white/45 md:pt-1">{etiqueta}</span>
       <div>
         <Titulo className="font-medium text-white">{titulo}</Titulo>

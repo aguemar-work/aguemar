@@ -11,16 +11,19 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Campo, propsCampo } from "@/components/formulario/campo";
 import { AREAS_LANDING, type ServicioLanding } from "@/lib/landing";
-import { leadSchema, type LeadDatos, type LeadInput } from "@/lib/validators/lead";
+import { MENSAJES_LEAD, crearLeadSchema, type LeadDatos, type LeadInput } from "@/lib/validators/lead";
+import { TEXTOS, type Idioma } from "@/lib/landing-textos";
 import { enviarContacto } from "@/app/acciones";
 
 /** Formulario de contacto: guarda un lead que llega al panel. */
-export function FormularioContacto({ servicios, whatsapp }: { servicios: ServicioLanding[]; whatsapp: string | null }) {
+export function FormularioContacto({ servicios, whatsapp, idioma = "es" }: { servicios: ServicioLanding[]; whatsapp: string | null; idioma?: Idioma }) {
+  const t = TEXTOS[idioma].form;
+  const areas = TEXTOS[idioma].servicios.areas;
   const [enviando, iniciar] = useTransition();
   const [enviado, setEnviado] = useState(false);
   const [errorGeneral, setErrorGeneral] = useState<string>();
   const form = useForm<LeadInput, unknown, LeadDatos>({
-    resolver: zodResolver(leadSchema),
+    resolver: zodResolver(crearLeadSchema(MENSAJES_LEAD[idioma])),
     defaultValues: { nombre: "", empresa: "", telefono: "", correo: "", interes: "", mensaje: "", sitio_web: "" },
   });
   const { register, handleSubmit, formState, setError, reset } = form;
@@ -29,7 +32,7 @@ export function FormularioContacto({ servicios, whatsapp }: { servicios: Servici
   const onSubmit = handleSubmit((datos) =>
     iniciar(async () => {
       setErrorGeneral(undefined);
-      const r = await enviarContacto(datos);
+      const r = await enviarContacto(datos, idioma);
       if (!r.ok) {
         if (r.campo) setError(r.campo as FieldPath<LeadInput>, { message: r.error });
         else setErrorGeneral(r.error);
@@ -44,18 +47,18 @@ export function FormularioContacto({ servicios, whatsapp }: { servicios: Servici
     return (
       <div role="status" className="flex h-full flex-col items-start justify-center gap-3 rounded-xl border border-border bg-card p-6 sm:p-8">
         <CheckCircle2 className="size-8 text-mint-ink dark:text-mint" aria-hidden />
-        <h3 className="text-xl font-semibold">¡Gracias! Recibí tu mensaje.</h3>
-        <p className="text-muted-foreground">Te respondo pronto por WhatsApp o correo.</p>
+        <h3 className="text-xl font-semibold">{t.graciasTitulo}</h3>
+        <p className="text-muted-foreground">{t.graciasTexto}</p>
         <div className="flex flex-wrap gap-2">
           {whatsapp ? (
             <Button asChild variant="mint">
               <a href={whatsapp} target="_blank" rel="noopener noreferrer">
-                Escribir por WhatsApp
+                {t.escribirWhatsApp}
               </a>
             </Button>
           ) : null}
           <Button variant="outline" onClick={() => setEnviado(false)}>
-            Enviar otro mensaje
+            {t.otroMensaje}
           </Button>
         </div>
       </div>
@@ -64,42 +67,42 @@ export function FormularioContacto({ servicios, whatsapp }: { servicios: Servici
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-4 rounded-xl border border-border bg-card p-6 sm:grid-cols-2 sm:p-8">
-      <Campo id="lead-nombre" etiqueta="Tu nombre" requerido error={e.nombre?.message}>
+      <Campo id="lead-nombre" etiqueta={t.nombre} requerido error={e.nombre?.message}>
         <Input {...register("nombre")} {...propsCampo("lead-nombre", e.nombre?.message)} autoComplete="name" />
       </Campo>
-      <Campo id="lead-empresa" etiqueta="Empresa" ayuda="Opcional">
+      <Campo id="lead-empresa" etiqueta={t.empresa} ayuda={t.opcional}>
         <Input {...register("empresa")} {...propsCampo("lead-empresa", undefined, "si")} autoComplete="organization" />
       </Campo>
-      <Campo id="lead-telefono" etiqueta="WhatsApp" error={e.telefono?.message}>
+      <Campo id="lead-telefono" etiqueta={t.whatsapp} error={e.telefono?.message}>
         <Input {...register("telefono")} {...propsCampo("lead-telefono", e.telefono?.message)} type="tel" inputMode="tel" autoComplete="tel" placeholder="9XX XXX XXX" className="font-mono" />
       </Campo>
-      <Campo id="lead-correo" etiqueta="Correo" error={e.correo?.message}>
+      <Campo id="lead-correo" etiqueta={t.correo} error={e.correo?.message}>
         <Input {...register("correo")} {...propsCampo("lead-correo", e.correo?.message)} type="email" autoComplete="email" />
       </Campo>
-      <Campo id="lead-interes" etiqueta="¿Qué necesitas?" className="sm:col-span-2">
+      <Campo id="lead-interes" etiqueta={t.interes} className="sm:col-span-2">
         <Select {...register("interes")} {...propsCampo("lead-interes")}>
-          <option value="">Aún no lo sé</option>
+          <option value="">{t.sinDefinir}</option>
           {AREAS_LANDING.map((a) => {
             const lista = servicios.filter((s) => s.area === a.area);
             return (
-              <optgroup key={a.area} label={a.titulo}>
+              <optgroup key={a.area} label={areas[a.area].titulo}>
                 {lista.map((s) => (
                   <option key={s.id} value={`${a.titulo}: ${s.nombre}`}>
                     {s.nombre}
                   </option>
                 ))}
-                <option value={`${a.titulo}: otro`}>{lista.length ? `Otro de ${a.titulo.toLowerCase()}` : a.titulo}</option>
+                <option value={`${a.titulo}: otro`}>{lista.length ? areas[a.area].otro : areas[a.area].titulo}</option>
               </optgroup>
             );
           })}
         </Select>
       </Campo>
-      <Campo id="lead-mensaje" etiqueta="Cuéntame" requerido error={e.mensaje?.message} className="sm:col-span-2">
-        <Textarea {...register("mensaje")} {...propsCampo("lead-mensaje", e.mensaje?.message)} rows={4} placeholder="Qué necesitas, para cuándo y cualquier detalle que ayude." />
+      <Campo id="lead-mensaje" etiqueta={t.mensaje} requerido error={e.mensaje?.message} className="sm:col-span-2">
+        <Textarea {...register("mensaje")} {...propsCampo("lead-mensaje", e.mensaje?.message)} rows={4} placeholder={t.mensajePlaceholder} />
       </Campo>
       {/* Trampa para bots: oculta para personas y lectores de pantalla. */}
       <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
-        <label htmlFor="lead-sitio">Sitio web</label>
+        <label htmlFor="lead-sitio">{t.sitio}</label>
         <input id="lead-sitio" tabIndex={-1} autoComplete="off" {...register("sitio_web")} />
       </div>
       {errorGeneral ? (
@@ -109,14 +112,14 @@ export function FormularioContacto({ servicios, whatsapp }: { servicios: Servici
       ) : null}
       <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted-foreground">
-          Uso tus datos solo para responderte.{" "}
+          {t.datos}{" "}
           <Link href="/privacidad" className="underline underline-offset-2 hover:text-foreground">
-            Cómo los trato
+            {t.comoLosTrato}
           </Link>
           .
         </p>
         <Button type="submit" variant="mint" size="lg" disabled={enviando}>
-          {enviando ? <Loader2 className="animate-spin" /> : <Send />} Enviar mensaje
+          {enviando ? <Loader2 className="animate-spin" /> : <Send />} {t.enviar}
         </Button>
       </div>
     </form>

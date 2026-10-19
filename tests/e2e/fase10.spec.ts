@@ -50,9 +50,35 @@ test("el formulario de contacto valida antes de enviar", async ({ page }) => {
   await expect(page.getByText(/déjame un whatsapp o un correo/i)).toBeVisible();
 });
 
+test("la versión en inglés está en /en y el selector cambia de idioma", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "English" }).click();
+  await expect(page).toHaveURL(/\/en$/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("I'll show you.");
+  for (const nombre of ["What I do", "What I've built", "How I work", "Your company, with its own space", "Let's talk"]) {
+    await expect(page.getByRole("heading", { name: nombre })).toBeVisible();
+  }
+  await expect(page.getByRole("link", { name: "Sign in" }).first()).toHaveAttribute("href", "/login");
+  await expect(page.getByRole("link", { name: "English" })).toHaveAttribute("aria-current", "true");
+  await page.getByRole("link", { name: "Español" }).click();
+  await expect(page).toHaveURL(/\/$/);
+});
+
+test("el formulario en inglés valida en inglés", async ({ page }) => {
+  await page.goto("/en#contacto");
+  await page.getByRole("button", { name: /send message/i }).click();
+  await expect(page.getByText("Enter your name.")).toBeVisible();
+  await page.getByLabel(/your name/i).fill("Test");
+  await page.getByLabel(/tell me more/i).fill("I need a corporate website for my company.");
+  await page.getByRole("button", { name: /send message/i }).click();
+  await expect(page.getByText(/leave me a whatsapp number or an email/i)).toBeVisible();
+});
+
 test("robots y sitemap dejan fuera el panel y los espacios", async ({ request }) => {
   const robots = await (await request.get("/robots.txt")).text();
   expect(robots).toContain("Disallow: /panel");
   expect(robots).toContain("Disallow: /w/");
-  expect((await request.get("/sitemap.xml")).status()).toBe(200);
+  const sitemap = await request.get("/sitemap.xml");
+  expect(sitemap.status()).toBe(200);
+  expect(await sitemap.text()).toContain("/en");
 });

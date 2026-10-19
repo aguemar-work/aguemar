@@ -20,7 +20,7 @@ export default function Imagen() {
         <img src={logoUri} alt="" height={64} width={Math.round((64 * 12720) / 5835)} />
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ width: 96, height: 4, background: "#1CE783", marginBottom: 24 }} />
-          <div style={{ fontFamily: "Mono", fontSize: 28, color: "#1CE783" }}>{"// diseño · desarrollo · soporte técnico"}</div>
+          <div style={{ fontFamily: "Mono", fontSize: 28, color: "#1CE783" }}>{"// especialista TI · diseño · desarrollo"}</div>
           {/* Mismo titular que el h1 de la landing. Satori exige display:flex en todo div con varios hijos. */}
           <div style={{ display: "flex", flexWrap: "wrap", fontSize: 68, fontWeight: 700, lineHeight: 1.1, marginTop: 20, maxWidth: 980 }}>
             <span>No te pido que confíes.&nbsp;</span>

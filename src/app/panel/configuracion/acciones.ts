@@ -35,6 +35,7 @@ export async function guardarMarca(input: MarcaInput): Promise<Resultado<{ id: s
     }
     revalidatePath("/panel/configuracion");
     revalidatePath("/");
+    revalidatePath("/en");
     return exito({ id: (data as { id: string }).id });
   } catch (e) {
     return fallo(traducirError(e).mensaje);

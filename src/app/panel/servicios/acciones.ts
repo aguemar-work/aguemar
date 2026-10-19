@@ -9,6 +9,7 @@ import { precioACentimos, servicioSchema, type ServicioInput } from "@/lib/valid
 function revalidar() {
   revalidatePath("/panel/servicios");
   revalidatePath("/");
+  revalidatePath("/en");
 }
 
 export async function guardarServicio(input: ServicioInput, id?: string): Promise<Resultado<{ id: string }>> {

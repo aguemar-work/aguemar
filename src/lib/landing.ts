@@ -58,9 +58,9 @@ export function serviciosPorArea(servicios: ServicioLanding[]): Record<Area, Ser
 }
 
 /** "Desde S/ 80,00 por equipo" o null si no hay precio base. */
-export function textoPrecio(s: Pick<ServicioLanding, "precio_base" | "unidad">): string | null {
+export function textoPrecio(s: Pick<ServicioLanding, "precio_base" | "unidad">, etiquetas = { desde: "Desde", por: "por" }): string | null {
   if (s.precio_base == null || s.precio_base <= 0) return null;
-  return `Desde ${formatearMonto(s.precio_base)} por ${s.unidad}`;
+  return `${etiquetas.desde} ${formatearMonto(s.precio_base)} ${etiquetas.por} ${s.unidad}`;
 }
 
 /** Número para wa.me: 9 dígitos peruanos → 51XXXXXXXXX; otros, solo dígitos. Null si no sirve. */

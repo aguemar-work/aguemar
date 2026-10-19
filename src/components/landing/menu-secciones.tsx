@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  * y la decide un IntersectionObserver: gana la primera sección, en orden del documento,
  * que cruza la franja del 20 % al 35 % de la ventana.
  */
-export function MenuSecciones({ secciones }: { secciones: Seccion[] }) {
+export function MenuSecciones({ secciones, etiqueta }: { secciones: Seccion[]; etiqueta: string }) {
   const [activa, setActiva] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export function MenuSecciones({ secciones }: { secciones: Seccion[] }) {
   }, [secciones]);
 
   return (
-    <nav aria-label="Secciones" className="mt-16 hidden lg:block">
+    <nav aria-label={etiqueta} className="mt-16 hidden lg:block">
       <ul className="space-y-1">
         {secciones.map((s) => {
           const sel = s.id === activa;

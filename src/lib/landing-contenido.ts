@@ -3,6 +3,8 @@
  * Solo datos (sin JSX), para que los componentes queden de servidor y se pueda testear.
  */
 
+import type { Idioma } from "@/lib/landing-textos";
+
 export interface Seccion {
   id: string;
   texto: string;
@@ -107,3 +109,105 @@ export const PROYECTOS: Proyecto[] = [
     stack: ["React", "Supabase", "Word (docx)"],
   },
 ];
+
+// ---------------------------------------------------------------------------------------------
+// Inglés. Mismas claves, ids y cantidad que el español (lo comprueba tests/unit/landing-contenido).
+// ---------------------------------------------------------------------------------------------
+
+const SECCIONES_EN: Seccion[] = [
+  { id: "sobre-mi", texto: "About me" },
+  { id: "servicios", texto: "Services" },
+  { id: "proyectos", texto: "Projects" },
+  { id: "como-trabajo", texto: "How I work" },
+  { id: "tu-espacio", texto: "Your space" },
+  { id: "contacto", texto: "Contact" },
+];
+
+const PASOS_EN: Paso[] = [
+  {
+    titulo: "We talk",
+    texto: "You tell me what you need by WhatsApp, the form or a meeting. I keep asking until I understand the problem, not just the request.",
+    artefacto: "// brief",
+  },
+  {
+    titulo: "A clear quote",
+    texto: "Price, scope and deadline in writing, before we start. You accept it online with your name and ID number.",
+    artefacto: "COT-YYYY-NNN · PDF",
+  },
+  {
+    titulo: "Progress in plain sight",
+    texto: "Your company gets its own space with the project, the calendar and the reports. Come in whenever you want, no need to ask me for screenshots.",
+    artefacto: "/w/your-company",
+  },
+  {
+    titulo: "Delivery with backing",
+    texto: "I close with a delivery record or a technical sheet in PDF, with a QR code that opens the original document.",
+    artefacto: "AE-YYYY-NNN · QR",
+  },
+];
+
+const PROYECTOS_EN: Proyecto[] = [
+  {
+    clave: "web",
+    titulo: "Redesign and optimization of a corporate website",
+    areas: ["design", "development"],
+    reto: "A website that was slow to appear: external libraries, icons and animations blocking the load.",
+    hecho: [
+      "Removed three external resources that held the page back before it painted.",
+      "Moved the animations to native CSS: from 14 KB of JavaScript to under 1 KB.",
+      "SVG icons, a prioritized hero image and headings built for Google.",
+    ],
+    stack: ["Astro", "CSS", "SEO"],
+  },
+  {
+    clave: "itms",
+    titulo: "ITMS system for an IT department",
+    areas: ["development", "support"],
+    reto: "Each employee's access (email, VPN, ERP…) was scattered and nobody knew who had what, or since when.",
+    hecho: [
+      "Assignment history: who held each access, since when, and whether the password was changed afterwards.",
+      "Passwords encrypted on the server and handed over through single-use links.",
+      "Its own help desk with tickets and surveys, plus an equipment inventory with photos.",
+    ],
+    stack: ["Vue 3", "Postgres + RLS", "Server functions"],
+  },
+  {
+    clave: "agenda",
+    titulo: "Agenda and tasks for IT teams",
+    areas: ["development"],
+    reto: "Planning a team's week, logging the day's unexpected events and measuring what actually gets done.",
+    hecho: [
+      "“My week”: a Monday-to-Saturday grid with tasks, incidents and a log.",
+      "Work orders with approval: draft, pending, approved and completed.",
+      "Goals with progress, metrics for the manager and several organizations isolated in the database.",
+    ],
+    stack: ["React 19", "Postgres + RLS", "Multi-organization"],
+  },
+  {
+    clave: "verifica",
+    titulo: "Issuing and verifying documents with QR codes",
+    areas: ["development"],
+    reto: "Documents that could be copied or altered without the person receiving them being able to check.",
+    hecho: [
+      "The system issues the document in Word, ready to print or sign.",
+      "Every document carries its own QR code.",
+      "Whoever receives it scans it with their phone and sees whether it's authentic.",
+    ],
+    stack: ["React", "Supabase", "Word (docx)"],
+  },
+];
+
+export interface ContenidoLanding {
+  secciones: Seccion[];
+  pasos: Paso[];
+  proyectos: Proyecto[];
+}
+
+const CONTENIDO: Record<Idioma, ContenidoLanding> = {
+  es: { secciones: SECCIONES, pasos: PASOS, proyectos: PROYECTOS },
+  en: { secciones: SECCIONES_EN, pasos: PASOS_EN, proyectos: PROYECTOS_EN },
+};
+
+export function contenidoLanding(idioma: Idioma): ContenidoLanding {
+  return CONTENIDO[idioma];
+}

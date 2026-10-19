@@ -3,6 +3,7 @@
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Check, Home, KanbanSquare, Receipt, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { TextosLanding } from "@/lib/landing-textos";
 
 /**
  * Maqueta compacta del espacio de una empresa (/w/[slug]) para la landing: tres módulos
@@ -11,10 +12,12 @@ import { cn } from "@/lib/utils";
 
 type Modulo = "inicio" | "proyectos" | "cotizaciones";
 
-const MODULOS: { clave: Modulo; nombre: string; icono: LucideIcon }[] = [
-  { clave: "inicio", nombre: "Inicio", icono: Home },
-  { clave: "proyectos", nombre: "Proyectos", icono: KanbanSquare },
-  { clave: "cotizaciones", nombre: "Cotizaciones", icono: Receipt },
+type TextosDemo = TextosLanding["demo"];
+
+const MODULOS: { clave: Modulo; icono: LucideIcon }[] = [
+  { clave: "inicio", icono: Home },
+  { clave: "proyectos", icono: KanbanSquare },
+  { clave: "cotizaciones", icono: Receipt },
 ];
 
 function Pildora({ children }: { children: ReactNode }) {
@@ -42,41 +45,41 @@ function Linea({ izquierda, derecha }: { izquierda: ReactNode; derecha: ReactNod
   );
 }
 
-const CONTENIDO: Record<Modulo, () => ReactNode> = {
-  inicio: () => (
+const CONTENIDO: Record<Modulo, (t: TextosDemo) => ReactNode> = {
+  inicio: (t) => (
     <div className="grid gap-3 sm:grid-cols-2">
       <Bloque className="sm:col-span-2">
-        <p className="text-xs text-white/50">Proyecto activo</p>
-        <p className="mt-1 font-medium">Web corporativa</p>
+        <p className="text-xs text-white/50">{t.proyectoActivo}</p>
+        <p className="mt-1 font-medium">{t.proyecto}</p>
         <Barra valor={75} />
         <p className="mt-1.5 flex justify-between font-mono text-[11px] text-white/50">
-          <span>6/8 tareas</span>
+          <span>{t.tareas}</span>
           <span>75 %</span>
         </p>
       </Bloque>
       <Bloque>
-        <p className="text-xs text-white/50">Próxima actividad</p>
-        <p className="mt-1 text-sm">Reunión de avance</p>
-        <p className="font-mono text-[11px] text-mint">jue 22/10 · 10:00</p>
+        <p className="text-xs text-white/50">{t.proximaActividad}</p>
+        <p className="mt-1 text-sm">{t.reunion}</p>
+        <p className="font-mono text-[11px] text-mint">{t.fecha}</p>
       </Bloque>
       <Bloque>
-        <p className="text-xs text-white/50">Respuesta a tu comentario</p>
-        <p className="mt-1 text-sm text-white/80">“Listo, ya subí la versión con el logo nuevo.”</p>
+        <p className="text-xs text-white/50">{t.respuesta}</p>
+        <p className="mt-1 text-sm text-white/80">{t.comentario}</p>
       </Bloque>
     </div>
   ),
-  proyectos: () => (
+  proyectos: (t) => (
     <Bloque>
       <div className="flex items-center justify-between gap-2">
-        <p className="font-medium">Web corporativa</p>
-        <Pildora>En curso</Pildora>
+        <p className="font-medium">{t.proyecto}</p>
+        <Pildora>{t.enCurso}</Pildora>
       </div>
       <ol className="mt-3 space-y-2.5">
         {[
-          { etapa: "Descubrimiento", avance: 100 },
-          { etapa: "Diseño", avance: 100 },
-          { etapa: "Desarrollo", avance: 60 },
-          { etapa: "Entrega", avance: 0 },
+          { etapa: t.etapas[0], avance: 100 },
+          { etapa: t.etapas[1], avance: 100 },
+          { etapa: t.etapas[2], avance: 60 },
+          { etapa: t.etapas[3], avance: 0 },
         ].map((e, i) => (
           <li key={e.etapa}>
             <p className="flex items-center justify-between text-sm">
@@ -92,29 +95,29 @@ const CONTENIDO: Record<Modulo, () => ReactNode> = {
       </ol>
     </Bloque>
   ),
-  cotizaciones: () => (
+  cotizaciones: (t) => (
     <div className="grid gap-3">
       <Bloque>
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="font-mono text-[11px] text-white/50">COT-2026-012</p>
-            <p className="font-medium">Web corporativa</p>
+            <p className="font-medium">{t.proyecto}</p>
           </div>
-          <Pildora>Aceptada</Pildora>
+          <Pildora>{t.aceptada}</Pildora>
         </div>
-        <p className="mt-3 font-mono text-2xl font-semibold">S/ 2 450,00</p>
+        <p className="mt-3 font-mono text-2xl font-semibold">{t.monto}</p>
       </Bloque>
       <Bloque>
         <ul className="text-sm">
-          <Linea izquierda="Adelanto 50 %" derecha={<span className="font-mono text-mint">S/ 1 225,00</span>} />
-          <Linea izquierda="Saldo" derecha={<span className="font-mono text-white/70">S/ 1 225,00</span>} />
+          <Linea izquierda={t.adelanto} derecha={<span className="font-mono text-mint">{t.montoAdelanto}</span>} />
+          <Linea izquierda={t.saldo} derecha={<span className="font-mono text-white/70">{t.montoSaldo}</span>} />
         </ul>
       </Bloque>
     </div>
   ),
 };
 
-export function EspacioDemo() {
+export function EspacioDemo({ t }: { t: TextosDemo }) {
   const [activo, setActivo] = useState<Modulo>("inicio");
   const botones = useRef<Partial<Record<Modulo, HTMLButtonElement | null>>>({});
 
@@ -130,9 +133,9 @@ export function EspacioDemo() {
 
   return (
     <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0d1320] text-white">
-      <p className="truncate border-b border-white/10 px-3 py-2 font-mono text-[11px] text-white/45">aguemar.com/w/tu-empresa{activo === "inicio" ? "" : `/${activo}`}</p>
-      <div role="tablist" aria-label="Módulos del espacio" onKeyDown={alTeclear} className="flex gap-1 overflow-x-auto border-b border-white/10 p-2">
-        {MODULOS.map(({ clave, nombre, icono: Icono }) => {
+      <p className="truncate border-b border-white/10 px-3 py-2 font-mono text-[11px] text-white/45">{t.ruta}{activo === "inicio" ? "" : `/${activo}`}</p>
+      <div role="tablist" aria-label={t.aria} onKeyDown={alTeclear} className="flex gap-1 overflow-x-auto border-b border-white/10 p-2">
+        {MODULOS.map(({ clave, icono: Icono }) => {
           const sel = clave === activo;
           return (
             <button
@@ -150,13 +153,13 @@ export function EspacioDemo() {
               className={cn("flex shrink-0 items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors", sel ? "bg-mint/15 text-white" : "text-white/55 hover:bg-white/[0.04] hover:text-white")}
             >
               <Icono className={cn("size-4", sel && "text-mint")} aria-hidden />
-              {nombre}
+              {t.modulos[clave]}
             </button>
           );
         })}
       </div>
       <div id="espacio-panel" role="tabpanel" aria-labelledby={`modulo-${activo}`} className="min-h-[240px] p-4">
-        {CONTENIDO[activo]()}
+        {CONTENIDO[activo](t)}
       </div>
     </div>
   );
