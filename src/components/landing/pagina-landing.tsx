@@ -11,9 +11,8 @@ import { TituloSticky } from "@/components/landing/titulo-sticky";
 import { Fila, ListaFilas } from "@/components/landing/fila";
 import { Servicios } from "@/components/landing/servicios";
 import { Proyectos } from "@/components/landing/proyectos";
-import { EspacioDemo } from "@/components/landing/espacio-demo";
 import { datosLanding } from "@/lib/datos/landing";
-import { enlaceWhatsApp, numeroWhatsApp, serviciosPorArea, telefonoLegible } from "@/lib/landing";
+import { enlaceWhatsApp, numeroWhatsApp, telefonoLegible } from "@/lib/landing";
 import { contenidoLanding } from "@/lib/landing-contenido";
 import { RUTA_IDIOMA, TEXTOS, type Idioma } from "@/lib/landing-textos";
 import { envPublico } from "@/lib/env";
@@ -25,17 +24,23 @@ const FormularioContacto = dynamic(() => import("@/components/landing/formulario
 
 const SECCION = "mb-16 scroll-mt-16 lg:mb-24 lg:scroll-mt-24";
 const ENLACE_LATERAL = "inline-flex items-center gap-2 rounded-sm transition-colors hover:text-mint";
+const VIA_DIRECTA = "flex flex-col gap-1.5 border-l-2 border-white/15 py-1 pl-4 transition-colors hover:border-mint";
 
 /** La landing completa en un idioma: `/` la usa en español y `/en` en inglés. */
 export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
   const t = TEXTOS[idioma];
   const { secciones, pasos, proyectos } = contenidoLanding(idioma);
   const { marca, servicios } = await datosLanding();
-  const porArea = serviciosPorArea(servicios);
   const telefono = marca?.telefono ?? envPublico.NEXT_PUBLIC_WHATSAPP ?? null;
   const whatsapp = enlaceWhatsApp(telefono, t.lateral.whatsappMensaje);
   const nombre = "aguemar";
   const anio = new Date().getFullYear();
+  const copyright = `© ${anio} ${nombre} · ${t.pie.copyright}`;
+  const enlacePrivacidad = (
+    <Link href="/privacidad" className="hover:text-white">
+      {t.pie.privacidad}
+    </Link>
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -62,7 +67,7 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
     <div lang={t.codigo} className="dark min-h-dvh bg-ink text-white [color-scheme:dark]">
       <SaltarContenido />
       <BrilloCursor />
-      <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8 md:px-12 md:py-16 lg:flex lg:justify-between lg:gap-4 lg:py-0">
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8 md:px-12 md:py-16 lg:flex lg:justify-between lg:gap-16 lg:py-0 xl:gap-24">
         {/* ---------- Columna izquierda ---------- */}
         <header className="lg:sticky lg:top-0 lg:flex lg:max-h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24">
           <div>
@@ -74,9 +79,14 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
             </div>
             <p className="mt-10 font-mono text-sm text-mint">{t.hero.rotulo}</p>
             <h1 className="mt-3 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
-              {t.hero.h1a} <span className="text-mint">{t.hero.h1b}</span>
+              Alejandro <br />
+              Guevara M.
             </h1>
-            <p className="mt-5 max-w-sm text-white/65">{t.hero.texto}</p>
+            <p className="mt-4 text-xl font-medium text-mint sm:text-2xl">
+              {t.hero.cargoA} <br />
+              {t.hero.cargoB}
+            </p>
+            <p className="mt-3 max-w-sm text-white/65">{t.hero.texto}</p>
             <Button asChild variant="mint" className="mt-8">
               <a href="#contacto">
                 {t.hero.cta} <ArrowRight />
@@ -84,7 +94,8 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
             </Button>
             <MenuSecciones secciones={secciones} etiqueta={t.menuAria} />
           </div>
-          <ul className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
+          <div className="mt-10">
+          <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
             {whatsapp ? (
               <li>
                 <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={ENLACE_LATERAL}>
@@ -105,6 +116,11 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
               </Link>
             </li>
           </ul>
+          {/* En escritorio el pie va aquí, debajo del hero y siempre a la vista; en móvil queda al final de la página. */}
+          <p className="mt-6 hidden text-xs text-white/45 lg:block">
+            {copyright} · {enlacePrivacidad}
+          </p>
+          </div>
         </header>
 
         {/* ---------- Columna derecha ---------- */}
@@ -117,12 +133,12 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
             </div>
           </section>
 
-          <Servicios porArea={porArea} t={t.servicios} idioma={idioma} />
+          <Servicios t={t.servicios} />
 
           <section id="proyectos" aria-labelledby="t-proyectos" className={SECCION}>
             <TituloSticky id="t-proyectos" rotulo={t.proyectos.rotulo} titulo={t.proyectos.titulo} />
             <p className="mb-6 text-white/65">{t.proyectos.intro}</p>
-            <Proyectos proyectos={proyectos} />
+            <Proyectos proyectos={proyectos} etiquetaMedida={t.proyectos.medida} />
           </section>
 
           <section id="como-trabajo" aria-labelledby="t-como" className={SECCION}>
@@ -130,19 +146,13 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
             <p className="mb-6 text-white/65">{t.comoTrabajo.intro}</p>
             <ListaFilas ordenada>
               {pasos.map((p, i) => (
-                <Fila key={p.artefacto} etiqueta={String(i + 1).padStart(2, "0")} titulo={p.titulo} texto={p.texto} chips={[p.artefacto]} />
+                <Fila key={p.titulo} etiqueta={String(i + 1).padStart(2, "0")} titulo={p.titulo} texto={p.texto} chips={p.chips} />
               ))}
             </ListaFilas>
-          </section>
-
-          <section id="tu-espacio" aria-labelledby="t-espacio" className={SECCION}>
-            <TituloSticky id="t-espacio" rotulo={t.tuEspacio.rotulo} titulo={t.tuEspacio.titulo} />
-            <p className="mb-6 text-white/65">{t.tuEspacio.intro}</p>
-            <EspacioDemo t={t.demo} />
-            <p className="mt-4 text-sm text-white/60">
-              <span className="font-mono text-xs text-white/45">{t.tuEspacio.ejemplo}</span> {t.tuEspacio.yaTrabajas}{" "}
+            <p className="mt-4 text-sm text-white/60 md:ml-[9rem]">
+              {t.comoTrabajo.yaTrabajas}{" "}
               <Link href="/login" className="text-white underline underline-offset-4 hover:text-mint">
-                {t.tuEspacio.ingresa}
+                {t.comoTrabajo.ingresa}
               </Link>
               .
             </p>
@@ -151,40 +161,43 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
           <section id="contacto" aria-labelledby="t-contacto" className="scroll-mt-16 lg:scroll-mt-24">
             <TituloSticky id="t-contacto" rotulo={t.contacto.rotulo} titulo={t.contacto.titulo} />
             <p className="mb-6 text-white/65">{t.contacto.intro}</p>
-            <div className="text-foreground">
-              <FormularioContacto servicios={servicios} whatsapp={whatsapp} idioma={idioma} />
-            </div>
+            {/* Vía principal: WhatsApp y correo, grandes y a un clic. El formulario va debajo como alternativa. */}
             {whatsapp || marca?.correo ? (
-              <p className="mt-5 text-sm text-white/60">
-                {t.contacto.directo}{" "}
+              <ul className="mb-10 flex flex-wrap gap-x-10 gap-y-4">
                 {whatsapp ? (
-                  <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="font-mono text-white hover:text-mint">
-                    WhatsApp {telefonoLegible(telefono)}
-                  </a>
+                  <li>
+                    <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={VIA_DIRECTA}>
+                      <span className="font-mono text-xs text-mint">{"// whatsapp"}</span>
+                      <span className="flex items-center gap-2 text-lg font-medium text-white">
+                        <MessageCircle className="size-5 shrink-0 text-mint" aria-hidden />
+                        {telefonoLegible(telefono)}
+                      </span>
+                    </a>
+                  </li>
                 ) : null}
-                {whatsapp && marca?.correo ? t.contacto.o : null}
                 {marca?.correo ? (
-                  <a href={`mailto:${marca.correo}`} className="break-all font-mono text-white hover:text-mint">
-                    {marca.correo}
-                  </a>
+                  <li>
+                    <a href={`mailto:${marca.correo}`} className={VIA_DIRECTA}>
+                      <span className="font-mono text-xs text-mint">{`// ${t.contacto.correo}`}</span>
+                      <span className="flex items-center gap-2 text-lg font-medium text-white">
+                        <Mail className="size-5 shrink-0 text-mint" aria-hidden />
+                        <span className="min-w-0 break-all">{marca.correo}</span>
+                      </span>
+                    </a>
+                  </li>
                 ) : null}
-                .
-              </p>
+              </ul>
             ) : null}
+            <p className="mb-5 text-sm text-white/60">{t.contacto.oMensaje}</p>
+            <div className="text-foreground">
+              <FormularioContacto whatsapp={whatsapp} idioma={idioma} />
+            </div>
           </section>
 
-          <footer className="mt-16 text-xs leading-relaxed text-white/45 lg:mt-24">
+          {/* Solo en móvil: desde lg el pie va bajo el hero, en la columna izquierda. */}
+          <footer className="mt-16 text-xs leading-relaxed text-white/45 lg:hidden">
             <p>
-              © {anio} {nombre} · {t.pie.hecho}
-            </p>
-            <p className="mt-1">
-              <Link href="/privacidad" className="hover:text-white">
-                {t.pie.privacidad}
-              </Link>{" "}
-              ·{" "}
-              <Link href="/login" className="hover:text-white">
-                {t.pie.ingresar}
-              </Link>
+              {copyright} · {enlacePrivacidad}
             </p>
           </footer>
         </main>

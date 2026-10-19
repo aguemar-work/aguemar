@@ -16,36 +16,35 @@ export const SECCIONES: Seccion[] = [
   { id: "servicios", texto: "Servicios" },
   { id: "proyectos", texto: "Proyectos" },
   { id: "como-trabajo", texto: "Cómo trabajo" },
-  { id: "tu-espacio", texto: "Tu espacio" },
   { id: "contacto", texto: "Contacto" },
 ];
 
 export interface Paso {
   titulo: string;
   texto: string;
-  artefacto: string;
+  /** Etiquetas mono bajo el texto (el paso 04 enumera lo que ve la empresa en su espacio). */
+  chips?: string[];
 }
 
+/** Tres pasos y un cuarto que es el plus: el espacio propio de cada empresa. */
 export const PASOS: Paso[] = [
   {
     titulo: "Conversamos",
-    texto: "Me cuentas qué necesitas por WhatsApp, el formulario o una reunión. Pregunto hasta entender el problema, no solo el pedido.",
-    artefacto: "// brief",
+    texto: "Me cuentas qué necesitas. Pregunto hasta entender el problema, no solo el pedido.",
   },
   {
-    titulo: "Cotización clara",
-    texto: "Precio, alcance y plazo por escrito, antes de empezar. La aceptas en línea con tu nombre y DNI.",
-    artefacto: "COT-AAAA-NNN · PDF",
+    titulo: "Acordamos",
+    texto: "Precio, alcance y plazo por escrito, antes de empezar.",
   },
   {
-    titulo: "Avance a la vista",
-    texto: "Tu empresa tiene su espacio con el proyecto, el calendario y los informes. Entras cuando quieras, sin pedirme capturas.",
-    artefacto: "/w/tu-empresa",
+    titulo: "Construyo y entrego",
+    texto: "Trabajo con avance a la vista y cierro con todo documentado: acta, ficha o informe en PDF.",
   },
   {
-    titulo: "Entrega con respaldo",
-    texto: "Cierro con un acta de entrega o una ficha técnica en PDF, con un QR que abre el documento original.",
-    artefacto: "AE-AAAA-NNN · QR",
+    titulo: "Tu espacio",
+    texto:
+      "No te pido que confíes: entra y míralo. Tu empresa tiene su propio usuario desde el primer día, ve solo lo suyo y siempre al día, sin preguntar “¿cómo vamos?” por chat.",
+    chips: ["Proyectos", "Calendario", "Documentos", "Cotizaciones"],
   },
 ];
 
@@ -53,59 +52,43 @@ export interface Proyecto {
   clave: string;
   titulo: string;
   areas: string[];
-  reto: string;
-  hecho: string[];
+  /** La solución entregada, en una o dos frases (no el historial de lo que se quitó o cambió). */
+  solucion: string;
   stack: string[];
 }
 
-/** Proyectos propios y para clientes, contados de forma general (sin nombres de clientes). */
+/** Proyectos propios y para clientes. */
 export const PROYECTOS: Proyecto[] = [
   {
     clave: "web",
     titulo: "Rediseño y optimización de una web corporativa",
     areas: ["diseño", "desarrollo"],
-    reto: "Una web que tardaba en mostrarse: librerías externas, íconos y animaciones que bloqueaban la carga.",
-    hecho: [
-      "Quité tres recursos externos que frenaban la página antes de pintarse.",
-      "Cambié las animaciones a CSS nativo: de 14 KB de JavaScript a menos de 1 KB.",
-      "Íconos en SVG, imagen principal prioritaria y títulos pensados para Google.",
-    ],
+    solucion:
+      "Un rediseño moderno que carga en un instante y está pensado para Google: animaciones ligeras, íconos nítidos y títulos y estructura que posicionan.",
     stack: ["Astro", "CSS", "SEO"],
   },
   {
     clave: "itms",
     titulo: "Sistema ITMS para un área de TI",
     areas: ["desarrollo", "soporte"],
-    reto: "Los accesos de cada trabajador (correo, VPN, ERP…) estaban repartidos y nadie sabía quién tuvo qué, ni desde cuándo.",
-    hecho: [
-      "Historial de asignaciones: quién tuvo cada acceso, desde cuándo y si la contraseña se cambió después.",
-      "Contraseñas cifradas en el servidor y entregas por enlace de un solo uso.",
-      "Mesa de ayuda propia con tickets y encuestas, más el inventario de equipos con fotos.",
-    ],
+    solucion:
+      "Un solo lugar para los accesos del personal: quién tiene qué y desde cuándo, con contraseñas protegidas, mesa de ayuda con tickets e inventario de equipos con fotos.",
     stack: ["Vue 3", "Postgres + RLS", "Funciones en el servidor"],
   },
   {
     clave: "agenda",
     titulo: "Agenda y tareas para equipos de TI",
     areas: ["desarrollo"],
-    reto: "Planificar la semana de un equipo, registrar los imprevistos del día y medir lo que de verdad se cumple.",
-    hecho: [
-      "“Mi semana”: grilla de lunes a sábado con tareas, incidencias y bitácora.",
-      "Órdenes de trabajo con aprobación: borrador, pendiente, aprobada y completada.",
-      "Objetivos con avance, métricas para el jefe y varias organizaciones aisladas en la base de datos.",
-    ],
+    solucion:
+      "Una agenda para planificar la semana del equipo, registrar los imprevistos y medir lo que de verdad se cumple, con órdenes de trabajo aprobadas y métricas para el jefe.",
     stack: ["React 19", "Postgres + RLS", "Multiorganización"],
   },
   {
     clave: "verifica",
     titulo: "Emisión y verificación de documentos con QR",
     areas: ["desarrollo"],
-    reto: "Documentos que se podían copiar o alterar sin que quien los recibía pudiera comprobarlo.",
-    hecho: [
-      "El sistema emite el documento en Word, listo para imprimir o firmar.",
-      "Cada documento lleva un código QR propio.",
-      "Quien lo recibe lo escanea con el celular y ve si es auténtico.",
-    ],
+    solucion:
+      "Documentos listos para imprimir o firmar, cada uno con su código QR: quien los recibe lo escanea con el celular y comprueba al instante que son auténticos.",
     stack: ["React", "Supabase", "Word (docx)"],
   },
 ];
@@ -119,30 +102,27 @@ const SECCIONES_EN: Seccion[] = [
   { id: "servicios", texto: "Services" },
   { id: "proyectos", texto: "Projects" },
   { id: "como-trabajo", texto: "How I work" },
-  { id: "tu-espacio", texto: "Your space" },
   { id: "contacto", texto: "Contact" },
 ];
 
 const PASOS_EN: Paso[] = [
   {
     titulo: "We talk",
-    texto: "You tell me what you need by WhatsApp, the form or a meeting. I keep asking until I understand the problem, not just the request.",
-    artefacto: "// brief",
+    texto: "You tell me what you need. I keep asking until I understand the problem, not just the request.",
   },
   {
-    titulo: "A clear quote",
-    texto: "Price, scope and deadline in writing, before we start. You accept it online with your name and ID number.",
-    artefacto: "COT-YYYY-NNN · PDF",
+    titulo: "We agree",
+    texto: "Price, scope and deadline in writing, before we start.",
   },
   {
-    titulo: "Progress in plain sight",
-    texto: "Your company gets its own space with the project, the calendar and the reports. Come in whenever you want, no need to ask me for screenshots.",
-    artefacto: "/w/your-company",
+    titulo: "I build and deliver",
+    texto: "I work with progress in plain sight and close with everything documented: a record, a sheet or a report in PDF.",
   },
   {
-    titulo: "Delivery with backing",
-    texto: "I close with a delivery record or a technical sheet in PDF, with a QR code that opens the original document.",
-    artefacto: "AE-YYYY-NNN · QR",
+    titulo: "Your space",
+    texto:
+      "I won't ask you to trust me: sign in and see it. Your company gets its own user from day one, sees only its own things and always up to date, with no need to ask “how are we doing?” in a chat.",
+    chips: ["Projects", "Calendar", "Documents", "Quotes"],
   },
 ];
 
@@ -151,48 +131,32 @@ const PROYECTOS_EN: Proyecto[] = [
     clave: "web",
     titulo: "Redesign and optimization of a corporate website",
     areas: ["design", "development"],
-    reto: "A website that was slow to appear: external libraries, icons and animations blocking the load.",
-    hecho: [
-      "Removed three external resources that held the page back before it painted.",
-      "Moved the animations to native CSS: from 14 KB of JavaScript to under 1 KB.",
-      "SVG icons, a prioritized hero image and headings built for Google.",
-    ],
+    solucion:
+      "A modern redesign that loads instantly and is built for Google: lightweight animations, crisp icons, and headings and structure that rank.",
     stack: ["Astro", "CSS", "SEO"],
   },
   {
     clave: "itms",
     titulo: "ITMS system for an IT department",
     areas: ["development", "support"],
-    reto: "Each employee's access (email, VPN, ERP…) was scattered and nobody knew who had what, or since when.",
-    hecho: [
-      "Assignment history: who held each access, since when, and whether the password was changed afterwards.",
-      "Passwords encrypted on the server and handed over through single-use links.",
-      "Its own help desk with tickets and surveys, plus an equipment inventory with photos.",
-    ],
+    solucion:
+      "One place for staff access: who has what and since when, with protected passwords, a help desk with tickets and an equipment inventory with photos.",
     stack: ["Vue 3", "Postgres + RLS", "Server functions"],
   },
   {
     clave: "agenda",
     titulo: "Agenda and tasks for IT teams",
     areas: ["development"],
-    reto: "Planning a team's week, logging the day's unexpected events and measuring what actually gets done.",
-    hecho: [
-      "“My week”: a Monday-to-Saturday grid with tasks, incidents and a log.",
-      "Work orders with approval: draft, pending, approved and completed.",
-      "Goals with progress, metrics for the manager and several organizations isolated in the database.",
-    ],
+    solucion:
+      "An agenda to plan the team's week, log unexpected events and measure what actually gets done, with approved work orders and metrics for the manager.",
     stack: ["React 19", "Postgres + RLS", "Multi-organization"],
   },
   {
     clave: "verifica",
     titulo: "Issuing and verifying documents with QR codes",
     areas: ["development"],
-    reto: "Documents that could be copied or altered without the person receiving them being able to check.",
-    hecho: [
-      "The system issues the document in Word, ready to print or sign.",
-      "Every document carries its own QR code.",
-      "Whoever receives it scans it with their phone and sees whether it's authentic.",
-    ],
+    solucion:
+      "Documents ready to print or sign, each with its own QR code: whoever receives one scans it with their phone and instantly checks it's authentic.",
     stack: ["React", "Supabase", "Word (docx)"],
   },
 ];

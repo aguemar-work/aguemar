@@ -5,29 +5,32 @@ test("la landing muestra las secciones y el botón Ingresar", async ({ page }) =
   await page.goto("/");
   await expect(page.getByText(/RUC/)).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  for (const nombre of ["Lo que hago", "Lo que he construido", "Cómo trabajo", "Tu empresa, con su propio espacio", "Conversemos"]) {
+  for (const nombre of ["Lo que hago", "Lo que he construido", "Cómo trabajo", "Conversemos"]) {
     await expect(page.getByRole("heading", { name: nombre })).toBeVisible();
   }
   await expect(page.getByRole("link", { name: "Ingresar" }).first()).toHaveAttribute("href", "/login");
 });
 
-test("servicios, proyectos y el espacio de ejemplo se muestran en filas", async ({ page }) => {
-  await page.goto("/#desarrollo");
-  for (const area of ["Diseño", "Desarrollo", "Soporte técnico"]) {
-    await expect(page.getByRole("heading", { name: area, exact: true })).toBeVisible();
-  }
-  await expect(page.locator("#desarrollo")).toBeInViewport();
-  // Las únicas pestañas son las del espacio de ejemplo.
-  await expect(page.getByRole("tab")).toHaveCount(3);
+test("el hero lleva el nombre y la landing presenta dos oficios, proyectos a medida y cuatro pasos", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Alejandro Guevara M.");
+  await expect(page.getByText("Especialista TI y Desarrollador Frontend.")).toBeVisible();
+  await expect(page.getByText("Todos los zurdos reservados.").first()).toBeAttached();
+
+  await expect(page.getByRole("heading", { name: "Desarrollador Frontend / Diseñador" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Especialista TI", exact: true })).toBeVisible();
 
   await expect(page.getByRole("heading", { name: /Sistema ITMS/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: /Agenda y tareas/ })).toBeVisible();
-  await expect(page.locator("#proyectos")).toContainText("un solo uso");
+  await expect(page.locator("#proyectos")).toContainText("hecho a medida");
+  await expect(page.locator("#proyectos")).not.toContainText("PENDIENTE");
+  // Cuatro pasos (los chips del paso 04 también son <li>, por eso solo los hijos directos de la lista).
+  await expect(page.locator("#como-trabajo > ol > li")).toHaveCount(4);
+  await expect(page.locator("#como-trabajo")).toContainText("Tu espacio");
+  await expect(page.locator("#como-trabajo").getByRole("link", { name: "Ingresa a tu espacio" })).toHaveAttribute("href", "/login");
 
-  await page.getByRole("tab", { name: "Cotizaciones" }).click();
-  await expect(page.getByRole("tabpanel", { name: "Cotizaciones" })).toContainText("COT-2026-012");
-  await page.keyboard.press("ArrowLeft");
-  await expect(page.getByRole("tab", { name: "Proyectos" })).toHaveAttribute("aria-selected", "true");
+  // Sin demo: no hay pestañas de ejemplo en la página.
+  await expect(page.getByRole("tab")).toHaveCount(0);
 });
 
 test("en escritorio el menú marca la sección activa al bajar", async ({ page, isMobile }) => {
@@ -54,8 +57,9 @@ test("la versión en inglés está en /en y el selector cambia de idioma", async
   await page.goto("/");
   await page.getByRole("link", { name: "English" }).click();
   await expect(page).toHaveURL(/\/en$/);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("I'll show you.");
-  for (const nombre of ["What I do", "What I've built", "How I work", "Your company, with its own space", "Let's talk"]) {
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Alejandro Guevara M.");
+  await expect(page.getByText("IT Specialist and Frontend Developer.")).toBeVisible();
+  for (const nombre of ["What I do", "What I've built", "How I work", "Let's talk"]) {
     await expect(page.getByRole("heading", { name: nombre })).toBeVisible();
   }
   await expect(page.getByRole("link", { name: "Sign in" }).first()).toHaveAttribute("href", "/login");

@@ -29,28 +29,6 @@ export interface DatosLanding {
   servicios: ServicioLanding[];
 }
 
-/** Las tres áreas con su texto de presentación, en el orden de la landing. */
-export const AREAS_LANDING: { area: Area; titulo: string; rotulo: string; texto: string }[] = [
-  {
-    area: "diseno",
-    titulo: "Diseño",
-    rotulo: "// diseño",
-    texto: "Identidad visual, piezas para redes y presentaciones para que tu marca se vea profesional y coherente.",
-  },
-  {
-    area: "desarrollo",
-    titulo: "Desarrollo",
-    rotulo: "// desarrollo",
-    texto: "Webs y sistemas a medida: rápidos, seguros y fáciles de administrar por tu equipo.",
-  },
-  {
-    area: "soporte",
-    titulo: "Soporte técnico",
-    rotulo: "// soporte",
-    texto: "Mantenimiento, soporte remoto y redes, con una ficha técnica de cada servicio que puedes verificar.",
-  },
-];
-
 export function serviciosPorArea(servicios: ServicioLanding[]): Record<Area, ServicioLanding[]> {
   const grupos: Record<Area, ServicioLanding[]> = { diseno: [], desarrollo: [], soporte: [] };
   for (const s of servicios) grupos[s.area]?.push(s);

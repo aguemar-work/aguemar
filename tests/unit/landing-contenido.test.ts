@@ -9,16 +9,32 @@ describe("contenido fijo de la landing", () => {
     expect(new Set(SECCIONES.map((s) => s.id)).size).toBe(SECCIONES.length);
   });
 
-  it("hay cuatro pasos con artefacto", () => {
+  it("hay cuatro pasos con título y texto, y el último es el espacio de la empresa", () => {
     expect(PASOS).toHaveLength(4);
-    for (const p of PASOS) expect(p.artefacto.length).toBeGreaterThan(0);
+    for (const p of PASOS) {
+      expect(p.titulo.length).toBeGreaterThan(0);
+      expect(p.texto.length).toBeGreaterThan(0);
+    }
+    expect(PASOS.at(-1)?.titulo).toBe("Tu espacio");
+    expect(PASOS.at(-1)?.chips?.length).toBeGreaterThan(0);
   });
 
-  it("los proyectos tienen clave única y al menos un punto hecho", () => {
+  it("los proyectos tienen clave única, solución y stack", () => {
     expect(new Set(PROYECTOS.map((p) => p.clave)).size).toBe(PROYECTOS.length);
     for (const p of PROYECTOS) {
-      expect(p.hecho.length).toBeGreaterThan(0);
+      expect(p.solucion.length).toBeGreaterThan(0);
       expect(p.stack.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("la landing presenta dos oficios, cada uno con descripción", () => {
+    for (const idioma of ["es", "en"] as const) {
+      const { bloques } = TEXTOS[idioma].servicios;
+      expect(bloques).toHaveLength(2);
+      for (const b of bloques) {
+        expect(b.texto.length).toBeGreaterThan(40);
+        expect(b.chips.length).toBeGreaterThan(0);
+      }
     }
   });
 
@@ -29,7 +45,6 @@ describe("contenido fijo de la landing", () => {
     expect(en.pasos).toHaveLength(es.pasos.length);
     expect(en.proyectos.map((p) => p.clave)).toEqual(es.proyectos.map((p) => p.clave));
     for (const [i, p] of en.proyectos.entries()) {
-      expect(p.hecho).toHaveLength(es.proyectos[i]!.hecho.length);
       expect(p.areas).toHaveLength(es.proyectos[i]!.areas.length);
     }
   });

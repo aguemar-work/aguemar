@@ -1,9 +1,9 @@
 /**
  * Textos fijos de la landing en español e inglés. Solo datos (sin JSX), así los componentes de
  * cliente reciben el objeto por props y los tests comprueban que ambos idiomas tengan lo mismo.
- * Los servicios vienen de la base de datos y se muestran como están (en español).
+ * Los servicios del catálogo (base de datos) solo alimentan el JSON-LD; en la página se presentan los
+ * dos oficios de `servicios.bloques`.
  */
-import type { Area } from "@/types/database";
 
 export type Idioma = "es" | "en";
 
@@ -14,21 +14,20 @@ export const RUTA_IDIOMA: Record<Idioma, string> = { es: "/", en: "/en" };
 const ES = {
   codigo: "es-PE",
   meta: {
-    titulo: "aguemar · Diseño, desarrollo y soporte técnico en Perú",
-    tituloCorto: "aguemar · Diseño, desarrollo y soporte técnico",
+    titulo: "Alejandro Guevara M. · Especialista TI y Desarrollador Frontend | aguemar",
+    tituloCorto: "aguemar · Especialista TI y Desarrollador Frontend",
     descripcion:
-      "Diseño, desarrollo web y soporte técnico para empresas en Perú. Cotizaciones claras, avance a la vista en tu propio espacio y documentos verificables.",
+      "Alejandro Guevara M., especialista TI y desarrollador frontend en Perú. Simplifico procesos, ideas e interfaces: webs, sistemas y soporte técnico para empresas.",
     locale: "es_PE",
     catalogo: "Servicios",
   },
   selectorIdioma: "Idioma",
   inicioAria: "aguemar, inicio",
   hero: {
-    rotulo: "// especialista TI · diseño · desarrollo",
-    h1a: "No te pido que confíes.",
-    h1b: "Te lo muestro.",
-    texto:
-      "Especialista TI certificado en ITIL que diseña y programa. Ayudo a empresas a ordenar su tecnología: sistemas que simplifican procesos, interfaces que la gente sí usa e infraestructura que no falla.",
+    rotulo: "// hola, soy",
+    cargoA: "Especialista TI y",
+    cargoB: "Desarrollador Frontend.",
+    texto: "Simplifico procesos, diseño interfaces y construyo la arquitectura que los sostiene.",
     cta: "Cuéntame tu proyecto",
   },
   menuAria: "Secciones",
@@ -36,52 +35,40 @@ const ES = {
   sobreMi: {
     rotulo: "sobre mí",
     titulo: "Sobre mí",
-    p1: "Soy Alejandro Guevara, llevo 5 años trabajando en áreas de TI, y ahí aprendí que la mayoría de los problemas tecnológicos de una empresa no son técnicos, son de orden: accesos que nadie controla, procesos que dependen de un Excel y de una sola persona, equipos que se revisan recién cuando fallan.",
-    p2: "Por eso trabajo en dos frentes. Como especialista TI, sé lo que necesita la operación para no detenerse. Como diseñador y desarrollador frontend, construyo las herramientas que la resuelven, y que la gente sí quiere usar.",
+    p1: "Llevo más de 5 años trabajando en TI y desarrollo frontend. Aprendí que la mayoría de los problemas de una empresa no son técnicos, son de orden.",
+    p2: "Como especialista TI, sé lo que necesita la operación para no detenerse. Como desarrollador frontend, construyo las herramientas que lo resuelven.",
   },
   servicios: {
     rotulo: "servicios",
     titulo: "Lo que hago",
-    intro: "Tres oficios que se cruzan todo el tiempo: cómo se ve tu empresa, qué usa cada día y qué la mantiene funcionando.",
-    vacio: "Cada proyecto lo armo a medida: cuéntame qué necesitas y te propongo alcance y precio.",
-    precioDesde: "Desde",
-    precioPor: "por",
-    areas: {
-      diseno: {
-        titulo: "Diseño",
-        rotulo: "// diseño",
-        otro: "Otro de diseño",
-        texto: "Identidad visual, piezas para redes y presentaciones para que tu marca se vea profesional y coherente.",
+    intro: "Dos oficios que se cruzan todo el tiempo: lo que tu empresa usa cada día y lo que la mantiene funcionando.",
+    bloques: [
+      {
+        rotulo: "// frontend",
+        titulo: "Desarrollador Frontend / Diseñador",
+        texto:
+          "Diseño y construyo la cara de tu empresa: webs, interfaces y sistemas que se ven bien, cargan rápido y se entienden a la primera. Pienso en quien los va a usar antes de escribir una línea de código.",
+        chips: ["Webs corporativas", "Interfaces y sistemas web", "Identidad y piezas visuales", "SEO y velocidad"],
       },
-      desarrollo: {
-        titulo: "Desarrollo",
-        rotulo: "// desarrollo",
-        otro: "Otro de desarrollo",
-        texto: "Webs y sistemas a medida: rápidos, seguros y fáciles de administrar por tu equipo.",
+      {
+        rotulo: "// ti",
+        titulo: "Especialista TI",
+        texto:
+          "Me encargo de que tu operación no se detenga: equipos, redes, accesos y soporte, con orden y con respaldo documentado. Prevengo los problemas en lugar de apagar incendios.",
+        chips: ["Soporte y mantenimiento", "Redes y accesos", "Inventario y fichas técnicas", "Gestión ITIL"],
       },
-      soporte: {
-        titulo: "Soporte técnico",
-        rotulo: "// soporte",
-        otro: "Otro de soporte técnico",
-        texto: "Mantenimiento, soporte remoto y redes, con una ficha técnica de cada servicio que puedes verificar.",
-      },
-    } as Record<Area, { titulo: string; rotulo: string; otro: string; texto: string }>,
+    ],
   },
   proyectos: {
     rotulo: "proyectos",
     titulo: "Lo que he construido",
-    intro: "Proyectos propios y para clientes. Sin nombres, por discreción, pero sí qué problema había y cómo lo resolví.",
+    intro: "Soluciones que construí, contadas por lo que resuelven.",
+    medida: "hecho a medida",
   },
   comoTrabajo: {
     rotulo: "cómo trabajo",
     titulo: "Cómo trabajo",
-    intro: "Sin sorpresas: sabes qué se hará, cuánto cuesta y en qué va, en cada momento.",
-  },
-  tuEspacio: {
-    rotulo: "tu espacio",
-    titulo: "Tu empresa, con su propio espacio",
-    intro: "Cada empresa que atiendo entra con su usuario y ve solo lo suyo. Nada de preguntar “¿cómo vamos?” por chat: está ahí, al día. Pruébalo.",
-    ejemplo: "Vista de ejemplo, con datos ficticios.",
+    intro: "Sin sorpresas, de principio a fin.",
     yaTrabajas: "¿Ya trabajas conmigo?",
     ingresa: "Ingresa a tu espacio",
   },
@@ -89,39 +76,15 @@ const ES = {
     rotulo: "contacto",
     titulo: "Conversemos",
     intro: "Cuéntame qué necesitas. Te respondo yo, no un bot, con los siguientes pasos.",
-    directo: "O directo por",
-    o: " o ",
+    correo: "correo",
+    oMensaje: "O déjame un mensaje aquí y te escribo yo.",
   },
-  pie: { hecho: "Hecho con Next.js y Tailwind, en Perú.", privacidad: "Privacidad", ingresar: "Ingresar" },
-  demo: {
-    aria: "Módulos del espacio",
-    ruta: "aguemar.com/w/tu-empresa",
-    modulos: { inicio: "Inicio", proyectos: "Proyectos", cotizaciones: "Cotizaciones" },
-    proyecto: "Web corporativa",
-    proyectoActivo: "Proyecto activo",
-    tareas: "6/8 tareas",
-    proximaActividad: "Próxima actividad",
-    reunion: "Reunión de avance",
-    fecha: "jue 22/10 · 10:00",
-    respuesta: "Respuesta a tu comentario",
-    comentario: "“Listo, ya subí la versión con el logo nuevo.”",
-    enCurso: "En curso",
-    etapas: ["Descubrimiento", "Diseño", "Desarrollo", "Entrega"],
-    aceptada: "Aceptada",
-    monto: "S/ 2 450,00",
-    adelanto: "Adelanto 50 %",
-    montoAdelanto: "S/ 1 225,00",
-    saldo: "Saldo",
-    montoSaldo: "S/ 1 225,00",
-  },
+  pie: { copyright: "Todos los zurdos reservados.", privacidad: "Privacidad" },
   form: {
     nombre: "Tu nombre",
-    empresa: "Empresa",
-    opcional: "Opcional",
     whatsapp: "WhatsApp",
     correo: "Correo",
-    interes: "¿Qué necesitas?",
-    sinDefinir: "Aún no lo sé",
+    unoDeLosDos: "Con uno de los dos basta.",
     mensaje: "Cuéntame",
     mensajePlaceholder: "Qué necesitas, para cuándo y cualquier detalle que ayude.",
     sitio: "Sitio web",
@@ -140,21 +103,20 @@ export type TextosLanding = typeof ES;
 const EN: TextosLanding = {
   codigo: "en",
   meta: {
-    titulo: "aguemar · Design, development and IT support in Peru",
-    tituloCorto: "aguemar · Design, development and IT support",
+    titulo: "Alejandro Guevara M. · IT Specialist and Frontend Developer | aguemar",
+    tituloCorto: "aguemar · IT Specialist and Frontend Developer",
     descripcion:
-      "Design, web development and IT support for companies in Peru. Clear quotes, progress in plain sight in your own space, and verifiable documents.",
+      "Alejandro Guevara M., IT specialist and frontend developer in Peru. I simplify processes, ideas and interfaces: websites, systems and IT support for companies.",
     locale: "en_US",
     catalogo: "Services",
   },
   selectorIdioma: "Language",
   inicioAria: "aguemar, home",
   hero: {
-    rotulo: "// IT specialist · design · development",
-    h1a: "I won't ask you to trust me.",
-    h1b: "I'll show you.",
-    texto:
-      "ITIL-certified IT specialist who designs and codes. I help companies get their technology in order: systems that simplify processes, interfaces people actually use, and infrastructure that doesn't fail.",
+    rotulo: "// hi, I'm",
+    cargoA: "IT Specialist and",
+    cargoB: "Frontend Developer.",
+    texto: "I simplify processes, design interfaces and build the architecture that holds them together.",
     cta: "Tell me about your project",
   },
   menuAria: "Sections",
@@ -162,52 +124,40 @@ const EN: TextosLanding = {
   sobreMi: {
     rotulo: "about me",
     titulo: "About me",
-    p1: "I'm Alejandro Guevara. I've spent 5 years working in IT, and that's where I learned that most of a company's technology problems aren't technical, they're about order: access nobody controls, processes that depend on one Excel file and one person, equipment that only gets checked once it fails.",
-    p2: "That's why I work on two fronts. As an IT specialist, I know what operations need to keep running. As a designer and frontend developer, I build the tools that solve it, and that people actually want to use.",
+    p1: "I've spent more than 5 years working in IT and frontend development. I learned that most of a company's problems aren't technical, they're about order.",
+    p2: "As an IT specialist, I know what operations need to keep running. As a frontend developer, I build the tools that solve it.",
   },
   servicios: {
     rotulo: "services",
     titulo: "What I do",
-    intro: "Three crafts that overlap all the time: how your company looks, what it uses every day, and what keeps it running.",
-    vacio: "Every project is tailor-made: tell me what you need and I'll propose scope and price.",
-    precioDesde: "From",
-    precioPor: "per",
-    areas: {
-      diseno: {
-        titulo: "Design",
-        rotulo: "// design",
-        otro: "Other design work",
-        texto: "Visual identity, social media pieces and presentations so your brand looks professional and consistent.",
+    intro: "Two crafts that overlap all the time: what your company uses every day and what keeps it running.",
+    bloques: [
+      {
+        rotulo: "// frontend",
+        titulo: "Frontend Developer / Designer",
+        texto:
+          "I design and build your company's face: websites, interfaces and systems that look good, load fast and make sense at first glance. I think about who will use them before writing a single line of code.",
+        chips: ["Corporate websites", "Web interfaces and systems", "Identity and visual pieces", "SEO and speed"],
       },
-      desarrollo: {
-        titulo: "Development",
-        rotulo: "// development",
-        otro: "Other development work",
-        texto: "Custom websites and systems: fast, secure and easy for your team to manage.",
+      {
+        rotulo: "// it",
+        titulo: "IT Specialist",
+        texto:
+          "I make sure your operation doesn't stop: equipment, networks, access and support, with order and documented backing. I prevent problems instead of putting out fires.",
+        chips: ["Support and maintenance", "Networks and access", "Inventory and technical sheets", "ITIL practices"],
       },
-      soporte: {
-        titulo: "IT support",
-        rotulo: "// support",
-        otro: "Other IT support",
-        texto: "Maintenance, remote support and networks, with a technical sheet for every service that you can verify.",
-      },
-    },
+    ],
   },
   proyectos: {
     rotulo: "projects",
     titulo: "What I've built",
-    intro: "Personal and client projects. No names, out of discretion, but you'll see what the problem was and how I solved it.",
+    intro: "Solutions I built, told by what they solve.",
+    medida: "custom-made",
   },
   comoTrabajo: {
     rotulo: "how I work",
     titulo: "How I work",
-    intro: "No surprises: you know what will be done, what it costs and where it stands, at every moment.",
-  },
-  tuEspacio: {
-    rotulo: "your space",
-    titulo: "Your company, with its own space",
-    intro: "Every company I work with signs in with its own user and sees only its own things. No need to ask “how are we doing?” in a chat: it's right there, up to date. Try it.",
-    ejemplo: "Sample view, with made-up data.",
+    intro: "No surprises, from start to finish.",
     yaTrabajas: "Already working with me?",
     ingresa: "Sign in to your space",
   },
@@ -215,39 +165,15 @@ const EN: TextosLanding = {
     rotulo: "contact",
     titulo: "Let's talk",
     intro: "Tell me what you need. I'll reply myself, not a bot, with the next steps.",
-    directo: "Or reach me directly via",
-    o: " or ",
+    correo: "email",
+    oMensaje: "Or leave me a message here and I'll get back to you.",
   },
-  pie: { hecho: "Built with Next.js and Tailwind, in Peru.", privacidad: "Privacy (in Spanish)", ingresar: "Sign in" },
-  demo: {
-    aria: "Space modules",
-    ruta: "aguemar.com/w/your-company",
-    modulos: { inicio: "Home", proyectos: "Projects", cotizaciones: "Quotes" },
-    proyecto: "Corporate website",
-    proyectoActivo: "Active project",
-    tareas: "6/8 tasks",
-    proximaActividad: "Next activity",
-    reunion: "Progress meeting",
-    fecha: "Thu 22 Oct · 10:00",
-    respuesta: "Reply to your comment",
-    comentario: "“Done, I've uploaded the version with the new logo.”",
-    enCurso: "In progress",
-    etapas: ["Discovery", "Design", "Development", "Delivery"],
-    aceptada: "Accepted",
-    monto: "S/ 2,450.00",
-    adelanto: "50 % advance",
-    montoAdelanto: "S/ 1,225.00",
-    saldo: "Balance",
-    montoSaldo: "S/ 1,225.00",
-  },
+  pie: { copyright: "All lefts reserved.", privacidad: "Privacy (in Spanish)" },
   form: {
     nombre: "Your name",
-    empresa: "Company",
-    opcional: "Optional",
     whatsapp: "WhatsApp",
     correo: "Email",
-    interes: "What do you need?",
-    sinDefinir: "I don't know yet",
+    unoDeLosDos: "One of the two is enough.",
     mensaje: "Tell me more",
     mensajePlaceholder: "What you need, by when, and any detail that helps.",
     sitio: "Website",
