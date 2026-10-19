@@ -71,7 +71,7 @@ export default async function PrivacidadPage() {
         <Seccion numero="02" titulo="Qué datos recojo y para qué">
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              <strong>Formulario de contacto y WhatsApp:</strong> nombre, empresa, teléfono, correo y tu mensaje. Los uso solo para responderte y preparar una
+              <strong>Formulario de contacto y WhatsApp:</strong> nombre, WhatsApp o correo y tu mensaje. Los uso solo para responderte y preparar una
               cotización.
             </li>
             <li>
