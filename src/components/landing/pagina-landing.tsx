@@ -5,6 +5,7 @@ import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { SaltarContenido } from "@/components/ui/saltar-contenido";
 import { BrilloCursor } from "@/components/landing/brillo-cursor";
+import { Revelar } from "@/components/landing/revelar";
 import { MenuSecciones } from "@/components/landing/menu-secciones";
 import { SelectorIdioma } from "@/components/landing/selector-idioma";
 import { TituloSticky } from "@/components/landing/titulo-sticky";
@@ -24,7 +25,7 @@ const FormularioContacto = dynamic(() => import("@/components/landing/formulario
 
 const SECCION = "mb-16 scroll-mt-16 lg:mb-24 lg:scroll-mt-24";
 const ENLACE_LATERAL = "inline-flex items-center gap-2 rounded-sm transition-colors hover:text-mint";
-const VIA_DIRECTA = "flex flex-col gap-1.5 border-l-2 border-white/15 py-1 pl-4 transition-colors hover:border-mint";
+const VIA_DIRECTA = "flex flex-col gap-1.5 border-l-2 border-white/15 py-1 pl-4 transition-[border-color,translate] duration-200 hover:border-mint motion-safe:hover:translate-x-1";
 
 /** La landing completa en un idioma: `/` la usa en español y `/en` en inglés. */
 export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
@@ -67,10 +68,12 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
     <div lang={t.codigo} className="dark min-h-dvh bg-ink text-white [color-scheme:dark]">
       <SaltarContenido />
       <BrilloCursor />
+      <Revelar />
       <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8 md:px-12 md:py-16 lg:flex lg:justify-between lg:gap-16 lg:py-0 xl:gap-24">
         {/* ---------- Columna izquierda ---------- */}
         <header className="lg:sticky lg:top-0 lg:flex lg:max-h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24">
-          <div>
+          {/* `entrada`: el hero aparece escalonado al cargar (globals.css); el logo, primero, no se mueve. */}
+          <div className="entrada">
             <div className="flex items-center justify-between gap-4">
               <Link href={RUTA_IDIOMA[idioma]} aria-label={t.inicioAria} className="inline-block rounded-md">
                 <Logo variante="claro" alto={28} priority />
@@ -87,9 +90,9 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
               {t.hero.cargoB}
             </p>
             <p className="mt-3 max-w-sm text-white/65">{t.hero.texto}</p>
-            <Button asChild variant="mint" className="mt-8">
+            <Button asChild variant="mint" className="group mt-8">
               <a href="#contacto">
-                {t.hero.cta} <ArrowRight />
+                {t.hero.cta} <ArrowRight className="transition-transform duration-200 motion-safe:group-hover:translate-x-0.5" />
               </a>
             </Button>
             <MenuSecciones secciones={secciones} etiqueta={t.menuAria} />
@@ -128,8 +131,8 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
           <section id="sobre-mi" aria-labelledby="t-sobre-mi" className={SECCION}>
             <TituloSticky id="t-sobre-mi" rotulo={t.sobreMi.rotulo} titulo={t.sobreMi.titulo} />
             <div className="space-y-4 text-white/65">
-              <p>{t.sobreMi.p1}</p>
-              <p>{t.sobreMi.p2}</p>
+              <p data-revelar>{t.sobreMi.p1}</p>
+              <p data-revelar>{t.sobreMi.p2}</p>
             </div>
           </section>
 
@@ -137,19 +140,19 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
 
           <section id="proyectos" aria-labelledby="t-proyectos" className={SECCION}>
             <TituloSticky id="t-proyectos" rotulo={t.proyectos.rotulo} titulo={t.proyectos.titulo} />
-            <p className="mb-6 text-white/65">{t.proyectos.intro}</p>
+            <p data-revelar className="mb-6 text-white/65">{t.proyectos.intro}</p>
             <Proyectos proyectos={proyectos} etiquetaMedida={t.proyectos.medida} />
           </section>
 
           <section id="como-trabajo" aria-labelledby="t-como" className={SECCION}>
             <TituloSticky id="t-como" rotulo={t.comoTrabajo.rotulo} titulo={t.comoTrabajo.titulo} />
-            <p className="mb-6 text-white/65">{t.comoTrabajo.intro}</p>
+            <p data-revelar className="mb-6 text-white/65">{t.comoTrabajo.intro}</p>
             <ListaFilas ordenada>
               {pasos.map((p, i) => (
                 <Fila key={p.titulo} etiqueta={String(i + 1).padStart(2, "0")} titulo={p.titulo} texto={p.texto} chips={p.chips} />
               ))}
             </ListaFilas>
-            <p className="mt-4 text-sm text-white/60 md:ml-[9rem]">
+            <p data-revelar className="mt-4 text-sm text-white/60 md:ml-[9rem]">
               {t.comoTrabajo.yaTrabajas}{" "}
               <Link href="/login" className="text-white underline underline-offset-4 hover:text-mint">
                 {t.comoTrabajo.ingresa}
@@ -160,12 +163,12 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
 
           <section id="contacto" aria-labelledby="t-contacto" className="scroll-mt-16 lg:scroll-mt-24">
             <TituloSticky id="t-contacto" rotulo={t.contacto.rotulo} titulo={t.contacto.titulo} />
-            <p className="mb-6 text-white/65">{t.contacto.intro}</p>
+            <p data-revelar className="mb-6 text-white/65">{t.contacto.intro}</p>
             {/* Vía principal: WhatsApp y correo, grandes y a un clic. El formulario va debajo como alternativa. */}
             {whatsapp || marca?.correo ? (
               <ul className="mb-10 flex flex-wrap gap-x-10 gap-y-4">
                 {whatsapp ? (
-                  <li>
+                  <li data-revelar>
                     <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={VIA_DIRECTA}>
                       <span className="font-mono text-xs text-mint">{"// whatsapp"}</span>
                       <span className="flex items-center gap-2 text-lg font-medium text-white">
@@ -176,7 +179,7 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
                   </li>
                 ) : null}
                 {marca?.correo ? (
-                  <li>
+                  <li data-revelar>
                     <a href={`mailto:${marca.correo}`} className={VIA_DIRECTA}>
                       <span className="font-mono text-xs text-mint">{`// ${t.contacto.correo}`}</span>
                       <span className="flex items-center gap-2 text-lg font-medium text-white">
@@ -188,8 +191,8 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
                 ) : null}
               </ul>
             ) : null}
-            <p className="mb-5 text-sm text-white/60">{t.contacto.oMensaje}</p>
-            <div className="text-foreground">
+            <p data-revelar className="mb-5 text-sm text-white/60">{t.contacto.oMensaje}</p>
+            <div data-revelar className="text-foreground">
               <FormularioContacto whatsapp={whatsapp} idioma={idioma} />
             </div>
           </section>

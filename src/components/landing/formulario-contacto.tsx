@@ -51,7 +51,7 @@ export function FormularioContacto({ whatsapp, idioma = "es" }: { whatsapp: stri
 
   if (enviado) {
     return (
-      <div role="status" className="flex flex-col items-start gap-3 border-l-2 border-mint pl-5">
+      <div role="status" className="flex flex-col items-start gap-3 border-l-2 border-mint pl-5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
         <CheckCircle2 className="size-7 text-mint" aria-hidden />
         <h3 className="text-xl font-semibold text-white">{t.graciasTitulo}</h3>
         <p className="text-white/65">{t.graciasTexto}</p>
