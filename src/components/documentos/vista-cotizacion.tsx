@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { saldo } from "@/lib/cotizacion";
+import { estadoPago, saldo } from "@/lib/cotizacion";
 import { formatearFecha, formatearMonto } from "@/lib/format";
 import type { WsCotizacion } from "@/lib/datos/workspace";
 
@@ -7,8 +7,9 @@ import type { WsCotizacion } from "@/lib/datos/workspace";
  * Cotización en pantalla para quien la recibe (workspace y portal): detalle,
  * totales, condiciones, fechas, pagos y datos de pago. Sin notas internas.
  */
-export function VistaCotizacion({ c, arriba }: { c: WsCotizacion; arriba?: React.ReactNode }) {
-  const pendiente = saldo(c.total, c.cobrado);
+export function VistaCotizacion({ c, arriba, pago }: { c: WsCotizacion; arriba?: React.ReactNode; pago?: { vence_pago: string; pendiente: number; hoy: string } | null }) {
+  const pendiente = pago ? pago.pendiente : saldo(c.total, c.cobrado);
+  const estado = pago && c.estado === "aceptada" ? estadoPago(pago, pago.hoy) : null;
   const condiciones = (c.condiciones ?? "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const pagos = c.marca
     ? ([
@@ -94,6 +95,15 @@ export function VistaCotizacion({ c, arriba }: { c: WsCotizacion; arriba?: React
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Válida hasta</p>
               <p className="font-mono">{formatearFecha(c.vence)}</p>
             </div>
+            {pago && estado && pendiente > 0 ? (
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Fecha de pago</p>
+                <p>
+                  <span className="font-mono">{formatearFecha(pago.vence_pago)}</span>
+                  <span className={`ml-2 text-xs ${estado.tono === "danger" ? "text-danger" : estado.tono === "warn" ? "text-warn dark:text-warning-foreground" : "text-muted-foreground"}`}>{estado.texto}</span>
+                </p>
+              </div>
+            ) : null}
             {c.estado === "aceptada" ? (
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <div className="rounded-md bg-soft p-2 dark:bg-secondary/50">

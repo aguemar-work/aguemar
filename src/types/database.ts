@@ -52,6 +52,8 @@ export type PerfilMarcaRow = Base & {
   igv_pct: number;
   moneda_default: Moneda;
   validez_dias_default: number;
+  /** Días para pagar desde la aceptación de una cotización (0–120). */
+  plazo_pago_dias_default: number;
   condiciones_default: string | null;
   pago_cuenta: string | null;
   pago_cci: string | null;
@@ -107,6 +109,17 @@ export type ContadorRow = {
   ultimo: number;
 };
 
+/** Constancia de un recordatorio de pago enviado por la tarea diaria (solo lectura). */
+export type RecordatorioCobroRow = Base & {
+  cliente_id: string;
+  cotizacion_id: string;
+  tipo: "previo" | "atraso_1" | "atraso_7";
+  vence_pago: string;
+  pendiente: number;
+  moneda: Moneda;
+  correo: string;
+};
+
 export type CotizacionRow = Base & {
   numero: string | null;
   cliente_id: string;
@@ -128,6 +141,10 @@ export type CotizacionRow = Base & {
   trabajo_id: string | null;
   rechazada_en: string | null;
   motivo_rechazo: string | null;
+  /** Días para pagar desde la aceptación; vence_pago = aceptada_en (Lima) + plazo. */
+  plazo_pago_dias: number;
+  /** Si la tarea diaria envía recordatorios de pago a la empresa. */
+  recordar_pago: boolean;
 };
 
 export type CotizacionItemRow = Base & {

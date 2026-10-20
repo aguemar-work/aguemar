@@ -8,7 +8,7 @@ import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { Button } from "@/components/ui/button";
 import { ws } from "@/lib/datos/workspace";
 import { moduloActivo } from "@/lib/modulos";
-import { formatearFechaHora, formatearMonto } from "@/lib/format";
+import { formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
 import { AceptarDocumento } from "@/components/documentos/aceptar-documento";
 import { VistaCotizacion } from "@/components/documentos/vista-cotizacion";
 import { aceptarCotizacionEmpresa } from "../../acciones";
@@ -17,8 +17,11 @@ export const metadata: Metadata = { title: "Cotización" };
 
 export default async function CotizacionWorkspace({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { slug, id } = await params;
-  const [empresa, c] = await Promise.all([ws.miEmpresa(), ws.cotizacion(id)]);
+  const [empresa, c, lista] = await Promise.all([ws.miEmpresa(), ws.cotizacion(id), ws.cotizaciones()]);
   if (!moduloActivo(empresa?.modulos, "cotizaciones") || !c) notFound();
+  // Fecha de pago y pendiente salen de ws_cotizaciones (los cobros sueltos pagan primero lo que vence antes).
+  const resumen = lista?.cotizaciones.find((x) => x.id === c.id);
+  const pago = resumen?.vence_pago && resumen.pendiente != null ? { vence_pago: resumen.vence_pago, pendiente: resumen.pendiente, hoy: hoyLima() } : null;
   return (
     <>
       <Link href={`/w/${slug}/cotizaciones`} className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
@@ -47,6 +50,7 @@ export default async function CotizacionWorkspace({ params }: { params: Promise<
 
       <VistaCotizacion
         c={c}
+        pago={pago}
         arriba={
           <>
                 {c.estado === "enviada" ? <AceptarDocumento aceptar={aceptarCotizacionEmpresa.bind(null, slug, c.id)} total={formatearMonto(c.total, c.moneda)} contacto={empresa?.contacto ?? null} /> : null}

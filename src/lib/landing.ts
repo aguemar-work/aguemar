@@ -54,6 +54,11 @@ export function enlaceWhatsApp(telefono: string | null | undefined, texto: strin
   return n ? `https://wa.me/${n}?text=${encodeURIComponent(texto)}` : null;
 }
 
+/** El mismo enlace de wa.me con otro texto ya escrito. */
+export function conTextoWhatsApp(enlace: string, texto: string): string {
+  return `${enlace.split("?")[0]}?text=${encodeURIComponent(texto)}`;
+}
+
 /** "924 262 338" o "+51 924 262 338" para mostrar. */
 export function telefonoLegible(telefono: string | null | undefined): string | null {
   const d = (telefono ?? "").replace(/\D/g, "");

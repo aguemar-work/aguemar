@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { CheckCircle2, Loader2, MessageCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Campo, propsCampo } from "@/components/formulario/campo";
-import { MENSAJES_LEAD, crearLeadSchema, type LeadDatos, type LeadInput } from "@/lib/validators/lead";
+import { MENSAJES_LEAD, SIN_CANAL, crearLeadSchema, type LeadDatos, type LeadInput } from "@/lib/validators/lead";
+import { conTextoWhatsApp } from "@/lib/landing";
 import { TEXTOS, type Idioma } from "@/lib/landing-textos";
 import { enviarContacto } from "@/app/acciones";
 
@@ -28,6 +29,8 @@ export function FormularioContacto({ whatsapp, idioma = "es" }: { whatsapp: stri
   const [enviando, iniciar] = useTransition();
   const [enviado, setEnviado] = useState(false);
   const [errorGeneral, setErrorGeneral] = useState<string>();
+  /** Enlace de WhatsApp con el mensaje ya escrito, cuando no se pudo guardar ni enviar por correo. */
+  const [sinCanal, setSinCanal] = useState<string | null>(null);
   const form = useForm<LeadInput, unknown, LeadDatos>({
     resolver: zodResolver(crearLeadSchema(MENSAJES_LEAD[idioma])),
     defaultValues: { nombre: "", telefono: "", correo: "", mensaje: "", sitio_web: "" },
@@ -38,9 +41,13 @@ export function FormularioContacto({ whatsapp, idioma = "es" }: { whatsapp: stri
   const onSubmit = handleSubmit((datos) =>
     iniciar(async () => {
       setErrorGeneral(undefined);
+      setSinCanal(null);
       const r = await enviarContacto(datos, idioma);
       if (!r.ok) {
-        if (r.campo) setError(r.campo as FieldPath<LeadInput>, { message: r.error });
+        if (r.campo === SIN_CANAL) {
+          setErrorGeneral(r.error);
+          setSinCanal(whatsapp ? conTextoWhatsApp(whatsapp, `${idioma === "en" ? "Hi, I'm" : "Hola, soy"} ${datos.nombre}. ${datos.mensaje}`.slice(0, 1500)) : "");
+        } else if (r.campo) setError(r.campo as FieldPath<LeadInput>, { message: r.error });
         else setErrorGeneral(r.error);
         return;
       }
@@ -90,7 +97,19 @@ export function FormularioContacto({ whatsapp, idioma = "es" }: { whatsapp: stri
         <label htmlFor="lead-sitio">{t.sitio}</label>
         <input id="lead-sitio" tabIndex={-1} autoComplete="off" {...register("sitio_web")} />
       </div>
-      {errorGeneral ? (
+      {sinCanal !== null ? (
+        <div role="alert" className="flex flex-col items-start gap-3 border-l-2 border-mint pl-5 sm:col-span-2">
+          <p className="font-semibold text-white">{t.sinCanalTitulo}</p>
+          <p className="text-white/65">{sinCanal ? t.sinCanalTexto : t.sinCanalSinWhatsApp}</p>
+          {sinCanal ? (
+            <Button asChild variant="mint">
+              <a href={sinCanal} target="_blank" rel="noopener noreferrer">
+                <MessageCircle /> {t.enviarPorWhatsApp}
+              </a>
+            </Button>
+          ) : null}
+        </div>
+      ) : errorGeneral ? (
         <p role="alert" className="text-sm text-danger sm:col-span-2">
           {errorGeneral}
         </p>

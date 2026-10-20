@@ -19,6 +19,12 @@ export interface MensajesLead {
   contacto: string;
 }
 
+/**
+ * Valor de `campo` en el Resultado de enviarContacto cuando el mensaje no se guardó ni salió
+ * por correo: el formulario ofrece WhatsApp con el mensaje ya escrito.
+ */
+export const SIN_CANAL = "sin_canal";
+
 export const MENSAJES_LEAD: Record<"es" | "en", MensajesLead> = {
   es: {
     nombre: "Escribe tu nombre.",

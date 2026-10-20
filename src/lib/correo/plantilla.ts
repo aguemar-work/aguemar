@@ -16,6 +16,10 @@ export interface DatosCorreo {
   pie: string;
 }
 
+/** Pie de los correos a una empresa: por qué lo recibe y cómo dejar de recibirlos. */
+export const pieParaEmpresa = (empresa: string) =>
+  `Recibes este correo porque ${empresa} trabaja con aguemar. Si prefieres no recibir avisos, responde a este correo y los desactivamos.`;
+
 export function escapar(texto: string): string {
   return texto.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }

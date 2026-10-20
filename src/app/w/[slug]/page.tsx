@@ -79,6 +79,11 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   <p className="font-mono text-lg font-semibold tabular">{formatearMonto(saldo(cot.total_aceptado, cot.total_cobrado))}</p>
+                  {cot.total_vencido > 0 ? (
+                    <p className="text-xs text-danger">{formatearMonto(cot.total_vencido)} vencido</p>
+                  ) : cot.proximo_pago ? (
+                    <p className="text-xs text-muted-foreground">Próximo pago: {formatearFecha(cot.proximo_pago.vence_pago)}</p>
+                  ) : null}
                 </CardContent>
               </Card>
             </Link>

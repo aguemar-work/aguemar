@@ -89,7 +89,7 @@ export function ModulosEmpresa({ clienteId, modulos, avisos }: { clienteId: stri
             <Mail className="size-4 shrink-0 text-muted-foreground" aria-hidden />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">Avisos por correo</p>
-              <p className="text-xs text-muted-foreground">Documentos e informes publicados, cotizaciones enviadas y tus respuestas. Van al correo de la empresa o, si no tiene, al de su acceso.</p>
+              <p className="text-xs text-muted-foreground">Documentos e informes publicados, cotizaciones enviadas, tus respuestas y los recordatorios de pago. Van al correo de la empresa o, si no tiene, al de su acceso.</p>
             </div>
             <Switch checked={avisosVista} onCheckedChange={alternarAvisos} disabled={pendiente} aria-label="Enviar avisos por correo" />
           </li>

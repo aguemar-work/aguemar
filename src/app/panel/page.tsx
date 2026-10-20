@@ -44,7 +44,15 @@ export default async function InicioPanel() {
     { etiqueta: "Tareas vencidas", valor: r?.tareas_vencidas ?? 0, tono: "warn", icono: ListTodo, href: "/panel/trabajos" },
     { etiqueta: "Por responder", valor: (r?.comentarios_sin_leer ?? 0) + (r?.solicitudes_nuevas ?? 0), tono: "info", icono: MessageSquare, href: "/panel/bandeja" },
     { etiqueta: "Cotizaciones sin respuesta", valor: r?.cotizaciones_sin_respuesta ?? 0, tono: "info", icono: FileText, href: "/panel/cotizaciones" },
-    { etiqueta: "Por cobrar", valor: r?.por_cobrar ?? 0, tono: "warn", icono: Wallet, href: "/panel/cotizaciones?estado=aceptada", monto: true },
+    {
+      etiqueta: "Por cobrar",
+      valor: r?.por_cobrar ?? 0,
+      tono: r?.por_cobrar_vencido ? "danger" : "warn",
+      icono: Wallet,
+      href: "/panel/cotizaciones?estado=aceptada",
+      monto: true,
+      nota: r?.por_cobrar_vencido ? `${formatearMonto(r.por_cobrar_vencido)} vencido` : undefined,
+    },
   ];
   const todoAlDia = alertas.every((a) => !a.valor) && (r?.detenidos.length ?? 0) === 0;
 
@@ -280,9 +288,14 @@ export default async function InicioPanel() {
                       <Link href={`/panel/clientes/${d.cliente_id}#cobros`} className="flex items-center justify-between gap-3 py-2 text-sm hover:text-foreground">
                         <span className="min-w-0">
                           <span className="block truncate font-medium">{d.empresa}</span>
-                          <span className="font-mono text-[11px] text-muted-foreground">
+                          <span className="block font-mono text-[11px] text-muted-foreground">
                             pagó {formatearMonto(d.cobrado, d.moneda)} de {formatearMonto(d.aceptado, d.moneda)}
                           </span>
+                          {d.vencido > 0 ? (
+                            <span className="block text-[11px] text-danger dark:text-red-300">
+                              {formatearMonto(d.vencido, d.moneda)} vencido · {d.dias_atraso} {d.dias_atraso === 1 ? "día" : "días"} de atraso
+                            </span>
+                          ) : null}
                         </span>
                         <span className="shrink-0 font-mono tabular text-warn dark:text-warning-foreground">{formatearMonto(d.saldo, d.moneda)}</span>
                       </Link>

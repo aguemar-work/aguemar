@@ -29,6 +29,7 @@ export const marcaSchema = z.object({
     .max(100, "El IGV no puede superar 100 %."),
   moneda_default: z.enum(["PEN", "USD"]),
   validez_dias_default: z.number({ message: "Escribe los días de validez." }).int().min(1, "Mínimo 1 día.").max(365, "Máximo 365 días."),
+  plazo_pago_dias_default: z.number({ message: "Escribe los días de plazo de pago." }).int("Usa días enteros.").min(0, "Mínimo 0 días (al contado).").max(120, "Máximo 120 días."),
   condiciones_default: texto(4000),
   pago_cuenta: texto(120),
   pago_cci: texto(40),

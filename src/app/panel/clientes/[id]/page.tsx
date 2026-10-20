@@ -15,8 +15,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { correoDeUsuario, historialCliente, obtenerCliente } from "@/lib/datos/clientes";
 import { AccesoEmpresa } from "./acceso";
 import { ModulosEmpresa } from "./modulos";
-import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
-import { estadoEfectivo, saldo } from "@/lib/cotizacion";
+import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
+import { ETIQUETA_RECORDATORIO, estadoEfectivo, saldo } from "@/lib/cotizacion";
+import { deudasCotizacion, recordatoriosDeCliente } from "@/lib/datos/cotizaciones";
 import { ListaCobros, RegistrarCobro } from "../../cotizaciones/cobros";
 import { eliminarCliente } from "../acciones";
 import { informesDe } from "@/lib/datos/informes";
@@ -30,7 +31,14 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
   // Solo el propietario (el colaborador recibe 404).
   await soloPropietario();
   const { id } = await params;
-  const [cliente, historial, informes, invitacion] = await Promise.all([obtenerCliente(id), historialCliente(id), informesDe({ cliente: id }), invitacionDeEmpresa(id)]);
+  const [cliente, historial, informes, invitacion, deudas, recordatorios] = await Promise.all([
+    obtenerCliente(id),
+    historialCliente(id),
+    informesDe({ cliente: id }),
+    invitacionDeEmpresa(id),
+    deudasCotizacion(id),
+    recordatoriosDeCliente(id),
+  ]);
   if (!cliente) notFound();
   const correoAcceso = await correoDeUsuario(cliente.usuario_id);
   const hoy = hoyLima();
@@ -38,6 +46,9 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
   const totalAceptado = aceptadas.filter((c) => c.moneda === "PEN").reduce((s, c) => s + c.total, 0);
   const totalCobrado = historial.cobros.filter((k) => k.moneda === "PEN").reduce((s, k) => s + k.monto, 0);
   const saldoEmpresa = saldo(totalAceptado, totalCobrado);
+  const vencidas = deudas.filter((d) => d.moneda === "PEN" && d.pendiente > 0 && d.dias_atraso > 0);
+  const vencido = vencidas.reduce((s, d) => s + d.pendiente, 0);
+  const atraso = Math.max(0, ...vencidas.map((d) => d.dias_atraso));
 
   const datos: [string, string | null][] = [
     ["Documento", cliente.num_doc ? `${cliente.tipo_doc} ${cliente.num_doc}` : null],
@@ -339,12 +350,51 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
                 <p className="text-xs text-muted-foreground">Cobrado</p>
                 <p className="font-mono tabular">{formatearMonto(totalCobrado)}</p>
               </div>
-              <div className={saldoEmpresa > 0 ? "rounded-md bg-warning-bg p-2 text-warning-foreground" : "rounded-md bg-success-bg p-2 text-success-foreground"}>
+              <div
+                className={
+                  vencido > 0
+                    ? "rounded-md bg-danger-soft p-2 text-danger dark:bg-danger/20 dark:text-red-200"
+                    : saldoEmpresa > 0
+                      ? "rounded-md bg-warning-bg p-2 text-warning-foreground"
+                      : "rounded-md bg-success-bg p-2 text-success-foreground"
+                }
+              >
                 <p className="text-xs">{saldoEmpresa > 0 ? "Te debe" : "Al día"}</p>
                 <p className="font-mono tabular">{formatearMonto(saldoEmpresa)}</p>
+                {vencido > 0 ? (
+                  <p className="text-[11px]">
+                    {formatearMonto(vencido)} vencido · {atraso} {atraso === 1 ? "día" : "días"}
+                  </p>
+                ) : null}
               </div>
             </div>
             <ListaCobros cobros={historial.cobros.map((k) => ({ ...k, cotizacion: k.cotizaciones?.numero ?? null }))} />
+            <div className="mt-4">
+              <h3 className="mb-1 text-sm font-semibold">Recordatorios de pago</h3>
+              {recordatorios.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Aún no se le envió ninguno. Salen solos 3 días antes del vencimiento, al vencer y a los 7 días de atraso, en las cotizaciones con “Recordar pago” activo.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border text-sm">
+                  {recordatorios.map((r) => (
+                    <li key={r.id} className="flex flex-wrap items-baseline justify-between gap-x-3 py-2">
+                      <span>
+                        {r.cotizaciones ? (
+                          <Link href={`/panel/cotizaciones/${r.cotizaciones.id}`} className="font-mono text-xs underline-offset-4 hover:underline">
+                            {r.cotizaciones.numero}
+                          </Link>
+                        ) : null}{" "}
+                        · {ETIQUETA_RECORDATORIO[r.tipo]}
+                      </span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {formatearFechaHora(r.created_at)} · {formatearMonto(r.pendiente, r.moneda)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </section>
         </div>
       </div>

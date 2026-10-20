@@ -92,3 +92,34 @@ export const MEDIOS_PAGO = [
 ] as const;
 
 export type MedioPago = (typeof MEDIOS_PAGO)[number]["valor"];
+
+/** Deuda de una cotización aceptada, como la calcula deudas_cotizacion() en la base. */
+export interface DeudaCotizacion {
+  cotizacion_id: string;
+  cliente_id: string;
+  moneda: "PEN" | "USD";
+  total: number;
+  pendiente: number;
+  aceptada_el: string;
+  plazo_pago_dias: number;
+  vence_pago: string;
+  dias_atraso: number;
+  recordar_pago: boolean;
+}
+
+/** Texto y tono del pago de una cotización aceptada: pagada, por vencer o vencida. */
+export function estadoPago(d: { pendiente: number; vence_pago: string }, hoy: string): { texto: string; tono: "ok" | "warn" | "danger" } {
+  if (d.pendiente <= 0) return { texto: "Pagada", tono: "ok" };
+  const dias = diasHasta(d.vence_pago, hoy) ?? 0;
+  const n = (x: number) => `${x} ${x === 1 ? "día" : "días"}`;
+  if (dias < 0) return { texto: `Vencida hace ${n(-dias)}`, tono: "danger" };
+  if (dias === 0) return { texto: "Vence hoy", tono: "warn" };
+  return { texto: `Vence en ${n(dias)}`, tono: dias <= 3 ? "warn" : "ok" };
+}
+
+/** Cómo se llama cada recordatorio en el historial. */
+export const ETIQUETA_RECORDATORIO: Record<"previo" | "atraso_1" | "atraso_7", string> = {
+  previo: "Antes de vencer",
+  atraso_1: "Al vencer",
+  atraso_7: "7 días de atraso",
+};

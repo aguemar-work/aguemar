@@ -30,7 +30,8 @@ Sin variables de InsForge la app compila igual y muestra un aviso en el panel y 
 | `NEXT_PUBLIC_SITE_URL` | sí | URL pública del sitio, usada en enlaces y OG. En producción el build falla si apunta a localhost |
 | `NEXT_PUBLIC_WHATSAPP` | recomendada | número en formato internacional sin `+` |
 | `RESEND_API_KEY`, `RESEND_FROM` | no | avisos por correo con Resend; sin API key no se envía nada |
-| `AVISOS_PARA` | no | a dónde te llegan los avisos (si falta, el correo de Mi marca) |
+| `AVISOS_PARA` | recomendada | a dónde te llegan los avisos (si falta, el correo de Mi marca). También recibe el **respaldo del formulario de contacto** cuando la base falla: sin ella, ese mensaje solo se puede reenviar por WhatsApp |
+| `CRON_SECRET` | para recordatorios | secreto de la tarea diaria de recordatorios de pago (ver *Recordatorios de pago*); uno distinto en staging y en producción |
 | `E2E_*` | solo local | cuentas de prueba de staging para Playwright: propietario, empresa A y B, colaborador (las crea `npm run staging:cuentas`) |
 
 Nunca subas `.env.local` ni `.insforge/project.json` al repositorio. No configures en Vercel ninguna clave de servicio de InsForge: el código no la usa.
@@ -130,13 +131,26 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 | Aceptación | ti | aceptan una cotización o un acta (en su espacio o por enlace) |
 | Documento publicado | empresa | publicas una ficha, brief, acta o informe, o envías una cotización |
 | Respuesta | empresa | respondes un comentario o una solicitud |
+| Recordatorio de pago | empresa | 3 días antes de que venza un saldo, al día 1 y al día 7 de atraso (tarea diaria) |
 
 Los correos salen después de responder (`after()`), así que no hacen más lenta ninguna acción. Cada empresa puede quedar sin avisos desde su ficha (Módulos → Avisos por correo).
+
+### Recordatorios de pago
+
+Cada cotización aceptada vence a los `plazo_pago_dias` de su aceptación (por defecto, el plazo de Mi marca). Todos los días a las 9:00 (Lima) Vercel Cron llama a `/api/cron/recordatorios` (`vercel.json`) con `Authorization: Bearer <CRON_SECRET>`. La ruta pasa el secreto a `cobro_recordatorios_tomar`, que compara su hash con `ajustes_sistema.cron_hash`, registra cada recordatorio una sola vez y devuelve los datos del correo; los que no salen se devuelven con `cobro_recordatorios_fallidos` y se reintentan al día siguiente. No hace falta clave de servicio. Solo se recuerdan las cotizaciones con "Recordar pago" activo, de empresas activas y con avisos por correo.
+
+Para activarlo en un entorno (staging y producción llevan secretos distintos):
+
+1. Genera el secreto: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` y guárdalo como `CRON_SECRET` (en Vercel → Environment Variables para producción; en `.env.local` para staging).
+2. Calcula su hash: `node -e "console.log(require('crypto').createHash('sha256').update(process.argv[1]).digest('hex'))" <secreto>`.
+3. Cárgalo en la base de ese entorno: `npx insforge db query "insert into public.ajustes_sistema (clave, valor) values ('cron_hash', '<hash>') on conflict (clave) do update set valor = excluded.valor, updated_at = now()"`.
+
+Para probarlo en local (con `npm run dev` corriendo): `curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/recordatorios`.
 
 ## Estructura
 
 ```
-src/app            rutas (landing, login, api/auth/refresh, panel/* con @modal para el panel lateral, w/[slug], d/[token])
+src/app            rutas (landing, login, api/auth/refresh, api/cron/recordatorios, panel/* con @modal para el panel lateral, w/[slug], d/[token])
 src/components     ui (base shadcn adaptada), panel, brand
 src/lib            insforge (server, client, middleware), format (es-PE, America/Lima), validators, env
 src/types          tipos de las tablas

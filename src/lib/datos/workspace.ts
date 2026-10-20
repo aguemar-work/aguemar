@@ -78,6 +78,10 @@ export interface WsCotizacionResumen {
   estado: EstadoCotizacion;
   aceptada_en: string | null;
   trabajo_id: string | null;
+  /** Solo en las aceptadas: fecha de pago, lo que falta pagar y días de atraso. */
+  vence_pago: string | null;
+  pendiente: number | null;
+  dias_atraso: number | null;
 }
 
 export interface WsCobro {
@@ -96,6 +100,10 @@ export interface WsCotizaciones {
   cobros: WsCobro[];
   total_aceptado: number;
   total_cobrado: number;
+  /** Lo pendiente (soles) cuya fecha de pago ya pasó. */
+  total_vencido: number;
+  /** El pago pendiente que vence primero. */
+  proximo_pago: { vence_pago: string; pendiente: number; moneda: Moneda } | null;
 }
 
 export interface WsCotizacion {

@@ -1,5 +1,6 @@
 import { cache } from "react";
-import type { AceptacionRow, CobroRow, CotizacionItemRow, CotizacionRow, EstadoCotizacion } from "@/types/database";
+import type { AceptacionRow, CobroRow, CotizacionItemRow, CotizacionRow, EstadoCotizacion, RecordatorioCobroRow } from "@/types/database";
+import type { DeudaCotizacion } from "@/lib/cotizacion";
 import { conSesion } from "./base";
 import { filtroOr } from "./busqueda";
 
@@ -32,11 +33,12 @@ export async function listarCotizaciones(filtros: FiltrosCotizaciones = {}): Pro
 }
 
 export type CotizacionDetalle = CotizacionRow & {
-  clientes: { id: string; nombre: string; tipo_doc: string | null; num_doc: string | null; contacto: string | null; telefono: string | null; correo: string | null; direccion: string | null; slug: string | null; usuario_id: string | null; modulos: string[] } | null;
+  clientes: { id: string; nombre: string; tipo_doc: string | null; num_doc: string | null; contacto: string | null; telefono: string | null; correo: string | null; direccion: string | null; slug: string | null; usuario_id: string | null; modulos: string[]; avisos_correo: boolean } | null;
   trabajos: { id: string; titulo: string; estado: string } | null;
   cotizacion_items: CotizacionItemRow[];
   aceptaciones: AceptacionRow[];
   cobros: CobroRow[];
+  recordatorios_cobro: RecordatorioCobroRow[];
 };
 
 export const obtenerCotizacion = cache(async function obtenerCotizacion(id: string): Promise<CotizacionDetalle | null> {
@@ -44,7 +46,7 @@ export const obtenerCotizacion = cache(async function obtenerCotizacion(id: stri
   const { data, error } = await db
     .from("cotizaciones")
     .select(
-      "*, clientes(id, nombre, tipo_doc, num_doc, contacto, telefono, correo, direccion, slug, usuario_id, modulos), trabajos(id, titulo, estado), cotizacion_items(*), aceptaciones(*), cobros(*)",
+      "*, clientes(id, nombre, tipo_doc, num_doc, contacto, telefono, correo, direccion, slug, usuario_id, modulos, avisos_correo), trabajos(id, titulo, estado), cotizacion_items(*), aceptaciones(*), cobros(*), recordatorios_cobro(*)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -54,6 +56,7 @@ export const obtenerCotizacion = cache(async function obtenerCotizacion(id: stri
   c.cotizacion_items = [...(c.cotizacion_items ?? [])].sort((a, b) => a.orden - b.orden);
   c.cobros = [...(c.cobros ?? [])].sort((a, b) => b.fecha.localeCompare(a.fecha));
   c.aceptaciones = [...(c.aceptaciones ?? [])].sort((a, b) => b.aceptado_en.localeCompare(a.aceptado_en));
+  c.recordatorios_cobro = [...(c.recordatorios_cobro ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at));
   return c;
 });
 
@@ -91,4 +94,30 @@ export async function cotizacionDeTrabajo(trabajoId: string): Promise<{ id: stri
   if (!data) return null;
   const c = data as { id: string; numero: string | null; total: number; moneda: CotizacionRow["moneda"]; cobros: { monto: number }[] };
   return { id: c.id, numero: c.numero, total: c.total, moneda: c.moneda, cobrado: c.cobros.reduce((s, k) => s + k.monto, 0) };
+}
+
+/**
+ * Pendiente, vencimiento y atraso de las cotizaciones aceptadas (deudas_cotizacion en la base:
+ * los cobros sueltos pagan primero lo que vence antes). Sin empresa, las de todas.
+ */
+export async function deudasCotizacion(clienteId?: string): Promise<DeudaCotizacion[]> {
+  const { db } = await conSesion();
+  const { data, error } = await db.rpc("deudas_cotizacion", clienteId ? { p_cliente: clienteId } : {});
+  if (error) throw error;
+  return (data ?? []) as DeudaCotizacion[];
+}
+
+export type RecordatorioConCotizacion = RecordatorioCobroRow & { cotizaciones: { id: string; numero: string | null } | null };
+
+/** Recordatorios de pago enviados a una empresa, del más reciente al más antiguo. */
+export async function recordatoriosDeCliente(clienteId: string): Promise<RecordatorioConCotizacion[]> {
+  const { db } = await conSesion();
+  const { data, error } = await db
+    .from("recordatorios_cobro")
+    .select("*, cotizaciones(id, numero)")
+    .eq("cliente_id", clienteId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) throw error;
+  return (data ?? []) as RecordatorioConCotizacion[];
 }

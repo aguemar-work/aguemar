@@ -6,7 +6,7 @@ import { ConfirmarEliminar } from "@/components/panel/confirmar-eliminar";
 import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
 import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { obtenerCotizacion } from "@/lib/datos/cotizaciones";
+import { deudasCotizacion, obtenerCotizacion } from "@/lib/datos/cotizaciones";
 import { enlaceDe } from "@/lib/datos/fichas";
 import { estadoEfectivo, fechaVence, saldo } from "@/lib/cotizacion";
 import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
@@ -15,10 +15,11 @@ import type { EstadoTrabajo } from "@/types/database";
 import { eliminarCotizacion } from "../acciones";
 import { ListaCobros, RegistrarCobro } from "../cobros";
 import { AccionesCotizacion } from "./acciones-cotizacion";
+import { PagoCotizacion } from "./pago";
 
 /** Detalle de una cotización. Se usa en la página completa y en el panel lateral (@modal). */
 export async function DetalleCotizacion({ id }: { id: string }) {
-  const [c, enlace] = await Promise.all([obtenerCotizacion(id), enlaceDe("cotizacion", id)]);
+  const [c, enlace, deudas] = await Promise.all([obtenerCotizacion(id), enlaceDe("cotizacion", id), deudasCotizacion()]);
   if (!c) notFound();
   const hoy = hoyLima();
   const estado = estadoEfectivo(c, hoy);
@@ -26,6 +27,7 @@ export async function DetalleCotizacion({ id }: { id: string }) {
   const venc = textoVencimiento(vence, hoy);
   const cobrado = c.cobros.reduce((s, k) => s + k.monto, 0);
   const pendiente = saldo(c.total, cobrado);
+  const deuda = deudas.find((d) => d.cotizacion_id === c.id) ?? null;
   const aceptacion = c.aceptaciones[0];
   const empresa = c.clientes;
   const conWorkspace = Boolean(empresa?.usuario_id && empresa.slug && empresa.modulos?.includes("cotizaciones"));
@@ -223,6 +225,21 @@ export async function DetalleCotizacion({ id }: { id: string }) {
                 <ListaCobros cobros={c.cobros} />
               </CardContent>
             </Card>
+          ) : null}
+
+          {c.estado !== "rechazada" ? (
+            <PagoCotizacion
+              id={c.id}
+              aceptada={c.estado === "aceptada"}
+              plazo={c.plazo_pago_dias}
+              recordar={c.recordar_pago}
+              moneda={c.moneda}
+              hoy={hoy}
+              deuda={deuda}
+              saldoLigado={pendiente}
+              recordatorios={c.recordatorios_cobro}
+              sinAvisos={!empresa?.avisos_correo || !(empresa.correo || empresa.usuario_id)}
+            />
           ) : null}
 
           {c.estado !== "aceptada" ? (

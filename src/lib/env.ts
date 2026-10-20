@@ -43,5 +43,7 @@ export function envServidor() {
     RESEND_FROM: vacioAUndefined(process.env.RESEND_FROM),
     /** A dónde llegan tus avisos (leads, comentarios, solicitudes, aceptaciones). Si falta, el correo de Mi marca. */
     AVISOS_PARA: vacioAUndefined(process.env.AVISOS_PARA),
+    /** Secreto de la tarea diaria (Vercel Cron); su hash sha256 va en ajustes_sistema.cron_hash. */
+    CRON_SECRET: vacioAUndefined(process.env.CRON_SECRET),
   };
 }

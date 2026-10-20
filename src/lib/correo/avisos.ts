@@ -12,6 +12,7 @@ import { textoPeriodo } from "@/lib/informe";
 import { moduloActivo, type ClaveModulo } from "@/lib/modulos";
 import type { EntidadComentario } from "@/types/database";
 import { enviarCorreo, type Envio } from "./enviar";
+import { pieParaEmpresa } from "./plantilla";
 
 type Db = Awaited<ReturnType<typeof conSesion>>["db"];
 /** Un valor ya conocido o una consulta en curso: se espera recién dentro de `after`. */
@@ -156,7 +157,7 @@ async function destinoEmpresa(db: Db, clienteId: string): Promise<Destino | null
 }
 
 const saludo = (d: Destino) => (d.contacto ? `Hola ${d.contacto.split(" ")[0]},` : "Hola,");
-const pieEmpresa = (d: Destino) => `Recibes este correo porque ${d.nombre} trabaja con aguemar. Si prefieres no recibir avisos, responde a este correo y los desactivamos.`;
+const pieEmpresa = (d: Destino) => pieParaEmpresa(d.nombre);
 
 async function aLaEmpresa(db: Db, clienteId: string, armar: (d: Destino) => Omit<Envio, "para" | "pie" | "responderA"> | null) {
   const d = await destinoEmpresa(db, clienteId);

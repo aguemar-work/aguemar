@@ -6,7 +6,7 @@ import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { aCentimos, hoyLima } from "@/lib/format";
 import { porcentajeABasis } from "@/lib/validators/marca";
-import { aceptacionSchema, cobroSchema, cotizacionSchema, lineaABase, type CobroInput, type CotizacionInput } from "@/lib/validators/cotizacion";
+import { aceptacionSchema, cobroSchema, cotizacionSchema, lineaABase, pagoCotizacionSchema, type CobroInput, type CotizacionInput, type PagoCotizacionInput } from "@/lib/validators/cotizacion";
 import type { CotizacionRow } from "@/types/database";
 import { avisarDocumentoEmpresa } from "@/lib/correo/avisos";
 
@@ -213,6 +213,25 @@ export async function eliminarCobro(id: string): Promise<Resultado<void>> {
     const { db } = await conSesion();
     const { error } = await db.from("cobros").delete().eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
+    revalidar();
+    return exito(undefined);
+  } catch (e) {
+    return fallo(traducirError(e).mensaje);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Plazo de pago y recordatorios
+// ---------------------------------------------------------------------------
+export async function actualizarPagoCotizacion(id: string, input: PagoCotizacionInput): Promise<Resultado<void>> {
+  const parsed = pagoCotizacionSchema.safeParse(input);
+  if (!parsed.success) return primerError(parsed.error.issues);
+  try {
+    const { db } = await conSesion();
+    const { data, error } = await db.from("cotizaciones").update(parsed.data).eq("id", id).select("id");
+    if (error) return fallo(traducirError(error).mensaje);
+    // Sin filas: no es suya o no tiene permiso (la RLS no da error, solo no actualiza).
+    if (!data?.length) return fallo("No pudimos actualizar esta cotización.");
     revalidar();
     return exito(undefined);
   } catch (e) {

@@ -9,8 +9,8 @@ import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ws } from "@/lib/datos/workspace";
 import { moduloActivo } from "@/lib/modulos";
-import { MEDIOS_PAGO, saldo } from "@/lib/cotizacion";
-import { formatearFecha, formatearMonto } from "@/lib/format";
+import { MEDIOS_PAGO, estadoPago, saldo } from "@/lib/cotizacion";
+import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Cotizaciones y cobros" };
 
@@ -21,23 +21,44 @@ export default async function CotizacionesWorkspace({ params }: { params: Promis
 
   const pendiente = saldo(datos.total_aceptado, datos.total_cobrado);
   const porResponder = datos.cotizaciones.filter((c) => c.estado === "enviada");
+  const hoy = hoyLima();
+  const vencido = datos.total_vencido ?? 0;
+  const proximo = datos.proximo_pago;
+  const resumen: { k: string; v: number; tono: string; nota?: string | null }[] = [
+    { k: "Aceptado", v: datos.total_aceptado, tono: "" },
+    { k: "Pagado", v: datos.total_cobrado, tono: "" },
+    {
+      k: pendiente > 0 ? "Saldo pendiente" : "Saldo",
+      v: pendiente,
+      tono:
+        vencido > 0
+          ? "bg-danger-soft text-danger border-transparent dark:bg-danger/20 dark:text-red-200"
+          : pendiente > 0
+            ? "bg-warning-bg text-warning-foreground border-transparent"
+            : "bg-success-bg text-success-foreground border-transparent",
+      nota: vencido > 0 ? `${formatearMonto(vencido)} vencido` : pendiente > 0 && proximo ? `Próximo pago: ${formatearFecha(proximo.vence_pago)}` : null,
+    },
+  ];
 
   return (
     <>
       <PageHeader codigo="02" titulo="Cotizaciones y cobros" descripcion="Las propuestas que te enviamos, lo que aceptaste y lo que ya pagaste." />
 
       <dl className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {[
-          { k: "Aceptado", v: datos.total_aceptado, tono: "" },
-          { k: "Pagado", v: datos.total_cobrado, tono: "" },
-          { k: pendiente > 0 ? "Saldo pendiente" : "Saldo", v: pendiente, tono: pendiente > 0 ? "bg-warning-bg text-warning-foreground border-transparent" : "bg-success-bg text-success-foreground border-transparent" },
-        ].map((r) => (
+        {resumen.map((r) => (
           <div key={r.k} className={`rounded-lg border border-border p-3 ${r.tono}`}>
             <dt className="text-xs opacity-80">{r.k}</dt>
             <dd className="font-mono text-lg font-semibold tabular">{formatearMonto(r.v)}</dd>
+            {r.nota ? <dd className="text-xs">{r.nota}</dd> : null}
           </div>
         ))}
       </dl>
+
+      {vencido > 0 ? (
+        <p className="mb-4 rounded-lg border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger dark:bg-danger/20 dark:text-red-200">
+          Tienes {formatearMonto(vencido)} con la fecha de pago vencida. Si ya pagaste, avísanos y lo registramos.
+        </p>
+      ) : null}
 
       {porResponder.length ? (
         <p className="mb-4 rounded-lg border border-mint-ink/30 bg-success-bg px-4 py-3 text-sm text-success-foreground">
@@ -54,22 +75,30 @@ export default async function CotizacionesWorkspace({ params }: { params: Promis
             <EmptyState icono={Receipt} titulo="Aún no hay cotizaciones." descripcion="Cuando te enviemos una propuesta, aparecerá aquí con su PDF." className="py-10" />
           ) : (
             <ul className="divide-y divide-border rounded-lg border border-border">
-              {datos.cotizaciones.map((c) => (
-                <li key={c.id}>
-                  <Link href={`/w/${slug}/cotizaciones/${c.id}`} className="flex items-center justify-between gap-3 p-4 hover:bg-soft/60 dark:hover:bg-secondary/40">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{c.asunto}</p>
-                      <p className="text-xs text-muted-foreground">
-                        <span className="font-mono">{c.numero}</span> · {formatearFecha(c.fecha)} · <EtiquetaArea area={c.area} />
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="font-mono text-sm tabular">{formatearMonto(c.total, c.moneda)}</p>
-                      <EtiquetaCotizacion estado={c.estado} />
-                    </div>
-                  </Link>
-                </li>
-              ))}
+              {datos.cotizaciones.map((c) => {
+                const pago = c.estado === "aceptada" && c.vence_pago && c.pendiente ? estadoPago({ pendiente: c.pendiente, vence_pago: c.vence_pago }, hoy) : null;
+                return (
+                  <li key={c.id}>
+                    <Link href={`/w/${slug}/cotizaciones/${c.id}`} className="flex items-center justify-between gap-3 p-4 hover:bg-soft/60 dark:hover:bg-secondary/40">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{c.asunto}</p>
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-mono">{c.numero}</span> · {formatearFecha(c.fecha)} · <EtiquetaArea area={c.area} />
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-mono text-sm tabular">{formatearMonto(c.total, c.moneda)}</p>
+                        <EtiquetaCotizacion estado={c.estado} />
+                        {pago ? (
+                          <p className={`mt-1 text-xs ${pago.tono === "danger" ? "text-danger" : pago.tono === "warn" ? "text-warn dark:text-warning-foreground" : "text-muted-foreground"}`}>
+                            {pago.texto}
+                          </p>
+                        ) : null}
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>

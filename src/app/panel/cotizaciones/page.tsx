@@ -7,9 +7,9 @@ import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
 import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { listarCotizaciones } from "@/lib/datos/cotizaciones";
+import { deudasCotizacion, listarCotizaciones } from "@/lib/datos/cotizaciones";
 import { opcionesClientes } from "@/lib/datos/clientes";
-import { estadoEfectivo, saldo } from "@/lib/cotizacion";
+import { estadoEfectivo, estadoPago, saldo } from "@/lib/cotizacion";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 import type { EstadoCotizacion } from "@/types/database";
 import { FiltrosCotizaciones } from "./filtros";
@@ -29,20 +29,28 @@ export default async function CotizacionesPage({ searchParams }: Props) {
   const sp = await searchParams;
   const pedido = ESTADOS.includes(sp.estado as EstadoCotizacion) ? (sp.estado as EstadoCotizacion) : undefined;
   // "enviada" y "vencida" se filtran después: una enviada cuya validez pasó se muestra como vencida.
-  const [todas, clientes] = await Promise.all([
+  const [todas, clientes, deudas] = await Promise.all([
     listarCotizaciones({ estado: pedido === "vencida" || pedido === "enviada" ? undefined : pedido, cliente: sp.cliente, q: sp.q }),
     opcionesClientes(),
+    deudasCotizacion(sp.cliente),
   ]);
+  const deudaDe = new Map(deudas.map((d) => [d.cotizacion_id, d]));
   const hoy = hoyLima();
   const filas = todas
-    .map((c) => ({ ...c, efectivo: estadoEfectivo(c, hoy), cobrado: c.cobros.reduce((s, k) => s + k.monto, 0) }))
+    .map((c) => {
+      const cobrado = c.cobros.reduce((s, k) => s + k.monto, 0);
+      const deuda = deudaDe.get(c.id);
+      // Pendiente como lo ve la base: los cobros sueltos de la empresa pagan primero lo que vence antes.
+      return { ...c, efectivo: estadoEfectivo(c, hoy), cobrado, pendiente: deuda ? deuda.pendiente : saldo(c.total, cobrado), deuda };
+    })
     .filter((c) => !pedido || c.efectivo === pedido);
 
   const pen = filas.filter((c) => c.moneda === "PEN");
   const resumen = [
     { etiqueta: "Esperando respuesta", valor: pen.filter((c) => c.efectivo === "enviada").reduce((s, c) => s + c.total, 0) },
     { etiqueta: "Aceptado", valor: pen.filter((c) => c.efectivo === "aceptada").reduce((s, c) => s + c.total, 0) },
-    { etiqueta: "Por cobrar", valor: pen.filter((c) => c.efectivo === "aceptada").reduce((s, c) => s + saldo(c.total, c.cobrado), 0) },
+    { etiqueta: "Por cobrar", valor: pen.filter((c) => c.efectivo === "aceptada").reduce((s, c) => s + c.pendiente, 0) },
+    { etiqueta: "Vencido", valor: pen.filter((c) => c.deuda && c.deuda.dias_atraso > 0).reduce((s, c) => s + c.pendiente, 0) },
   ];
   const hayFiltros = Boolean(sp.estado || sp.cliente || sp.q);
 
@@ -78,7 +86,7 @@ export default async function CotizacionesPage({ searchParams }: Props) {
         />
       ) : (
         <>
-          <dl className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <dl className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {resumen.map((r) => (
               <div key={r.etiqueta} className="rounded-lg border border-border p-3">
                 <dt className="text-xs text-muted-foreground">{r.etiqueta}</dt>
@@ -102,7 +110,8 @@ export default async function CotizacionesPage({ searchParams }: Props) {
               </TableHeader>
               <TableBody>
                 {filas.map((c) => {
-                  const pendiente = saldo(c.total, c.cobrado);
+                  const pendiente = c.pendiente;
+                  const pago = c.efectivo === "aceptada" && c.deuda ? estadoPago(c.deuda, hoy) : null;
                   return (
                     <TableRow key={c.id}>
                       <TableCell className="font-mono text-xs">
@@ -125,6 +134,9 @@ export default async function CotizacionesPage({ searchParams }: Props) {
                       </TableCell>
                       <TableCell>
                         <EtiquetaCotizacion estado={c.efectivo} />
+                        {pago && pago.tono !== "ok" ? (
+                          <span className={`mt-1 block text-xs ${pago.tono === "danger" ? "text-danger" : "text-warn dark:text-warning-foreground"}`}>{pago.texto}</span>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   );

@@ -39,6 +39,7 @@ export function FormularioMarca({ perfil }: Props) {
       igv_porcentaje: basisAPorcentaje(perfil?.igv_pct ?? 1800),
       moneda_default: perfil?.moneda_default ?? "PEN",
       validez_dias_default: perfil?.validez_dias_default ?? 15,
+      plazo_pago_dias_default: perfil?.plazo_pago_dias_default ?? 15,
       condiciones_default: perfil?.condiciones_default ?? "",
       pago_cuenta: perfil?.pago_cuenta ?? "",
       pago_cci: perfil?.pago_cci ?? "",
@@ -124,7 +125,7 @@ export function FormularioMarca({ perfil }: Props) {
             <CardTitle>Cotizaciones</CardTitle>
             <CardDescription>Valores por defecto al crear una cotización; se pueden cambiar en cada una.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-3">
+          <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {campo("igv_porcentaje", "IGV (%)", { requerido: true, type: "number", mono: true })}
             <Campo id="m-moneda" etiqueta="Moneda" error={errores.moneda_default?.message}>
               <Select {...register("moneda_default")} {...propsCampo("m-moneda", errores.moneda_default?.message)}>
@@ -133,7 +134,8 @@ export function FormularioMarca({ perfil }: Props) {
               </Select>
             </Campo>
             {campo("validez_dias_default", "Validez (días)", { requerido: true, type: "number", mono: true })}
-            <Campo id="m-condiciones" etiqueta="Condiciones por defecto" error={errores.condiciones_default?.message} className="sm:col-span-3" ayuda="Una condición por línea.">
+            {campo("plazo_pago_dias_default", "Plazo de pago (días)", { requerido: true, type: "number", mono: true, ayuda: "Desde que la aceptan. 0 = al contado." })}
+            <Campo id="m-condiciones" etiqueta="Condiciones por defecto" error={errores.condiciones_default?.message} className="sm:col-span-2 xl:col-span-4" ayuda="Una condición por línea.">
               <Textarea {...register("condiciones_default")} {...propsCampo("m-condiciones", errores.condiciones_default?.message, "si")} rows={4} />
             </Campo>
           </CardContent>

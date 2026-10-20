@@ -95,6 +95,10 @@ const ES = {
     graciasTexto: "Te respondo pronto por WhatsApp o correo.",
     escribirWhatsApp: "Escribir por WhatsApp",
     otroMensaje: "Enviar otro mensaje",
+    sinCanalTitulo: "Tu mensaje no se pudo enviar desde aquí.",
+    sinCanalTexto: "Te lo dejé listo en WhatsApp: solo tienes que enviarlo.",
+    sinCanalSinWhatsApp: "Escríbeme al correo de arriba, por favor.",
+    enviarPorWhatsApp: "Enviar por WhatsApp",
   },
 };
 
@@ -184,6 +188,10 @@ const EN: TextosLanding = {
     graciasTexto: "I'll reply soon by WhatsApp or email.",
     escribirWhatsApp: "Message me on WhatsApp",
     otroMensaje: "Send another message",
+    sinCanalTitulo: "Your message couldn't be sent from here.",
+    sinCanalTexto: "It's ready on WhatsApp: you just need to send it.",
+    sinCanalSinWhatsApp: "Please email me at the address above.",
+    enviarPorWhatsApp: "Send on WhatsApp",
   },
 };
 

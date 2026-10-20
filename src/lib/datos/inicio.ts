@@ -28,7 +28,9 @@ export interface ResumenInicio {
   cotizaciones: { id: string; numero: string | null; asunto: string; total: number; moneda: Moneda; fecha: string; vence: string; empresa: string }[];
   aceptado_mes: number;
   por_cobrar: number;
-  deudores: { cliente_id: string; empresa: string; moneda: Moneda; aceptado: number; cobrado: number; saldo: number }[];
+  /** Parte de por_cobrar (soles) cuya fecha de pago ya pasó. */
+  por_cobrar_vencido: number;
+  deudores: { cliente_id: string; empresa: string; moneda: Moneda; aceptado: number; cobrado: number; saldo: number; vencido: number; dias_atraso: number }[];
   mantenimientos: { id: string; numero: string | null; proximo_mantenimiento: string; empresa: string; modelo: string | null; serie: string | null }[];
   solicitudes_nuevas: number;
   solicitudes: { id: string; titulo: string; empresa: string; created_at: string }[];

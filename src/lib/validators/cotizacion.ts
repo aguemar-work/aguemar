@@ -90,3 +90,13 @@ export const aceptacionSchema = z.object({
     .optional()
     .refine((v) => !v || /^\d{8}$/.test(v), "El DNI debe tener 8 dígitos."),
 });
+
+/** Plazo de pago y recordatorios de una cotización (se cambian desde su detalle, en cualquier estado). */
+export const pagoCotizacionSchema = z
+  .object({
+    plazo_pago_dias: z.number({ message: "Escribe los días de plazo." }).int("Usa días enteros.").min(0, "Mínimo 0 días (al contado).").max(120, "Máximo 120 días.").optional(),
+    recordar_pago: z.boolean().optional(),
+  })
+  .refine((v) => v.plazo_pago_dias !== undefined || v.recordar_pago !== undefined, "No hay nada que guardar.");
+
+export type PagoCotizacionInput = z.input<typeof pagoCotizacionSchema>;
