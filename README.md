@@ -78,7 +78,25 @@ npm run staging:cuentas
 npx insforge branch switch --parent; npm run db:migrate; npx insforge branch switch staging
 ```
 
-Convenciones de migraciones: se crean con `npx insforge db migrations new <nombre-en-kebab>`, no llevan `BEGIN/COMMIT`, y no usan bloques `DO` con SQL dinámico (la CLI los rechaza). `npm run db:status` muestra el historial remoto del contexto actual. Si staging queda inservible, `npx insforge branch reset staging` la devuelve al estado inicial y `npm run staging:cuentas` la vuelve a poblar.
+Convenciones de migraciones: se crean con `npx insforge db migrations new <nombre-en-kebab>`, no llevan `BEGIN/COMMIT`, y no usan bloques `DO` con SQL dinámico ni `set_config` (la CLI los rechaza). `npm run db:status` muestra el historial remoto del contexto actual. Si staging queda inservible, `npx insforge branch reset staging` la devuelve al estado inicial y `npm run staging:cuentas` la vuelve a poblar.
+
+Después de una migración que cree o cambie funciones, corre `npm run db:funciones`: vuelca la definición vigente de cada función a `db/funciones/<nombre>.sql` para leerla y revisarla en el diff sin recorrer todas las migraciones (se commitea junto con la migración; un test falla si quedó desactualizada). El mismo test revisa que toda función `security definer` fije `search_path`, revoque PUBLIC y que `anon` solo llegue a las funciones públicas por diseño.
+
+### Respaldos
+
+El plan gratuito de InsForge guarda **un solo respaldo manual** y no hace respaldos programados: lo que no se exporta, no está respaldado.
+
+1. **Antes de cada migración en producción**, y al menos una vez por semana, exporta la base del proyecto principal fuera de InsForge, a una carpeta cifrada (BitLocker) con copia en tu nube. El script guarda `aguemar-<proyecto>-AAAA-MM-DD-HHMM.sql` con esquema, funciones y todas las filas, rechaza carpetas dentro del repo y avisa si alguna tabla llega al tope de 10 000 filas de la CLI:
+
+   ```bash
+   npx insforge branch switch --parent; npm run db:respaldo -- "<carpeta-cifrada>"; npx insforge branch switch staging
+   ```
+
+   El export **no incluye las cuentas** (`auth.users`): te protege de tus propios errores (un borrado, una migración equivocada) y te permite llevarte los datos a otro proveedor. Para recuperarte de una pérdida total hace falta además el respaldo de InsForge del punto 2.
+2. Renueva también el respaldo manual de InsForge, que es una copia completa con las cuentas: `npx insforge backups list --project <id-producción>`, borra el anterior (`backups delete`) y `npx insforge backups create --project <id-producción> --name <fecha> --wait`.
+3. **Una vez por trimestre, prueba restaurar** en una rama desechable que borras al terminar (`npx insforge branch delete <rama>`); un respaldo que nunca se restauró no está probado. Ojo: las tablas apuntan a `auth.users`, así que el export solo entra completo donde existen las mismas cuentas. `[PENDIENTE: primer simulacro — fijar aquí los pasos que funcionen (rama --mode schema-only desde producción + db import, o backups restore sobre una rama)]`
+
+Los exports tienen datos personales de tus clientes (Ley 29733): nunca en el repo, en `_respaldos/` sin cifrar ni en carpetas sincronizadas sin cifrado.
 
 ## Autenticación
 
@@ -106,6 +124,8 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 | `npm run test:e2e` | flujos con Playwright contra staging (requiere `npm run dev` corriendo en otra terminal) |
 | `npm run db:migrate` | aplica las migraciones pendientes |
 | `npm run db:status` | historial de migraciones remoto |
+| `npm run db:funciones` | vuelca la definición vigente de cada función SQL a `db/funciones/` |
+| `npm run db:respaldo -- "<carpeta>"` | exporta la base del contexto actual fuera de InsForge (ver Respaldos) |
 | `npm run db:seed -- correo` | carga los datos de ejemplo para ese propietario |
 | `npm run staging:cuentas` | crea las cuentas de prueba y los datos de ejemplo en la rama staging (nunca en producción) |
 | `npm run logo` | recorta el logo desde `LOGO.svg` |
@@ -114,7 +134,7 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 
 1. Importa el repositorio en Vercel.
 2. Configura las variables de entorno: `NEXT_PUBLIC_INSFORGE_URL` y `NEXT_PUBLIC_INSFORGE_ANON_KEY` del **proyecto principal** (no de la rama staging), `NEXT_PUBLIC_SITE_URL` con el dominio final (obligatoria: el build falla si apunta a localhost), `NEXT_PUBLIC_WHATSAPP` y, si quieres avisos, las de Resend.
-3. Cada push a `main` publica solo. Antes, GitHub Actions (`.github/workflows/ci.yml`) corre tipos, lint, tests y build en cada PR y en `main`; en GitHub → Settings → Branches, protege `main` exigiendo el check `verificar` para que nada se despliegue en rojo.
+3. Cada push a `main` publica solo. Antes, GitHub Actions (`.github/workflows/ci.yml`) corre tipos, lint, tests y build en cada PR y en `main`; en GitHub → Settings → Branches, protege `main` exigiendo el check `verificar` para que nada se despliegue en rojo. El job `seguridad` corre `tests/e2e/seguridad.spec.ts` (aislamiento entre empresas e inmutabilidad de lo aceptado) contra la rama staging; necesita en GitHub → Settings → Secrets and variables → Actions los secretos `STAGING_INSFORGE_URL`, `STAGING_INSFORGE_ANON_KEY` y los `E2E_*` de propietario, empresa A y empresa B (los mismos valores de staging de tu `.env.local`, **nunca** los de producción). Sin ellos, el job se salta con un aviso.
 4. Las migraciones no las aplica Vercel: se prueban en staging y se aplican a producción a mano (sección Base de datos, paso 5), siempre compatibles con el código que sigue publicado.
 
 ### Correos (Resend)

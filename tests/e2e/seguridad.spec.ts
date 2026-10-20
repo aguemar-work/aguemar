@@ -190,13 +190,19 @@ test("un enlace revocado deja de mostrar el documento", async () => {
   expect((await anon.database.rpc("portal_documento", { p_token: token })).data ?? null).toBeNull();
 });
 
-test("el DNI de quien acepta sale enmascarado fuera del panel (SEG-06)", async () => {
-  // Arma su propia aceptación en SGC (empresa A): cotización enviada y aceptada desde el panel.
-  const { c: duenio, uid } = await sesion(PROPIETARIO);
+/**
+ * Cotización aceptada de prueba en SGC (empresa A). Lo aceptado ya no se borra (ADR-07),
+ * así que se crea una vez y las corridas siguientes la reutilizan.
+ */
+async function cotizacionAceptadaDePrueba(duenio: Cliente, uid: string): Promise<string> {
+  const ASUNTO = "e2e cotización aceptada";
+  const existente = await duenio.database.from("cotizaciones").select("id").eq("asunto", ASUNTO).eq("estado", "aceptada").limit(1).maybeSingle();
+  if (existente.data) return existente.data.id as string;
+
   const sgc = await duenio.database.from("clientes").select("id").eq("slug", "sgc").single();
   const cot = await duenio.database
     .from("cotizaciones")
-    .insert([{ owner_id: uid, cliente_id: sgc.data!.id, asunto: "e2e DNI enmascarado", area: "soporte", estado: "enviada" }])
+    .insert([{ owner_id: uid, cliente_id: sgc.data!.id, asunto: ASUNTO, area: "soporte", estado: "enviada" }])
     .select("id")
     .single();
   expect(cot.error).toBeNull();
@@ -205,20 +211,129 @@ test("el DNI de quien acepta sale enmascarado fuera del panel (SEG-06)", async (
     .insert([{ owner_id: uid, cotizacion_id: cot.data!.id, descripcion: "Línea de prueba", unidad: "servicio", cantidad: 1, precio_unitario: 10000 }])
     .select("id");
   expect(item.error).toBeNull();
+  // Aceptar pasa por cotizacion_aceptar_core: prueba que el núcleo sí registra la aceptación.
   const aceptar = await duenio.database.rpc("cotizacion_aceptar_panel", { p_cot: cot.data!.id, p_nombre: "Persona de Prueba", p_dni: "12345678" });
   expect(aceptar.error).toBeNull();
+  return cot.data!.id as string;
+}
+
+test("el DNI de quien acepta sale enmascarado fuera del panel (SEG-06)", async () => {
+  const { c: duenio, uid } = await sesion(PROPIETARIO);
+  const cotId = await cotizacionAceptadaDePrueba(duenio, uid);
 
   // El panel (propietario) ve el DNI completo en la tabla.
-  const enPanel = await duenio.database.from("aceptaciones").select("dni").eq("cotizacion_id", cot.data!.id).single();
+  const enPanel = await duenio.database.from("aceptaciones").select("dni").eq("cotizacion_id", cotId).limit(1).single();
   expect(enPanel.data?.dni).toBe("12345678");
 
   // La empresa lo ve enmascarado.
   const { c: sesionA } = await sesion(EMPRESA_A);
-  const det = (await sesionA.database.rpc("ws_cotizacion", { p_id: cot.data!.id })).data as { aceptacion?: { dni?: string | null } | null } | null;
+  const det = (await sesionA.database.rpc("ws_cotizacion", { p_id: cotId })).data as { aceptacion?: { dni?: string | null } | null } | null;
   expect(det?.aceptacion?.dni).toBe("****5678");
+});
 
-  // Limpieza: el trabajo que creó la aceptación y la cotización (su aceptación se va en cascada).
-  const z = await duenio.database.from("cotizaciones").select("trabajo_id").eq("id", cot.data!.id).single();
-  await duenio.database.from("cotizaciones").delete().eq("id", cot.data!.id);
-  if (z.data?.trabajo_id) await duenio.database.from("trabajos").delete().eq("id", z.data.trabajo_id);
+test("una cotización aceptada no cambia: ni su contenido, ni sus líneas, ni Mi marca en su documento (ADR-07)", async () => {
+  const { c: duenio, uid } = await sesion(PROPIETARIO);
+  const cotId = await cotizacionAceptadaDePrueba(duenio, uid);
+
+  // Queda la copia con su huella.
+  const acep = await duenio.database.from("aceptaciones").select("documento, huella").eq("cotizacion_id", cotId).limit(1).single();
+  expect(acep.data?.documento).not.toBeNull();
+  expect(acep.data?.huella).toMatch(/^[0-9a-f]{64}$/);
+
+  // Ni el propietario edita, agrega líneas, borra líneas o borra la cotización.
+  expect(bloqueado(await duenio.database.from("cotizaciones").update({ asunto: "cambiada" }).eq("id", cotId).select("id"))).toBe(true);
+  expect(bloqueado(await duenio.database.from("cotizaciones").update({ estado: "enviada" }).eq("id", cotId).select("id"))).toBe(true);
+  expect(
+    bloqueado(
+      await duenio.database
+        .from("cotizacion_items")
+        .insert([{ owner_id: uid, cotizacion_id: cotId, descripcion: "Línea colada", unidad: "servicio", cantidad: 1, precio_unitario: 1 }])
+        .select("id"),
+    ),
+  ).toBe(true);
+  expect(bloqueado(await duenio.database.from("cotizacion_items").delete().eq("cotizacion_id", cotId).select("id"))).toBe(true);
+  expect(bloqueado(await duenio.database.from("cotizaciones").delete().eq("id", cotId).select("id"))).toBe(true);
+
+  // Cambiar Mi marca no cambia lo que la empresa aceptó.
+  const { c: sesionA } = await sesion(EMPRESA_A);
+  type Doc = { asunto: string; marca: { cargo: string } } | null;
+  const antes = (await sesionA.database.rpc("ws_cotizacion", { p_id: cotId })).data as Doc;
+  expect(antes?.asunto).toBe("e2e cotización aceptada");
+  const marca = await duenio.database.from("perfil_marca").select("id, cargo").eq("owner_id", uid).single();
+  try {
+    const cambio = await duenio.database.from("perfil_marca").update({ cargo: `${marca.data!.cargo} (e2e)` }).eq("id", marca.data!.id).select("cargo").single();
+    expect(cambio.data?.cargo).toBe(`${marca.data!.cargo} (e2e)`);
+    const despues = (await sesionA.database.rpc("ws_cotizacion", { p_id: cotId })).data as Doc;
+    expect(despues?.marca.cargo).toBe(antes?.marca.cargo);
+  } finally {
+    await duenio.database.from("perfil_marca").update({ cargo: marca.data!.cargo }).eq("id", marca.data!.id);
+  }
+});
+
+test("una cotización solo se acepta registrando quién acepta, no cambiando su estado (ADR-07)", async () => {
+  const { c: duenio, uid } = await sesion(PROPIETARIO);
+  const sgc = await duenio.database.from("clientes").select("id").eq("slug", "sgc").single();
+  const creada = await duenio.database
+    .from("cotizaciones")
+    .insert([{ owner_id: uid, cliente_id: sgc.data!.id, asunto: "e2e aceptada a mano", area: "soporte", estado: "aceptada" }])
+    .select("id");
+  expect(bloqueado(creada)).toBe(true);
+
+  const cot = await duenio.database
+    .from("cotizaciones")
+    .insert([{ owner_id: uid, cliente_id: sgc.data!.id, asunto: "e2e estado a mano", area: "soporte", estado: "enviada" }])
+    .select("id")
+    .single();
+  expect(cot.error).toBeNull();
+  try {
+    expect(bloqueado(await duenio.database.from("cotizaciones").update({ estado: "aceptada" }).eq("id", cot.data!.id).select("id"))).toBe(true);
+  } finally {
+    await duenio.database.from("cotizaciones").delete().eq("id", cot.data!.id);
+  }
+});
+
+test("un acta aceptada no cambia y su aceptación no se escribe a mano (ADR-07)", async () => {
+  const { c: duenio, uid } = await sesion(PROPIETARIO);
+  const sgc = await duenio.database.from("clientes").select("id").eq("slug", "sgc").single();
+  const TITULO = "e2e acta aceptada";
+
+  let actaId = (await duenio.database.from("actas_entrega").select("id").eq("titulo", TITULO).not("aceptada_en", "is", null).limit(1).maybeSingle()).data?.id as
+    | string
+    | undefined;
+  if (!actaId) {
+    const acta = await duenio.database
+      .from("actas_entrega")
+      .insert([{ owner_id: uid, cliente_id: sgc.data!.id, titulo: TITULO, area: "soporte", publicada: true }])
+      .select("id")
+      .single();
+    expect(acta.error).toBeNull();
+    actaId = acta.data!.id as string;
+    expect((await duenio.database.rpc("acta_aceptar_panel", { p_id: actaId, p_nombre: "Persona de Prueba", p_dni: "12345678" })).error).toBeNull();
+  }
+
+  const fila = await duenio.database.from("actas_entrega").select("aceptada_documento, aceptada_huella").eq("id", actaId).single();
+  expect(fila.data?.aceptada_documento).not.toBeNull();
+  expect(fila.data?.aceptada_huella).toMatch(/^[0-9a-f]{64}$/);
+
+  expect(bloqueado(await duenio.database.from("actas_entrega").update({ titulo: "cambiada" }).eq("id", actaId).select("id"))).toBe(true);
+  expect(bloqueado(await duenio.database.from("actas_entrega").update({ aceptada_nombre: "Otra persona" }).eq("id", actaId).select("id"))).toBe(true);
+  expect(bloqueado(await duenio.database.from("actas_entrega").delete().eq("id", actaId).select("id"))).toBe(true);
+
+  // Un acta sin aceptar tampoco se "acepta" escribiendo las columnas.
+  const otra = await duenio.database
+    .from("actas_entrega")
+    .insert([{ owner_id: uid, cliente_id: sgc.data!.id, titulo: "e2e acta sin aceptar", area: "soporte" }])
+    .select("id")
+    .single();
+  expect(otra.error).toBeNull();
+  try {
+    const forzar = await duenio.database
+      .from("actas_entrega")
+      .update({ aceptada_en: new Date().toISOString(), aceptada_nombre: "Nadie" })
+      .eq("id", otra.data!.id)
+      .select("id");
+    expect(bloqueado(forzar)).toBe(true);
+  } finally {
+    await duenio.database.from("actas_entrega").delete().eq("id", otra.data!.id);
+  }
 });

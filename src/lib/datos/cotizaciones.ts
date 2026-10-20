@@ -1,6 +1,7 @@
 import { cache } from "react";
 import type { AceptacionRow, CobroRow, CotizacionItemRow, CotizacionRow, EstadoCotizacion, RecordatorioCobroRow } from "@/types/database";
 import type { DeudaCotizacion } from "@/lib/cotizacion";
+import type { WsCotizacion } from "./workspace";
 import { conSesion } from "./base";
 import { filtroOr } from "./busqueda";
 
@@ -58,6 +59,17 @@ export const obtenerCotizacion = cache(async function obtenerCotizacion(id: stri
   c.aceptaciones = [...(c.aceptaciones ?? [])].sort((a, b) => b.aceptado_en.localeCompare(a.aceptado_en));
   c.recordatorios_cobro = [...(c.recordatorios_cobro ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at));
   return c;
+});
+
+/**
+ * La cotización como documento (misma forma que el workspace y el portal). Si está aceptada,
+ * sale de la copia guardada al aceptarla: Mi marca y la empresa de ese momento.
+ */
+export const obtenerDocumentoCotizacion = cache(async function obtenerDocumentoCotizacion(id: string): Promise<WsCotizacion | null> {
+  const { db } = await conSesion();
+  const { data, error } = await db.rpc("cotizacion_panel", { p_id: id });
+  if (error) throw error;
+  return (data as WsCotizacion | null) ?? null;
 });
 
 export type CobroConRelaciones = CobroRow & { cotizaciones: { id: string; numero: string | null } | null };

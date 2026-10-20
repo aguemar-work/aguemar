@@ -14,6 +14,8 @@
     "logo": "node scripts/crop-logo.mjs",
     "db:migrate": "insforge db migrations up --all",
     "db:status": "insforge db migrations list",
+    "db:funciones": "node scripts/funciones-vigentes.mjs",
+    "db:respaldo": "node scripts/respaldo.mjs",
     "db:seed": "node scripts/seed.mjs",
     "staging:cuentas": "node scripts/staging.mjs"
   },
