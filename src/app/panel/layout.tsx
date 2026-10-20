@@ -26,24 +26,34 @@ export default async function PanelLayout({ children, modal }: { children: React
   const rolPanel = rol.tipo === "colaborador" ? "colaborador" : "propietario";
 
   return (
-    <div className="flex min-h-dvh">
-      <SaltarContenido />
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 md:block">
-        <Sidebar rol={rolPanel} />
-      </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar correo={usuario?.email} cerrarSesion={cerrarSesion} rol={rolPanel} />
-        <main id="contenido" className="flex-1 p-4 md:p-6 lg:p-8">
-          {!backendConfigurado ? (
-            <div className="mb-6">
-              <AvisoBackend />
-            </div>
-          ) : null}
-          {children}
-        </main>
+    <>
+      <div className="flex min-h-dvh">
+        <SaltarContenido />
+        <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 md:block">
+          <Sidebar rol={rolPanel} />
+        </aside>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar correo={usuario?.email} cerrarSesion={cerrarSesion} rol={rolPanel} />
+          <main id="contenido" className="flex-1 p-4 md:p-6 lg:p-8">
+            {!backendConfigurado ? (
+              <div className="mb-6">
+                <AvisoBackend />
+              </div>
+            ) : null}
+            {children}
+          </main>
+        </div>
       </div>
-      {/* Panel lateral de las rutas interceptadas (@modal): crear, editar y ver sin salir de la lista. */}
+      {/*
+        Panel lateral de las rutas interceptadas (@modal): crear, editar y ver sin salir de la lista.
+        Va fuera del <div> a propósito. En desarrollo, el elemento de este slot llega en el payload RSC
+        con referencias que pueden seguir bloqueadas al hidratar (props deduplicadas contra el slot
+        children, que comparte error.tsx, y su pila de depuración); React lo trata como "lazy" y, si
+        suspende siendo hijo directo de un elemento ya hidratado, reintenta ese elemento sin
+        restaurar el cursor de hidratación: "Hydration failed" en todo /panel (se esperaba el <div> y
+        llegaba el <a> de SaltarContenido). El Sheet usa un portal, así que su sitio en el DOM no se ve.
+      */}
       {modal}
-    </div>
+    </>
   );
 }
