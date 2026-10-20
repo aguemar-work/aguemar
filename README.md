@@ -142,7 +142,7 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 ### Correos (Resend)
 
 1. Crea la cuenta en resend.com y, en **Domains**, agrega `aguemar.com`.
-2. Copia en Namecheap (Advanced DNS) los registros que te muestra Resend (MX y TXT de `send`, y el TXT de DKIM `resend._domainkey`). No toques el registro `korax`.
+2. Copia en Namecheap (Advanced DNS) los registros que te muestra Resend: el TXT de DKIM `resend._domainkey`, los CNAME `send` y `rsend` (Resend ya no usa MX) y el TXT `_dmarc`. No toques el registro `korax`.
 3. Cuando el dominio aparezca como verificado, crea una API key y agrégala en Vercel (y en `.env.local` si quieres probar en local): `RESEND_API_KEY`, `RESEND_FROM="aguemar <avisos@aguemar.com>"` y, opcional, `AVISOS_PARA`.
 4. Vuelve a desplegar. Sin dominio verificado, Resend solo deja enviar a tu propio correo (`RESEND_FROM="aguemar <onboarding@resend.dev>"`).
 
