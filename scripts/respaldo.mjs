@@ -1,7 +1,9 @@
 /**
  * Respaldo propio de la base fuera de InsForge (ARQUITECTURA.md, ADR-06).
  *
- *   npm run db:respaldo -- "<carpeta cifrada fuera del repo>"
+ *   npm run db:respaldo -- _respaldos
+ *
+ * Destino: una carpeta fuera del repo o una que git ignore (`_respaldos/`).
  *
  * Exporta el proyecto del contexto actual de la CLI (para producción: antes
  * `npx insforge branch switch --parent`, y después volver a staging) con esquema, funciones,
@@ -17,13 +19,18 @@ import { join, resolve } from "node:path";
 
 const destino = process.argv[2];
 if (!destino) {
-  console.error('Uso: npm run db:respaldo -- "<carpeta cifrada fuera del repo>"');
+  console.error('Uso: npm run db:respaldo -- _respaldos');
   process.exit(1);
 }
 const carpeta = resolve(destino);
+// Dentro del repo solo en una carpeta que git ignore (p. ej. _respaldos/): nunca se commitea.
 if (carpeta.toLowerCase().startsWith(resolve(".").toLowerCase())) {
-  console.error("El respaldo tiene datos personales: guárdalo fuera del repositorio, en una carpeta cifrada.");
-  process.exit(1);
+  try {
+    execSync(`git check-ignore -q "${join(carpeta, "respaldo.sql")}"`, { stdio: "ignore" });
+  } catch {
+    console.error("El respaldo tiene datos personales: guárdalo en una carpeta que git ignore (p. ej. _respaldos/) o fuera del repo.");
+    process.exit(1);
+  }
 }
 mkdirSync(carpeta, { recursive: true });
 

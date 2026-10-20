@@ -86,17 +86,17 @@ Después de una migración que cree o cambie funciones, corre `npm run db:funcio
 
 El plan gratuito de InsForge guarda **un solo respaldo manual** y no hace respaldos programados: lo que no se exporta, no está respaldado.
 
-1. **Antes de cada migración en producción**, y al menos una vez por semana, exporta la base del proyecto principal fuera de InsForge, a una carpeta cifrada (BitLocker) con copia en tu nube. El script guarda `aguemar-<proyecto>-AAAA-MM-DD-HHMM.sql` con esquema, funciones y todas las filas, rechaza carpetas dentro del repo y avisa si alguna tabla llega al tope de 10 000 filas de la CLI:
+1. **Antes de cada migración en producción**, y al menos una vez por semana, exporta la base del proyecto principal fuera de InsForge a `_respaldos/` (ignorada por git) o a otra carpeta fuera del repo. El script guarda `aguemar-<proyecto>-AAAA-MM-DD-HHMM.sql` con esquema, funciones y todas las filas, rechaza carpetas del repo que git no ignore y avisa si alguna tabla llega al tope de 10 000 filas de la CLI:
 
    ```bash
-   npx insforge branch switch --parent; npm run db:respaldo -- "<carpeta-cifrada>"; npx insforge branch switch staging
+   npx insforge branch switch --parent; npm run db:respaldo -- _respaldos; npx insforge branch switch staging
    ```
 
    El export **no incluye las cuentas** (`auth.users`): te protege de tus propios errores (un borrado, una migración equivocada) y te permite llevarte los datos a otro proveedor. Para recuperarte de una pérdida total hace falta además el respaldo de InsForge del punto 2.
 2. Renueva también el respaldo manual de InsForge, que es una copia completa con las cuentas: `npx insforge backups list --project <id-producción>`, borra el anterior (`backups delete`) y `npx insforge backups create --project <id-producción> --name <fecha> --wait`.
 3. **Una vez por trimestre, prueba restaurar** en una rama desechable que borras al terminar (`npx insforge branch delete <rama>`); un respaldo que nunca se restauró no está probado. Ojo: las tablas apuntan a `auth.users`, así que el export solo entra completo donde existen las mismas cuentas. `[PENDIENTE: primer simulacro — fijar aquí los pasos que funcionen (rama --mode schema-only desde producción + db import, o backups restore sobre una rama)]`
 
-Los exports tienen datos personales de tus clientes (Ley 29733): nunca en el repo, en `_respaldos/` sin cifrar ni en carpetas sincronizadas sin cifrado.
+Los exports tienen datos personales de tus clientes (Ley 29733): nunca se commitean. Copia periódicamente los de `_respaldos/` a un lugar fuera de este equipo (idealmente cifrado), para que una falla del disco no se lleve la base y su respaldo a la vez.
 
 ## Autenticación
 
@@ -125,7 +125,7 @@ Genera `public/logo.svg` (viewBox recortado) y `public/logo-light.svg` (blanco p
 | `npm run db:migrate` | aplica las migraciones pendientes |
 | `npm run db:status` | historial de migraciones remoto |
 | `npm run db:funciones` | vuelca la definición vigente de cada función SQL a `db/funciones/` |
-| `npm run db:respaldo -- "<carpeta>"` | exporta la base del contexto actual fuera de InsForge (ver Respaldos) |
+| `npm run db:respaldo -- _respaldos` | exporta la base del contexto actual fuera de InsForge (ver Respaldos) |
 | `npm run db:seed -- correo` | carga los datos de ejemplo para ese propietario |
 | `npm run staging:cuentas` | crea las cuentas de prueba y los datos de ejemplo en la rama staging (nunca en producción) |
 | `npm run logo` | recorta el logo desde `LOGO.svg` |
@@ -178,7 +178,7 @@ migrations         migraciones SQL (InsForge CLI)
 db                 seed.sql
 scripts            crop-logo.mjs, seed.mjs, staging.mjs
 tests              unit (Vitest), e2e (Playwright)
-_respaldos         volcados locales (ignorado por git)
+_respaldos         respaldos de la base (npm run db:respaldo; ignorado por git)
 ```
 
 ## Fases
