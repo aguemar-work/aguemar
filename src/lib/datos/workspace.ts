@@ -12,6 +12,7 @@ export interface WsEmpresa {
   slug: string;
   modulos: string[];
   contacto: string | null;
+  ultimo_ingreso: string | null;
   marca: { nombre_comercial: string; responsable: string; telefono: string | null; correo: string | null } | null;
 }
 
@@ -208,9 +209,22 @@ async function rpc<T>(nombre: string, args?: Record<string, unknown>): Promise<T
   return (data as T | null) ?? null;
 }
 
+/**
+ * Registro del ingreso del día (HU 2.1). El cliente se crea ahora, porque lee las cookies de la
+ * petición; la llamada queda para `after()`, donde un Server Component ya no puede leerlas.
+ */
+async function prepararIngreso(): Promise<() => Promise<void>> {
+  const insforge = await crearClienteServidor();
+  return async () => {
+    const { error } = (await insforge?.database.rpc("ws_registrar_ingreso")) ?? { error: null };
+    if (error) console.error("[workspace] ws_registrar_ingreso falló:", error.message);
+  };
+}
+
 export const ws = {
   // Cacheada por petición: el layout y la página la piden en la misma renderización.
   miEmpresa: cache(() => rpc<WsEmpresa>("ws_mi_empresa")),
+  prepararIngreso,
   inicio: () => rpc<WsInicio>("ws_inicio"),
   trabajos: async () => (await rpc<WsTrabajoResumen[]>("ws_trabajos")) ?? [],
   trabajo: (id: string) => rpc<WsTrabajo>("ws_trabajo", { p_id: id }),

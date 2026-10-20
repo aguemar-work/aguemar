@@ -6,6 +6,8 @@ import { TopbarWorkspace } from "@/components/workspace/topbar-workspace";
 import { obtenerRol, rutaInicio } from "@/lib/insforge/server";
 import { ws } from "@/lib/datos/workspace";
 import { cerrarSesion } from "@/app/(auth)/acciones";
+import { after } from "next/server";
+import { fechaLima, hoyLima } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,8 @@ export default async function WorkspaceLayout({ children, params }: { children: 
 
   const empresa = await ws.miEmpresa();
   if (!empresa) notFound();
+  // Último ingreso (HU 2.1): como mucho una escritura al día, después de responder.
+  if (!empresa.ultimo_ingreso || fechaLima(empresa.ultimo_ingreso) !== hoyLima()) after(await ws.prepararIngreso());
 
   return (
     <div className="flex min-h-dvh">

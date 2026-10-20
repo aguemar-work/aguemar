@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listarClientes } from "@/lib/datos/clientes";
 import { soloPropietario } from "@/lib/datos/base";
+import { estadoAcceso } from "@/lib/acceso-empresa";
+import { EtiquetaAcceso } from "@/components/panel/etiqueta-acceso";
 
 export const metadata: Metadata = { title: "Empresas" };
 
@@ -74,6 +76,10 @@ export default async function ClientesPage({ searchParams }: Props) {
                     {c.nombre}
                   </Link>
                   <p className="text-xs text-muted-foreground md:hidden">{c.contacto}</p>
+                  {/* En móvil la columna Workspace no se ve: el estado va bajo el nombre. */}
+                  <div className="mt-1 md:hidden">
+                    <EtiquetaAcceso estado={estadoAcceso({ usuarioId: c.usuario_id, ultimoIngreso: c.ultimo_ingreso, invitacion: c.invitacion })} ultimoIngreso={c.ultimo_ingreso} />
+                  </div>
                 </TableCell>
                 <TableCell>
                   {c.num_doc ? (
@@ -87,13 +93,8 @@ export default async function ClientesPage({ searchParams }: Props) {
                 <TableCell className="hidden md:table-cell">{c.contacto ?? "—"}</TableCell>
                 <TableCell className="hidden font-mono text-xs lg:table-cell">{c.telefono ?? "—"}</TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {c.usuario_id ? (
-                    <Badge variant="ok" dot>
-                      Activo · {(c.modulos ?? []).length} módulos
-                    </Badge>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">Sin acceso</span>
-                  )}
+                  <EtiquetaAcceso estado={estadoAcceso({ usuarioId: c.usuario_id, ultimoIngreso: c.ultimo_ingreso, invitacion: c.invitacion })} ultimoIngreso={c.ultimo_ingreso} />
+                  {c.usuario_id ? <p className="mt-1 text-xs text-muted-foreground">{(c.modulos ?? []).length} módulos</p> : null}
                 </TableCell>
                 <TableCell className="text-right font-mono tabular">{c.equipos?.[0]?.count ?? 0}</TableCell>
               </TableRow>

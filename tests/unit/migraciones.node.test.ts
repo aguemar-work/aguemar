@@ -15,6 +15,7 @@ const vigentes = [...(funcionesVigentes() as Map<string, Funcion>).values()];
 const PARA_ANON = new Set([
   "landing_datos", // datos públicos de la landing
   "crear_lead", // formulario, con tope por IP y global
+  "registrar_evento", // contador de clics de la landing, lista cerrada y tope por día
   "portal_documento", // token de 256 bits
   "aceptar_cotizacion", // token + nombre y DNI
   "aceptar_acta", // token + nombre y DNI

@@ -50,7 +50,7 @@ function bloqueado(r: { error: unknown; data: unknown }) {
   return r.error !== null || (Array.isArray(r.data) && r.data.length === 0) || r.data === null;
 }
 
-const TABLAS = ["clientes", "trabajos", "trabajo_tareas", "cotizaciones", "cobros", "fichas", "briefs", "actas_entrega", "informes", "actividades", "solicitudes", "comentarios", "leads", "perfil_marca", "enlaces_publicos", "aceptaciones", "miembros"];
+const TABLAS = ["clientes", "trabajos", "trabajo_tareas", "cotizaciones", "cobros", "fichas", "briefs", "actas_entrega", "informes", "actividades", "solicitudes", "comentarios", "leads", "perfil_marca", "enlaces_publicos", "aceptaciones", "miembros", "eventos_landing"];
 
 test("la empresa no lee tablas directamente", async () => {
   const { c } = await sesion(EMPRESA_A);
@@ -336,4 +336,58 @@ test("un acta aceptada no cambia y su aceptación no se escribe a mano (ADR-07)"
   } finally {
     await duenio.database.from("actas_entrega").delete().eq("id", otra.data!.id);
   }
+});
+
+
+test("el último ingreso solo marca la empresa propia, una vez al día (HU 2.1)", async () => {
+  const { c: duenio } = await sesion(PROPIETARIO);
+  const ids = await duenio.database.from("clientes").select("id, slug").in("slug", ["empresa-b"]);
+  const { c: sesionA } = await sesion(EMPRESA_A);
+  const a = (await sesionA.database.rpc("ws_mi_empresa")).data as { id: string } | null;
+  const idB = (ids.data as { id: string }[])[0].id;
+  expect((await duenio.database.from("clientes").update({ ultimo_ingreso: null }).in("id", [a!.id, idB]).select("id")).error).toBeNull();
+
+  expect((await sesionA.database.rpc("ws_registrar_ingreso")).data).toBe(true);
+  expect((await sesionA.database.rpc("ws_registrar_ingreso")).data).toBe(false);
+  const fila = (await duenio.database.from("clientes").select("id, ultimo_ingreso").in("id", [a!.id, idB])).data as { id: string; ultimo_ingreso: string | null }[];
+  expect(fila.find((f) => f.id === a!.id)?.ultimo_ingreso).not.toBeNull();
+  expect(fila.find((f) => f.id === idB)?.ultimo_ingreso).toBeNull();
+  expect(((await sesionA.database.rpc("ws_mi_empresa")).data as { ultimo_ingreso: string | null }).ultimo_ingreso).not.toBeNull();
+
+  // Sin sesión no se registra nada.
+  const anon = await clienteNuevo();
+  expect((await anon.database.rpc("ws_registrar_ingreso")).error).not.toBeNull();
+});
+
+test("los contadores de la landing solo se suman por registrar_evento y no se leen sin ser propietario (HU 1.1)", async () => {
+  const anon = await clienteNuevo();
+  expect((await anon.database.rpc("registrar_evento", { p_evento: "otra_cosa", p_origen: "google" })).error).not.toBeNull();
+  expect((await anon.database.rpc("registrar_evento", { p_evento: "whatsapp_click", p_origen: "inventado" })).error).toBeNull();
+  expect(bloqueado(await anon.database.from("eventos_landing").select("*").limit(1))).toBe(true);
+  expect(bloqueado(await anon.database.from("eventos_landing").insert([{ dia: "2026-01-01", evento: "whatsapp_click", origen: "google", total: 9999 }]).select("id"))).toBe(true);
+
+  // El origen inventado quedó como "otro"; el propietario sí lo lee y no puede inflarlo a mano.
+  const { c: duenio } = await sesion(PROPIETARIO);
+  const filas = (await duenio.database.from("eventos_landing").select("id, origen, total").eq("evento", "whatsapp_click").eq("origen", "otro")).data as { id: string }[];
+  expect(filas.length).toBeGreaterThan(0);
+  expect(bloqueado(await duenio.database.from("eventos_landing").update({ total: 9999 }).eq("id", filas[0].id).select("id"))).toBe(true);
+});
+
+test("crear_lead guarda el origen saneado y nunca falla por él (HU 1.3)", async () => {
+  const anon = await clienteNuevo();
+  const nombre = `E2E origen ${Date.now()}`;
+  const r = await anon.database.rpc("crear_lead", {
+    p_nombre: nombre, p_telefono: "999999999", p_correo: "", p_servicio: "", p_mensaje: "Prueba de origen del lead",
+    p_origen: { origen: "inventado", referente: "evil.com/<script>", utm: { source: "x".repeat(300), medium: "cpc" } },
+  });
+  expect(r.error).toBeNull();
+  const { c: duenio } = await sesion(PROPIETARIO);
+  const lead = (await duenio.database.from("leads").select("id, origen, referente, utm").eq("nombre", nombre).single()).data as {
+    id: string; origen: string; referente: string | null; utm: { source: string; medium: string };
+  };
+  expect(lead.origen).toBe("otro");
+  expect(lead.referente).toBeNull();
+  expect(lead.utm.source).toHaveLength(80);
+  expect(lead.utm.medium).toBe("cpc");
+  await duenio.database.from("leads").delete().eq("id", lead.id);
 });

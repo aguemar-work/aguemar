@@ -77,10 +77,15 @@ export function formatearFechaHora(valor: Date | string): string {
   return `${dia}/${mes}/${anio} ${hora}:${minuto}`;
 }
 
+/** "AAAA-MM-DD" del día en Lima de un instante. */
+export function fechaLima(valor: Date | string): string {
+  const { dia, mes, anio } = partesLima(aFecha(valor));
+  return `${anio}-${mes}-${dia}`;
+}
+
 /** "AAAA-MM-DD" de hoy en Lima, útil para inputs type=date y para la numeración anual. */
 export function hoyLima(): string {
-  const { dia, mes, anio } = partesLima(new Date());
-  return `${anio}-${mes}-${dia}`;
+  return fechaLima(new Date());
 }
 
 export function anioLima(fecha: Date = new Date()): number {

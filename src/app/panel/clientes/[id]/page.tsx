@@ -24,6 +24,8 @@ import { informesDe } from "@/lib/datos/informes";
 import { textoPeriodo } from "@/lib/informe";
 import { soloPropietario } from "@/lib/datos/base";
 import { invitacionDeEmpresa } from "@/lib/datos/equipo";
+import { estadoAcceso } from "@/lib/acceso-empresa";
+import { EtiquetaAcceso } from "@/components/panel/etiqueta-acceso";
 
 export const metadata: Metadata = { title: "Empresa" };
 
@@ -113,6 +115,12 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
             correoUsuario={correoAcceso}
             correoSugerido={cliente.correo}
             invitacion={invitacion ? { id: invitacion.id, token: invitacion.token, correo: invitacion.correo, expira_en: invitacion.expira_en } : null}
+            estado={
+              <EtiquetaAcceso
+                estado={estadoAcceso({ usuarioId: cliente.usuario_id, ultimoIngreso: cliente.ultimo_ingreso, invitacion })}
+                ultimoIngreso={cliente.ultimo_ingreso}
+              />
+            }
           />
           <ModulosEmpresa clienteId={id} modulos={cliente.modulos ?? []} avisos={cliente.avisos_correo !== false} />
 

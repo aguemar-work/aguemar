@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useReportarError } from "@/lib/reportar-error";
 
 /**
  * Error de una página del panel: se muestra dentro del marco (barra lateral y
  * cabecera siguen ahí), con reintento y vuelta al inicio.
  */
 export default function ErrorPanel({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
+  useReportarError(error);
 
   return (
     <section className="flex min-h-[50dvh] flex-col items-center justify-center gap-5 text-center" aria-live="polite">

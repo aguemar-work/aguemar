@@ -64,6 +64,8 @@ export type PerfilMarcaRow = Base & {
 export type ClienteRow = Base & {
   slug: string | null;
   usuario_id: string | null;
+  /** Último día que el usuario de la empresa entró a su workspace (ws_registrar_ingreso). */
+  ultimo_ingreso: string | null;
   modulos: string[];
   activa: boolean;
   avisos_correo: boolean;
@@ -239,6 +241,10 @@ export type LeadRow = Omit<Base, "owner_id"> & {
   ip: string | null;
   user_agent: string | null;
   cliente_id: string | null;
+  /** Origen clasificado (src/lib/origen.ts), dominio que lo trajo y UTM del enlace. */
+  origen: string | null;
+  referente: string | null;
+  utm: { source?: string; medium?: string; campaign?: string } | null;
 };
 
 export type EnlacePublicoRow = Base & {

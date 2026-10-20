@@ -4,6 +4,7 @@
  * (sin API key, sin correo de destino), el aviso se omite en silencio.
  */
 import { after } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { conSesion } from "@/lib/datos/base";
 import { clienteAnonimo } from "@/lib/datos/landing";
 import { envPublico, envServidor } from "@/lib/env";
@@ -27,7 +28,11 @@ export const avisosActivos = () => Boolean(envServidor().RESEND_API_KEY);
 /** Programa el envío para después de responder. Fuera de una petición (tests), envía en el acto. */
 function despues(tarea: () => Promise<unknown>) {
   if (!envServidor().RESEND_API_KEY) return;
-  const segura = () => tarea().catch((e) => console.error("[correo] Aviso fallido:", e));
+  const segura = () =>
+    tarea().catch((e) => {
+      console.error("[correo] Aviso fallido:", e);
+      Sentry.captureException(e);
+    });
   try {
     after(segura);
   } catch {

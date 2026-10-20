@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useReportarError } from "@/lib/reportar-error";
 
 /** Error inesperado en una página: se puede reintentar sin perder la sesión. */
 export default function ErrorPagina({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
+  useReportarError(error);
 
   return (
     <main className="flex min-h-[60dvh] flex-col items-center justify-center gap-5 p-6 text-center">

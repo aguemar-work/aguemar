@@ -24,6 +24,8 @@ interface Props {
   /** Correo de contacto de la empresa, para sugerirlo al invitar. */
   correoSugerido: string | null;
   invitacion: { id: string; token: string; correo: string; expira_en: string } | null;
+  /** Estado del acceso (invitación, activa, sin ingresar…), junto al título. */
+  estado?: React.ReactNode;
 }
 
 /**
@@ -31,12 +33,14 @@ interface Props {
  * el enlace; la persona fija su contraseña. Con acceso activo: enviar código de
  * recuperación o quitar el acceso.
  */
-export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario, correoSugerido, invitacion }: Props) {
+export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario, correoSugerido, invitacion, estado }: Props) {
   const ruta = `/panel/clientes/${clienteId}`;
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Acceso al workspace</CardTitle>
+        <CardTitle className="flex flex-wrap items-center gap-2">
+          Acceso al workspace {estado}
+        </CardTitle>
         <CardDescription>
           Un usuario por empresa. Entra en{" "}
           {slug ? (

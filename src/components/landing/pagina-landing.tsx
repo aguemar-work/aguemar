@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { SaltarContenido } from "@/components/ui/saltar-contenido";
 import { BrilloCursor } from "@/components/landing/brillo-cursor";
 import { Revelar } from "@/components/landing/revelar";
+import { Medicion } from "@/components/landing/medicion";
+import { Analytics } from "@vercel/analytics/next";
 import { MenuSecciones } from "@/components/landing/menu-secciones";
 import { SelectorIdioma } from "@/components/landing/selector-idioma";
 import { TituloSticky } from "@/components/landing/titulo-sticky";
@@ -69,6 +71,8 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
       <SaltarContenido />
       <BrilloCursor />
       <Revelar />
+      <Medicion />
+      <Analytics />
       <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8 md:px-12 md:py-16 lg:flex lg:justify-between lg:gap-16 lg:py-0 xl:gap-24">
         {/* ---------- Columna izquierda ---------- */}
         <header className="lg:sticky lg:top-0 lg:flex lg:max-h-screen lg:w-1/2 lg:flex-col lg:justify-between lg:py-24">
@@ -101,14 +105,14 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
           <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
             {whatsapp ? (
               <li>
-                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={ENLACE_LATERAL}>
+                <a href={whatsapp} target="_blank" rel="noopener noreferrer" data-evento="whatsapp_click" className={ENLACE_LATERAL}>
                   <MessageCircle className="size-4" aria-hidden /> WhatsApp
                 </a>
               </li>
             ) : null}
             {marca?.correo ? (
               <li>
-                <a href={`mailto:${marca.correo}`} className={ENLACE_LATERAL}>
+                <a href={`mailto:${marca.correo}`} data-evento="correo_click" className={ENLACE_LATERAL}>
                   <Mail className="size-4" aria-hidden /> {t.lateral.correo}
                 </a>
               </li>
@@ -169,7 +173,7 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
               <ul className="mb-10 flex flex-wrap gap-x-10 gap-y-4">
                 {whatsapp ? (
                   <li data-revelar>
-                    <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={VIA_DIRECTA}>
+                    <a href={whatsapp} target="_blank" rel="noopener noreferrer" data-evento="whatsapp_click" className={VIA_DIRECTA}>
                       <span className="font-mono text-xs text-mint">{"// whatsapp"}</span>
                       <span className="flex items-center gap-2 text-lg font-medium text-white">
                         <MessageCircle className="size-5 shrink-0 text-mint" aria-hidden />
@@ -180,7 +184,7 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
                 ) : null}
                 {marca?.correo ? (
                   <li data-revelar>
-                    <a href={`mailto:${marca.correo}`} className={VIA_DIRECTA}>
+                    <a href={`mailto:${marca.correo}`} data-evento="correo_click" className={VIA_DIRECTA}>
                       <span className="font-mono text-xs text-mint">{`// ${t.contacto.correo}`}</span>
                       <span className="flex items-center gap-2 text-lg font-medium text-white">
                         <Mail className="size-5 shrink-0 text-mint" aria-hidden />

@@ -5,6 +5,8 @@ import { filtroOr } from "./busqueda";
 
 export interface ClienteResumen extends ClienteRow {
   equipos: { count: number }[];
+  /** Invitación de empresa pendiente (sin usar ni revocar), para el estado del acceso. */
+  invitacion: { expira_en: string } | null;
 }
 
 export async function listarClientes(busqueda?: string): Promise<ClienteResumen[]> {
@@ -18,9 +20,14 @@ export async function listarClientes(busqueda?: string): Promise<ClienteResumen[
   if (q) {
     consulta = consulta.or(filtroOr(q, ["nombre", "num_doc", "contacto"]));
   }
-  const { data, error } = await consulta;
-  if (error) throw error;
-  return (data ?? []) as ClienteResumen[];
+  const [lista, invitaciones] = await Promise.all([
+    consulta,
+    db.from("invitaciones").select("cliente_id, expira_en").eq("tipo", "empresa").is("usada_en", null).eq("revocada", false).limit(500),
+  ]);
+  if (lista.error) throw lista.error;
+  if (invitaciones.error) throw invitaciones.error;
+  const pendientes = new Map(((invitaciones.data ?? []) as { cliente_id: string; expira_en: string }[]).map((i) => [i.cliente_id, { expira_en: i.expira_en }]));
+  return ((lista.data ?? []) as Omit<ClienteResumen, "invitacion">[]).map((c) => ({ ...c, invitacion: pendientes.get(c.id) ?? null }));
 }
 
 export const obtenerCliente = cache(async function obtenerCliente(id: string): Promise<ClienteRow | null> {

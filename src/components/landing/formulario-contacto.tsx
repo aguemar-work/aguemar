@@ -13,6 +13,7 @@ import { MENSAJES_LEAD, SIN_CANAL, crearLeadSchema, type LeadDatos, type LeadInp
 import { conTextoWhatsApp } from "@/lib/landing";
 import { TEXTOS, type Idioma } from "@/lib/landing-textos";
 import { enviarContacto } from "@/app/acciones";
+import { leerOrigen } from "@/components/landing/medicion";
 
 /**
  * Campos del formulario sobre el fondo oscuro de la landing: sin tarjeta, borde fino translúcido,
@@ -42,7 +43,7 @@ export function FormularioContacto({ whatsapp, idioma = "es" }: { whatsapp: stri
     iniciar(async () => {
       setErrorGeneral(undefined);
       setSinCanal(null);
-      const r = await enviarContacto(datos, idioma);
+      const r = await enviarContacto(datos, idioma, leerOrigen());
       if (!r.ok) {
         if (r.campo === SIN_CANAL) {
           setErrorGeneral(r.error);
@@ -103,7 +104,7 @@ export function FormularioContacto({ whatsapp, idioma = "es" }: { whatsapp: stri
           <p className="text-white/65">{sinCanal ? t.sinCanalTexto : t.sinCanalSinWhatsApp}</p>
           {sinCanal ? (
             <Button asChild variant="mint">
-              <a href={sinCanal} target="_blank" rel="noopener noreferrer">
+              <a href={sinCanal} target="_blank" rel="noopener noreferrer" data-evento="whatsapp_click">
                 <MessageCircle /> {t.enviarPorWhatsApp}
               </a>
             </Button>

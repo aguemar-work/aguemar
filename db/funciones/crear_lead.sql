@@ -1,9 +1,9 @@
--- Vigente según migrations/20261016161523_miembros-cierre-base.sql.
+-- Vigente según migrations/20261020210512_sprint2-medicion.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.crear_lead(
   p_nombre text, p_telefono text, p_correo text, p_servicio text, p_mensaje text,
-  p_ip inet default null, p_user_agent text default null
+  p_ip inet default null, p_user_agent text default null, p_origen jsonb default null
 )
 returns uuid
 language plpgsql
@@ -13,6 +13,9 @@ as $$
 declare
   v_owner uuid;
   v_id uuid;
+  v_origen text;
+  v_referente text;
+  v_utm jsonb;
 begin
   if p_nombre is null or length(trim(p_nombre)) < 2 then
     raise exception 'Nombre requerido' using errcode = '22023';
@@ -36,9 +39,29 @@ begin
     raise exception 'El formulario no está disponible ahora.' using errcode = '55000';
   end if;
 
-  insert into public.leads (owner_id, nombre, telefono, correo, servicio, mensaje, ip, user_agent)
+  -- El origen nunca impide guardar el lead: lo que no cumple se descarta.
+  if jsonb_typeof(p_origen) = 'object' then
+    v_origen := p_origen ->> 'origen';
+    if v_origen is not null and v_origen not in ('google', 'bing', 'instagram', 'facebook', 'linkedin', 'tiktok', 'youtube', 'x', 'whatsapp', 'correo', 'campana', 'otro', 'directo') then
+      v_origen := 'otro';
+    end if;
+    v_referente := nullif(left(lower(p_origen ->> 'referente'), 100), '');
+    if v_referente is not null and v_referente !~ '^[a-z0-9.-]+$' then
+      v_referente := null;
+    end if;
+    if jsonb_typeof(p_origen -> 'utm') = 'object' then
+      select nullif(jsonb_strip_nulls(jsonb_build_object(
+               'source', nullif(left(p_origen -> 'utm' ->> 'source', 80), ''),
+               'medium', nullif(left(p_origen -> 'utm' ->> 'medium', 80), ''),
+               'campaign', nullif(left(p_origen -> 'utm' ->> 'campaign', 80), ''))), '{}'::jsonb)
+      into v_utm;
+    end if;
+  end if;
+
+  insert into public.leads (owner_id, nombre, telefono, correo, servicio, mensaje, ip, user_agent, origen, referente, utm)
   values (v_owner, trim(p_nombre), nullif(trim(p_telefono), ''), nullif(trim(p_correo), ''),
-          nullif(trim(p_servicio), ''), nullif(trim(p_mensaje), ''), p_ip, left(p_user_agent, 300))
+          nullif(trim(p_servicio), ''), nullif(trim(p_mensaje), ''), p_ip, left(p_user_agent, 300),
+          v_origen, v_referente, v_utm)
   returning id into v_id;
 
   return v_id;

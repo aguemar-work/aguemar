@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
+import { politicaCsp } from "./src/lib/csp";
 
 // Archivos que el PDF lee del disco: en Vercel hay que incluirlos explícitamente en la función.
 // pdfkit carga sus fuentes estándar (Helvetica, la de inicio del documento) con un require dinámico
@@ -11,6 +13,10 @@ const cabecerasSeguridad = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+  // Solo reporta (no bloquea); en desarrollo no, porque React usa eval y llenaría la consola.
+  ...(process.env.NODE_ENV === "production"
+    ? [{ key: "Content-Security-Policy-Report-Only", value: politicaCsp(process.env.NEXT_PUBLIC_SENTRY_DSN, process.env.VERCEL_ENV) }]
+    : []),
 ];
 
 const nextConfig: NextConfig = {
@@ -38,4 +44,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Sentry (src/instrumentation*.ts). Con SENTRY_AUTH_TOKEN, SENTRY_ORG y SENTRY_PROJECT en Vercel sube los
+// source maps (para ver el stack legible) y los borra del despliegue; sin ellos compila igual.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN, deleteSourcemapsAfterUpload: true },
+  silent: !process.env.CI,
+  telemetry: false,
+});

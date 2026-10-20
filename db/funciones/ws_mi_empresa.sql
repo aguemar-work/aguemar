@@ -1,4 +1,4 @@
--- Vigente según migrations/20261014152859_empresas-workspaces.sql.
+-- Vigente según migrations/20261020210512_sprint2-medicion.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.ws_mi_empresa()
@@ -14,6 +14,7 @@ as $$
     'slug', c.slug,
     'modulos', to_jsonb(c.modulos),
     'contacto', c.contacto,
+    'ultimo_ingreso', c.ultimo_ingreso,
     'marca', (select jsonb_build_object('nombre_comercial', pm.nombre_comercial, 'responsable', pm.responsable, 'telefono', pm.telefono, 'correo', pm.correo)
               from public.perfil_marca pm where pm.owner_id = c.owner_id)
   )

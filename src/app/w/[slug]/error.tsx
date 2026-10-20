@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useReportarError } from "@/lib/reportar-error";
 
 /** Error de una página del workspace: conserva la navegación de la empresa y ofrece reintentar. */
 export default function ErrorWorkspace({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const { slug } = useParams<{ slug: string }>();
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
+  useReportarError(error);
 
   return (
     <section className="flex min-h-[50dvh] flex-col items-center justify-center gap-5 text-center" aria-live="polite">

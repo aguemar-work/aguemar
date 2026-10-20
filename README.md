@@ -32,6 +32,8 @@ Sin variables de InsForge la app compila igual y muestra un aviso en el panel y 
 | `RESEND_API_KEY`, `RESEND_FROM` | no | avisos por correo con Resend; sin API key no se envía nada |
 | `AVISOS_PARA` | recomendada | a dónde te llegan los avisos (si falta, el correo de Mi marca). También recibe el **respaldo del formulario de contacto** cuando la base falla: sin ella, ese mensaje solo se puede reenviar por WhatsApp |
 | `CRON_SECRET` | para recordatorios | secreto de la tarea diaria de recordatorios de pago (ver *Recordatorios de pago*); uno distinto en staging y en producción |
+| `NEXT_PUBLIC_SENTRY_DSN` | recomendada en producción | alertas de error con Sentry (ver *Alertas de error*). Es pública por diseño (va al navegador). Sin ella Sentry queda apagado; ponla **solo en Production** |
+| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | no | solo para subir los source maps en el build de Vercel y ver el stack del navegador legible. El token es secreto |
 | `E2E_*` | solo local | cuentas de prueba de staging para Playwright: propietario, empresa A y B, colaborador (las crea `npm run staging:cuentas`) |
 
 Nunca subas `.env.local` ni `.insforge/project.json` al repositorio. No configures en Vercel ninguna clave de servicio de InsForge: el código no la usa.
@@ -166,6 +168,26 @@ Para activarlo en un entorno (staging y producción llevan secretos distintos):
 3. Cárgalo en la base de ese entorno: `npx insforge db query "insert into public.ajustes_sistema (clave, valor) values ('cron_hash', '<hash>') on conflict (clave) do update set valor = excluded.valor, updated_at = now()"`.
 
 Para probarlo en local (con `npm run dev` corriendo): `curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/recordatorios`.
+
+### Alertas de error (Sentry)
+
+Los errores 500 del servidor (Server Components, Server Actions, Route Handlers, middleware) llegan por `onRequestError` (`src/instrumentation.ts`) y los del navegador por `src/instrumentation-client.ts` y las páginas `error.tsx` (`useReportarError`). También se reportan los avisos por correo que fallan y cada lead que se salvó por el respaldo. `src/lib/sentry.ts` limpia cada evento antes de enviarlo: sin usuario, IP, cookies, cabeceras, cuerpo, query ni breadcrumbs; los tokens de `/d/…` e `/invitacion/…` salen como `[token]` y los correos, DNI y RUC de los mensajes se reemplazan. Sin trazas ni Session Replay (plan gratuito).
+
+1. Crea una cuenta en sentry.io (plan Developer, gratis) y un proyecto **Next.js**. Copia el **DSN** (Settings → Client Keys).
+2. En Vercel → Settings → Environment Variables agrega `NEXT_PUBLIC_SENTRY_DSN` solo para **Production**.
+3. Opcional, para ver el stack del navegador legible: crea un token en Sentry (Settings → Auth Tokens, permiso de releases y source maps) y agrega `SENTRY_AUTH_TOKEN` (secreto), `SENTRY_ORG` y `SENTRY_PROJECT` (los nombres cortos que salen en la URL de Sentry).
+4. **Redeploy** del último despliegue: las variables nuevas solo entran en un build nuevo.
+5. En Sentry → Alerts, deja activa la regla por defecto "nuevo issue → correo". Llega en uno o dos minutos.
+
+### Analítica sin cookies
+
+- **Visitas y procedencia:** Vercel Web Analytics (`<Analytics />` solo en la landing). Actívalo en Vercel → Analytics → Enable; no usa cookies ni guarda la IP. En el plan Hobby no admite eventos propios, por eso los clics se cuentan aparte.
+- **Clics y formulario:** `src/components/landing/medicion.tsx` cuenta los enlaces con `data-evento` (`whatsapp_click`, `correo_click`) en `/api/evento`; `enviarContacto` cuenta `contacto_enviado`. Todo va a `registrar_evento()`, que suma uno al total del día por evento y origen en `eventos_landing` (sin IP ni una fila por visitante, tope de 500 por fila y día). El resumen de 30 días está en `/panel/leads`.
+- **Origen del lead:** al entrar, la landing guarda en `sessionStorage` el dominio que trajo a la persona y las UTM; el formulario lo manda y `crear_lead(p_origen)` lo guarda saneado en `leads.origen/referente/utm`. Para medir una campaña, comparte el enlace con UTM, por ejemplo `https://aguemar.com/?utm_source=instagram&utm_medium=bio`.
+
+### CSP en modo reporte
+
+`next.config.ts` manda `Content-Security-Policy-Report-Only` en producción (`src/lib/csp.ts`): no bloquea nada y los reportes llegan a Sentry (Issues → tipo CSP). Cuando pasen unas semanas sin reportes inesperados, se puede pasar a `Content-Security-Policy` con nonces.
 
 ## Estructura
 

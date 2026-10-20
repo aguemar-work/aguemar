@@ -75,6 +75,19 @@ export function crearLeadSchema(m: MensajesLead) {
 
 export const leadSchema = crearLeadSchema(MENSAJES_LEAD.es);
 
+const utmCampo = z.string().trim().max(80).optional();
+
+/** Origen que manda el navegador con el formulario (HU 1.3). Si no cumple, el lead se guarda sin origen. */
+export const origenLeadSchema = z.object({
+  referente: z
+    .string()
+    .max(100)
+    .regex(/^[a-z0-9.-]+$/)
+    .nullable()
+    .optional(),
+  utm: z.object({ source: utmCampo, medium: utmCampo, campaign: utmCampo }).nullable().optional(),
+});
+
 export type LeadInput = z.input<typeof leadSchema>;
 export type LeadDatos = z.output<typeof leadSchema>;
 

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 /** Última revisión del texto: cámbiala cuando edites esta página. */
-const REVISADA = "19/10/2026";
+const REVISADA = "20/10/2026";
 
 function Seccion({ numero, titulo, children }: { numero: string; titulo: string; children: React.ReactNode }) {
   return (
@@ -85,6 +85,23 @@ export default async function PrivacidadPage() {
               <strong>Fichas técnicas de equipos:</strong> marca, modelo, serie y estado del equipo. El diagnóstico no incluye tus archivos ni contraseñas.
             </li>
             <li>
+              <strong>Origen de tu mensaje:</strong> si escribes desde el formulario, guardo de qué sitio llegaste (solo el dominio, por ejemplo
+              google.com) y las etiquetas de campaña del enlace, si las tenía. Sirve para saber qué canales funcionan. Se guarda en tu navegador solo
+              mientras la pestaña está abierta (sessionStorage), sin cookies.
+            </li>
+            <li>
+              <strong>Estadísticas de visitas:</strong> cuento visitas y páginas vistas con Vercel Web Analytics, que no usa cookies ni guarda tu IP, y
+              cuento cuántas veces se pulsan los enlaces de WhatsApp y correo y cuántos formularios llegan, por día y por canal. Son totales: no
+              identifican a nadie.
+            </li>
+            <li>
+              <strong>Errores técnicos:</strong> si algo falla, se registra la página y el detalle técnico del error para poder corregirlo (Sentry), sin
+              tu nombre, correo, IP, cookies ni lo que escribiste.
+            </li>
+            <li>
+              <strong>Uso de tu espacio:</strong> registro el último día en que tu empresa entró a su espacio, para saber si te sirve y ofrecerte ayuda.
+            </li>
+            <li>
               <strong>Correos de aviso:</strong> si tienes acceso a tu espacio, te aviso por correo cuando publico un documento o respondo un comentario. Puedes
               pedir que no te lleguen.
             </li>
@@ -108,7 +125,8 @@ export default async function PrivacidadPage() {
 
         <Seccion numero="05" titulo="Con quién se comparten y dónde se guardan">
           <p>
-            No vendo ni cedo tus datos. Para operar uso servicios de terceros: base de datos y autenticación, alojamiento web y envío de correos. Estos
+            No vendo ni cedo tus datos. Para operar uso servicios de terceros: base de datos y autenticación, alojamiento web y estadísticas de visitas (Vercel), envío de correos y
+            registro de errores (Sentry). Estos
             proveedores pueden almacenar la información fuera del Perú, por lo que al escribirme o usar tu espacio aceptas esa transferencia.
           </p>
         </Seccion>
@@ -130,8 +148,8 @@ export default async function PrivacidadPage() {
 
         <Seccion numero="08" titulo="Cookies">
           <p>
-            Esta web no usa cookies de publicidad ni de seguimiento. Solo guarda la cookie de sesión cuando entras a tu espacio y tu preferencia de modo
-            claro u oscuro.
+            Esta web no usa cookies de publicidad, de analítica ni de seguimiento. Solo guarda la cookie de sesión cuando entras a tu espacio y tu
+            preferencia de modo claro u oscuro. Las estadísticas de visitas funcionan sin cookies.
           </p>
         </Seccion>
 

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatearFechaHora } from "@/lib/format";
 import { enlaceWhatsApp, telefonoLegible } from "@/lib/landing";
 import type { LeadFila } from "@/lib/datos/leads";
+import { describirOrigen } from "@/lib/origen";
 import { cambiarEstadoLead, convertirLeadEnEmpresa, eliminarLead } from "./acciones";
 
 const ESTADO = {
@@ -23,6 +24,7 @@ export function TarjetaLead({ l, responsable }: { l: LeadFila; responsable: stri
   const router = useRouter();
   const [pendiente, iniciar] = useTransition();
   const e = ESTADO[l.estado];
+  const origen = describirOrigen(l.origen, l.referente, l.utm)?.toLowerCase();
   const saludo = `Hola ${l.nombre.split(" ")[0]}, soy ${responsable.split(" ")[0]} de aguemar. Recibí tu mensaje desde la web`;
   const wa = enlaceWhatsApp(l.telefono, `${saludo}${l.servicio ? ` sobre ${l.servicio.toLowerCase()}` : ""}.`);
 
@@ -56,6 +58,11 @@ export function TarjetaLead({ l, responsable }: { l: LeadFila; responsable: stri
         <span>·</span>
         <span className="font-mono">{formatearFechaHora(l.created_at)}</span>
         {l.servicio ? <span className="rounded-full border border-border px-2 py-0.5">{l.servicio}</span> : null}
+        {origen ? (
+          <span className="font-mono text-mint-ink dark:text-mint" title="De dónde llegó a la web">
+            {`// ${origen}`}
+          </span>
+        ) : null}
       </div>
       {l.mensaje ? <p className="mt-2 whitespace-pre-line text-sm">{l.mensaje}</p> : null}
       <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
