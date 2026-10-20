@@ -42,7 +42,7 @@ export function correoHtml(d: DatosCorreo): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F7FA;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #E2E5EB;border-radius:12px;overflow:hidden">
 <tr><td style="background:#0A0F1A;padding:22px 28px">
-<div style="font:600 18px ${SANS};color:#FFFFFF">ague<span style="color:#1CE783">Mar</span></div>
+<div style="font:600 18px ${SANS};color:#FFFFFF">ague<span style="color:#1CE783">mar</span></div>
 <div style="margin-top:14px;font:12px ${MONO};color:#1CE783">${escapar(d.rotulo)}</div>
 <div style="margin-top:6px;font:600 20px/1.3 ${SANS};color:#FFFFFF">${escapar(d.titulo)}</div>
 </td></tr>

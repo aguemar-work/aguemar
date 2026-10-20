@@ -20,6 +20,12 @@ describe("plantilla de correo", () => {
     expect(html).not.toContain("<b>adelantar");
   });
 
+  it("escribe la marca en minúsculas (aguemar, nunca agueMar)", () => {
+    const html = correoHtml(datos);
+    expect(html).toContain('ague<span style="color:#1CE783">mar</span>');
+    expect(html.replace(/<[^>]+>/g, "")).not.toMatch(/agueMar/);
+  });
+
   it("arma la versión en texto plano", () => {
     const texto = correoTexto(datos);
     expect(texto).toContain("> ¿Podemos <b>adelantar</b> la entrega?\n> Gracias");
