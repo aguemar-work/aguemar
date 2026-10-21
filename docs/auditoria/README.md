@@ -24,9 +24,10 @@ Auditoría externa de solo lectura realizada el 20/10/2026 sobre `main` = `f47ac
 | [09-qa.md](09-qa.md) | QA | 8 | Alta (QA-001/002) |
 | [10-seo.md](10-seo.md) | SEO | 7 | Alta (SEO-002) |
 | [90-sintesis.md](90-sintesis.md) | Síntesis cruzada | 12 temas, 8 conflictos, 5 riesgos | — |
+| [95-respuestas-y-evidencia.md](95-respuestas-y-evidencia.md) | Respuestas del 21/10 y lo que muestran las capturas de Vercel, Sentry e InsForge | 4 nuevos | Alta (SEC-010) |
 | [99-plan-de-accion.md](99-plan-de-accion.md) | Plan de acción (PM + PO + Arquitecto) | 15 quick wins, 4 fases, 91 ítems | — |
 
-Totales: **91 hallazgos** (0 críticos, 13 altos, 43 medios, 35 bajos). De los 43 de `AUDITORIA.md` (16/10): 19 cerrados con evidencia nueva, 17 parciales, 5 abiertos, 2 no verificables.
+Totales: **95 hallazgos** (0 críticos, 14 altos, 45 medios, 36 bajos), contando los 4 añadidos el 21/10. De los 43 de `AUDITORIA.md` (16/10): 19 cerrados con evidencia nueva, 17 parciales, 5 abiertos, 2 no verificables.
 
 ## Comandos ejecutados (solo análisis)
 
@@ -34,4 +35,4 @@ Totales: **91 hallazgos** (0 críticos, 13 altos, 43 medios, 35 bajos). De los 4
 
 ## Siguiente paso
 
-Los quick wins del plan (§2) toman ≈ 2,5 días y cubren tres de los cinco riesgos principales. El primero es proteger `main` y conectar Sentry; el que más importa es el simulacro de restauración de la base.
+Los quick wins del plan (§2) toman ≈ 2,5 días y cubren tres de los cinco riesgos principales. El primero es borrar las dos funciones edge heredadas de InsForge (SEC-010, 15 minutos) y proteger `main`; Sentry ya está conectado. El que más importa es el simulacro de restauración de la base.

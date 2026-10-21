@@ -53,16 +53,16 @@ IDs: `ARQ`, `COD`, `PRO`, `PM`, `UX`, `A11Y`, `SEC`, `PER`, `QA`, `SEO`. Cada in
 
 ## 5. Preguntas y respuestas
 
-Las respuestas llegaron con los corchetes sin rellenar, así que todo se trata como **supuesto** o **pregunta abierta** y se consolida en `99-plan-de-accion.md` §6.
+En la Fase 1 las respuestas llegaron con los corchetes sin rellenar y se trabajó con supuestos. El 21/10 Alejandro respondió las preguntas 1–5 y compartió capturas de Vercel, Sentry e InsForge; el efecto está en `95-respuestas-y-evidencia.md`.
 
-| Nº | Pregunta | Estado | Supuesto de trabajo |
+| Nº | Pregunta | Estado | Respuesta o supuesto de trabajo |
 |---|---|---|---|
-| 1 | Empresas y colaboradores reales; ¿hay aceptaciones en producción? | Abierta | Pocas empresas (≤5), producción con datos reales desde el 20/10 |
-| 2 | Objetivo a 3 meses: captar / operar / cobrar | Abierta | Las tres a la vez; se prioriza lo que protege datos y cobros |
-| 3 | Comprobantes: SUNAT, recibo por honorarios o solo PDF; régimen tributario | Abierta | Solo adjuntar PDF en la primera versión |
-| 4 | Aceptación con nombre + DNI sin verificación: ¿aceptable? | Abierta | Aceptable para montos bajos; riesgo legal registrado |
-| 5 | Autorización de clientes para el portafolio | Abierta | No hay; el portafolio sigue anónimo |
-| 6 | Acceso a Vercel, Sentry, InsForge (plan, región, respaldos, Auth) | Abierta | Vercel Hobby, InsForge gratuito, Sentry sin DSN propio |
+| 1 | Empresas y colaboradores reales; ¿hay aceptaciones en producción? | **Respondida 21/10** | Nadie usa el workspace todavía; dos clientes por WhatsApp; sin colaboradores |
+| 2 | Objetivo a 3 meses: captar / operar / cobrar | **Respondida 21/10** | Que el sistema sea mejor y accesible para los clientes y para Alejandro |
+| 3 | Comprobantes: SUNAT, recibo por honorarios o solo PDF; régimen tributario | **Respondida 21/10** | Factura o recibo desde SUNAT, descargado y subido al sistema; sin integración |
+| 4 | Aceptación con nombre + DNI sin verificación: ¿aceptable? | **Respondida 21/10** | La cotización siempre se descarga y se manda por WhatsApp; al final se envía al contacto la aceptada por WhatsApp |
+| 5 | Autorización de clientes para el portafolio | **Respondida 21/10** | Solo trabajos; el cliente aparece únicamente si lo autoriza |
+| 6 | Acceso a Vercel, Sentry, InsForge (plan, región, respaldos, Auth) | **Parcial (capturas 21/10)** | Vercel Hobby y Analytics activo; Sentry con DSN; InsForge gratuito en instancia nano, respaldo del 20/10. Región y Auth de producción siguen abiertas |
 | 7 | `main` protegida; secretos `STAGING_*`/`E2E_*` en GitHub | Abierta | No protegida; secretos sin cargar (el job `seguridad` se salta) |
 | 8 | Último `db:respaldo` y copia fuera del equipo; simulacro | Abierta | `_respaldos/` tiene exports del 20/10; sin copia externa ni simulacro |
 | 9 | Dev server corriendo durante la auditoría | **No** (verificado) | Sin revisión en pantalla |
@@ -70,7 +70,7 @@ Las respuestas llegaron con los corchetes sin rellenar, así que todo se trata c
 | 11 | e2e `seguridad` y `equipo` contra staging | Abierta | **No se ejecutan** (escriben en staging y necesitan cuentas) |
 | 12 | gitleaks | Abierta | Solo `git log -S` con patrones |
 | 13 | Horas/semana y fechas clave | Abierta | ~10 h/semana, sin fecha dura |
-| 14 | Solo o con otra persona | Abierta | Solo |
+| 14 | Solo o con otra persona | Respondida en parte (21/10) | Solo, sin colaboradores por ahora |
 | 15 | Asesoría legal Ley 29733 | Abierta | No hay; se registra como riesgo |
 
 ## 6. Ajustes de Alejandro a este plan
