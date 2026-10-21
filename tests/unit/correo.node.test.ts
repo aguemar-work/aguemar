@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { correoHtml, correoTexto, escapar } from "@/lib/correo/plantilla";
 import { enviarCorreo } from "@/lib/correo/enviar";
+import { armarCopiaAceptacion } from "@/lib/correo/copia-aceptacion";
 
 const datos = {
   rotulo: "// comentario",
@@ -68,5 +69,40 @@ describe("envío con Resend", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     expect((await enviarCorreo({ ...datos, para: "no-es-correo", asunto: "x" })).omitido).toBe("destinatario inválido");
     expect((await enviarCorreo({ ...datos, para: "ana@empresa.pe", asunto: "x" })).ok).toBe(false);
+  });
+});
+
+describe("constancia de aceptación (T-31)", () => {
+  const base = {
+    saludo: "Hola Ana,",
+    numero: "COT-2026-004",
+    asunto: "Web corporativa",
+    nombre: "Ana Pérez",
+    fecha: "21/10/2026 14:03",
+    version: "v2 · 3fa91c0b",
+    url: "https://aguemar.com/d/abc",
+  };
+
+  it("dice quién aceptó y cómo, y lleva la versión que imprime el PDF", () => {
+    const e = armarCopiaAceptacion({ ...base, por: "propietario" });
+    expect(e.asunto).toBe("Constancia de aceptación COT-2026-004: Web corporativa");
+    expect(e.parrafos).toContain("Aceptada por Ana Pérez el 21/10/2026 14:03 · registrada por aguemar.");
+    expect(e.parrafos.join("\n")).toContain("Versión aceptada: v2 · 3fa91c0b");
+    expect(e.boton).toEqual({ texto: "Ver la cotización aceptada", url: "https://aguemar.com/d/abc" });
+    // La plantilla escapa y mantiene el rótulo en minúsculas.
+    expect(correoHtml({ ...e, pie: "x" })).toContain("// cotización aceptada");
+  });
+
+  it("el rótulo cambia según el camino de la aceptación", () => {
+    const texto = (por: "empresa" | "portal" | "propietario") => armarCopiaAceptacion({ ...base, por }).parrafos[2];
+    expect(texto("empresa")).toMatch(/desde su espacio\.$/);
+    expect(texto("portal")).toMatch(/por enlace\.$/);
+    expect(texto("propietario")).toMatch(/registrada por aguemar\.$/);
+  });
+
+  it("sin versión no inventa un código", () => {
+    const e = armarCopiaAceptacion({ ...base, por: "portal", version: null, numero: null });
+    expect(e.asunto).toBe("Constancia de aceptación: Web corporativa");
+    expect(e.parrafos.join("\n")).not.toContain("Versión aceptada");
   });
 });

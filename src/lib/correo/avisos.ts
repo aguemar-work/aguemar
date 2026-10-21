@@ -14,6 +14,10 @@ import { moduloActivo, type ClaveModulo } from "@/lib/modulos";
 import type { EntidadComentario } from "@/types/database";
 import { enviarCorreo, type Envio } from "./enviar";
 import { pieParaEmpresa } from "./plantilla";
+import { armarCopiaAceptacion } from "./copia-aceptacion";
+import { etiquetaVersion } from "@/lib/cotizacion";
+import { formatearFechaHora } from "@/lib/format";
+import type { WsCotizacion } from "@/lib/datos/workspace";
 
 type Db = Awaited<ReturnType<typeof conSesion>>["db"];
 /** Un valor ya conocido o una consulta en curso: se espera recién dentro de `after`. */
@@ -215,6 +219,42 @@ export async function avisarDocumentoEmpresa(tipo: TipoDoc, id: string) {
         parrafos: [saludo(d), `Te compartimos ${cfg.femenino ? "la" : "el"} ${nombre.toLowerCase()} ${doc.numero ?? ""}.`.replace(/\s+\./, "."), accion],
         boton: { texto: enEspacio ? "Abrir en tu espacio" : "Ver el documento", url: destino },
       };
+    });
+  });
+}
+
+/**
+ * Constancia a la empresa cuando se registra la aceptación desde el panel (D5). Las aceptaciones que
+ * hace la propia empresa o alguien con el enlace no la envían: esas sesiones no pueden leer el correo
+ * de la empresa, y quien aceptó ya tiene la pantalla de confirmación.
+ */
+export async function avisarCopiaAceptacion(id: string) {
+  if (!envServidor().RESEND_API_KEY) return;
+  const { db } = await conSesion();
+  despues(async () => {
+    const [doc, fila, enlace] = await Promise.all([
+      db.rpc("cotizacion_panel", { p_id: id }),
+      db.from("cotizaciones").select("cliente_id").eq("id", id).maybeSingle(),
+      db.rpc("obtener_enlace", { p_tipo: "cotizacion", p_id: id, p_renovar: false }),
+    ]);
+    const c = doc.data as WsCotizacion | null;
+    const clienteId = (fila.data as { cliente_id: string } | null)?.cliente_id;
+    const token = enlace.error ? null : (enlace.data as string);
+    if (!c?.aceptacion || !clienteId) return;
+    await aLaEmpresa(db, clienteId, (d) => {
+      const enEspacio = d.conAcceso && moduloActivo(d.modulos, "cotizaciones");
+      const destino = enEspacio ? url(`/w/${d.slug}/cotizaciones/${id}`) : token ? url(`/d/${token}`) : null;
+      if (!destino) return null;
+      return armarCopiaAceptacion({
+        saludo: saludo(d),
+        numero: c.numero,
+        asunto: c.asunto,
+        nombre: c.aceptacion!.nombre,
+        por: c.aceptacion!.por,
+        fecha: formatearFechaHora(c.aceptacion!.aceptado_en),
+        version: etiquetaVersion(c.version, c.huella),
+        url: destino,
+      });
     });
   });
 }

@@ -192,7 +192,7 @@ export async function DetalleCotizacion({ id }: { id: string }) {
                       {aceptacion.nombre}
                       {aceptacion.dni ? <span className="font-mono"> · DNI {aceptacion.dni}</span> : null}
                       <span className="block text-xs text-muted-foreground">
-                        {formatearFechaHora(aceptacion.aceptado_en)} · {aceptacion.registrada_por === "empresa" ? "desde su workspace" : aceptacion.registrada_por === "portal" ? "desde el enlace" : "registrada por ti"}
+                        {formatearFechaHora(aceptacion.aceptado_en)} · {aceptacion.registrada_por === "empresa" ? "desde su espacio" : aceptacion.registrada_por === "portal" ? "por enlace" : "registrada por aguemar"}
                       </span>
                     </dd>
                   </div>

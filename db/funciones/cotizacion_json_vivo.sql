@@ -1,4 +1,4 @@
--- Vigente según migrations/20261021224712_anulaciones.sql.
+-- Vigente según migrations/20261021225400_aceptacion-origen.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.cotizacion_json_vivo(p_id uuid)
@@ -20,7 +20,7 @@ as $$
                                                            'precio_unitario', i.precio_unitario, 'descuento', i.descuento, 'importe', i.importe)
                                         order by i.orden, i.created_at)
                        from public.cotizacion_items i where i.cotizacion_id = z.id), '[]'::jsonb),
-    'aceptacion', (select jsonb_build_object('nombre', a.nombre, 'dni', public.dni_visible(a.dni), 'aceptado_en', a.aceptado_en)
+    'aceptacion', (select jsonb_build_object('nombre', a.nombre, 'dni', public.dni_visible(a.dni), 'aceptado_en', a.aceptado_en, 'por', a.registrada_por)
                    from public.aceptaciones a where a.cotizacion_id = z.id order by a.aceptado_en desc limit 1),
     'cobrado', coalesce((select sum(k.monto) from public.cobros k where k.cotizacion_id = z.id and k.anulado_en is null), 0),
     'pendiente', d.pendiente, 'vence_pago', d.vence_pago, 'atraso_dias', d.dias_atraso,

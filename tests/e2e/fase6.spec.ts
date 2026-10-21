@@ -70,15 +70,19 @@ test("envía, acepta (crea el trabajo) y registra un cobro parcial", async ({ pa
   await expect(page.getByText("S/ 680,00")).toBeVisible(); // saldo 1180 − 500
 });
 
-test("limpieza: elimina el cobro y el trabajo de prueba (la cotización aceptada queda como registro)", async ({ page }) => {
+test("limpieza: anula el cobro y elimina el trabajo de prueba (la cotización aceptada y el cobro anulado quedan como registro)", async ({ page }) => {
   test.fixme(EN_PRODUCCION, "Depende del test anterior, en cuarentena. " + MOTIVO_PANEL_NO_REFRESCA);
   await iniciarSesion(page);
   await abrir(page, urlCotizacion);
   // Una cotización aceptada no se elimina desde la app: queda con el sufijo E2E para identificarla.
   page.on("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: /eliminar cobro/i }).click();
-  // Esperar a que el cobro desaparezca: navegar con la acción en curso la deja a medias (pasaba en móvil).
-  await expect(page.getByRole("button", { name: /eliminar cobro/i })).toHaveCount(0);
+  // Un cobro no se borra: se anula con motivo (queda tachado y deja de contar).
+  await page.getByRole("button", { name: /anular cobro de/i }).click();
+  await page.getByLabel("Motivo").fill("Prueba automática");
+  await page.getByRole("button", { name: /^anular cobro$/i }).click();
+  // Esperar a que quede anulado: navegar con la acción en curso la deja a medias (pasaba en móvil).
+  await expect(page.getByText(/anulado el/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: /anular cobro de/i })).toHaveCount(0);
   await page.getByText("Trabajo creado").click();
   await expect(page).toHaveURL(/\/panel\/trabajos\/[0-9a-f-]{36}/);
   await page.getByRole("button", { name: /^eliminar$/i }).first().click();

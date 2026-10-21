@@ -2,6 +2,7 @@ import { cache } from "react";
 import { crearClienteServidor } from "@/lib/insforge/server";
 import type { ActaJson, BriefJson, FichaJson, InformeJson } from "@/lib/documentos";
 import type { EstadoActividad, ItemCalendario, TipoActividad } from "@/lib/calendario";
+import type { OrigenAceptacion } from "@/lib/cotizacion";
 import type { Area, EstadoCotizacion, EstadoFinalFicha, EstadoTrabajo, IgvModo, MedioPago, Moneda, Prioridad, TipoEntregable } from "@/types/database";
 import { SinSesionError } from "./resultado";
 
@@ -134,7 +135,7 @@ export interface WsCotizacion {
   /** Cuándo se anuló (el motivo es interno y no sale del panel). */
   anulada_en: string | null;
   items: { descripcion: string; unidad: string; cantidad: number | string; precio_unitario: number; descuento: number; importe: number }[];
-  aceptacion: { nombre: string; dni: string | null; aceptado_en: string } | null;
+  aceptacion: { nombre: string; dni: string | null; aceptado_en: string; por: OrigenAceptacion } | null;
   cobrado: number;
   /** Lo que falta por pagar según deudas_cotizacion(); null si la cotización no está aceptada. */
   pendiente: number | null;

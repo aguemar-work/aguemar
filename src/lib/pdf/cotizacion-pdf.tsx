@@ -1,7 +1,7 @@
 import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { C, Cabecera, Encabezado, Firmas, Pie, Seccion, TONO, contactoDe, registrarFuentes, s, type Tono } from "./base";
 import { formatearFecha, formatearMonto, type Moneda } from "@/lib/format";
-import { etiquetaVersion } from "@/lib/cotizacion";
+import { etiquetaVersion, textoAceptacion, type OrigenAceptacion } from "@/lib/cotizacion";
 import { rotuloArea } from "@/lib/areas";
 import type { Area, EstadoCotizacion, IgvModo } from "@/types/database";
 
@@ -26,7 +26,7 @@ export interface DatosCotizacionPdf {
   version?: number;
   huella?: string | null;
   items: { descripcion: string; unidad: string; cantidad: number | string; precio_unitario: number; descuento: number; importe: number }[];
-  aceptacion: { nombre: string; dni: string | null; aceptado_en: string } | null;
+  aceptacion: { nombre: string; dni: string | null; aceptado_en: string; por?: OrigenAceptacion } | null;
   cliente: { nombre: string; tipo_doc: string | null; num_doc: string | null; contacto: string | null; direccion: string | null };
   marca: {
     nombre_comercial: string;
@@ -180,8 +180,8 @@ export function DocumentoCotizacion({ d }: { d: DatosCotizacionPdf }) {
         <Seccion n={sig()} titulo="Conformidad" juntos>
           {d.aceptacion ? (
             <Text style={{ color: C.mintInk }}>
-              Aceptada por {d.aceptacion.nombre}
-              {d.aceptacion.dni ? ` (DNI ${d.aceptacion.dni})` : ""} el {formatearFecha(d.aceptacion.aceptado_en)}.
+              {textoAceptacion({ nombre: d.aceptacion.nombre, por: d.aceptacion.por ?? "portal" }, formatearFecha(d.aceptacion.aceptado_en))}
+              {d.aceptacion.dni ? ` (DNI ${d.aceptacion.dni})` : ""}.
             </Text>
           ) : null}
           <Firmas

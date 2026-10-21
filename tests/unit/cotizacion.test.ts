@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, etiquetaVersion, excesoDeCobro, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
+import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, etiquetaVersion, excesoDeCobro, textoAceptacion, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
 import { pagoCotizacionSchema } from "@/lib/validators/cotizacion";
 
 describe("importeLinea", () => {
@@ -131,5 +131,14 @@ describe("etiquetaVersion", () => {
   it("sin huella: nada en la v1 y solo la versión desde la v2", () => {
     expect(etiquetaVersion(1, null)).toBeNull();
     expect(etiquetaVersion(2, undefined)).toBe("v2");
+  });
+});
+
+describe("textoAceptacion", () => {
+  it("nombra el camino por el que llegó la aceptación", () => {
+    const a = { nombre: "Ana Pérez" } as const;
+    expect(textoAceptacion({ ...a, por: "empresa" }, "21/10/2026")).toBe("Aceptada por Ana Pérez el 21/10/2026 · desde su espacio");
+    expect(textoAceptacion({ ...a, por: "portal" }, "21/10/2026")).toBe("Aceptada por Ana Pérez el 21/10/2026 · por enlace");
+    expect(textoAceptacion({ ...a, por: "propietario" }, "21/10/2026")).toBe("Aceptada por Ana Pérez el 21/10/2026 · registrada por aguemar");
   });
 });

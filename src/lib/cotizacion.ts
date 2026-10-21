@@ -80,6 +80,19 @@ export function excesoDeCobro(monto: number, pendiente: number): number {
   return Math.max(monto - Math.max(pendiente, 0), 0);
 }
 
+/** Por dónde llegó la aceptación (aceptaciones.registrada_por). */
+export type OrigenAceptacion = "empresa" | "portal" | "propietario";
+
+/**
+ * Rótulo de quién aceptó y cómo, igual en pantalla, PDF y correo (D5): sin OTP ni firma, quien lee
+ * debe saber si fue la empresa desde su espacio, alguien con el enlace o aguemar registrándola.
+ * `fecha` ya viene formateada (dd/mm/aaaa).
+ */
+export function textoAceptacion(a: { nombre: string; por: OrigenAceptacion }, fecha: string): string {
+  const como = a.por === "empresa" ? "desde su espacio" : a.por === "portal" ? "por enlace" : "registrada por aguemar";
+  return `Aceptada por ${a.nombre} el ${fecha} · ${como}`;
+}
+
 /** "v2 · 3fa91c0b": versión y primeros 8 de la huella de lo enviado, para cotejar el PDF con lo aceptado. */
 export function etiquetaVersion(version: number, huella: string | null | undefined): string | null {
   if (huella) return `v${version} · ${huella.slice(0, 8)}`;

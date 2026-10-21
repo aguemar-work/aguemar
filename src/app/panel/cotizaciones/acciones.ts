@@ -8,7 +8,7 @@ import { aCentimos, hoyLima } from "@/lib/format";
 import { porcentajeABasis } from "@/lib/validators/marca";
 import { aceptacionSchema, cobroSchema, cotizacionSchema, lineaABase, pagoCotizacionSchema, type CobroInput, type CotizacionInput, type PagoCotizacionInput } from "@/lib/validators/cotizacion";
 import type { CotizacionRow } from "@/types/database";
-import { avisarDocumentoEmpresa } from "@/lib/correo/avisos";
+import { avisarCopiaAceptacion, avisarDocumentoEmpresa } from "@/lib/correo/avisos";
 
 /** Cotizaciones, trabajos, empresas, inicio y workspaces: todo lo que muestra montos o estados. */
 function revalidar() {
@@ -99,6 +99,8 @@ export async function aceptarCotizacion(id: string, input: { nombre: string; dni
     const { db } = await conSesion();
     const { data, error } = await db.rpc("cotizacion_aceptar_panel", { p_cot: id, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni || null });
     if (error) return fallo(traducirError(error).mensaje);
+    // Constancia a la empresa: quién aceptó y cómo, con el código de versión del PDF (D5).
+    await avisarCopiaAceptacion(id);
     revalidar();
     return exito({ trabajoId: (data as { trabajo_id?: string } | null)?.trabajo_id ?? null });
   } catch (e) {

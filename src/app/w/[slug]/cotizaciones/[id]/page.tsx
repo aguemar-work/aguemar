@@ -8,6 +8,7 @@ import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { Button } from "@/components/ui/button";
 import { ws } from "@/lib/datos/workspace";
 import { moduloActivo } from "@/lib/modulos";
+import { textoAceptacion } from "@/lib/cotizacion";
 import { formatearFechaHora, formatearMonto } from "@/lib/format";
 import { AceptarDocumento } from "@/components/documentos/aceptar-documento";
 import { VistaCotizacion } from "@/components/documentos/vista-cotizacion";
@@ -55,7 +56,7 @@ export default async function CotizacionWorkspace({ params }: { params: Promise<
                   <p className="flex items-start gap-2 rounded-lg border border-border bg-success-bg p-4 text-sm text-success-foreground">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0" aria-hidden />
                     <span>
-                      Aceptada por {c.aceptacion.nombre} el {formatearFechaHora(c.aceptacion.aceptado_en)}.
+                      {textoAceptacion(c.aceptacion, formatearFechaHora(c.aceptacion.aceptado_en))}.
                       {c.trabajo_id && moduloActivo(empresa?.modulos, "proyectos") ? (
                         <>
                           {" "}

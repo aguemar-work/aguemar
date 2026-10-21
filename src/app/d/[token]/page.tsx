@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
 import { VistaFicha } from "@/components/documentos/vista-ficha";
 import { VistaCotizacion } from "@/components/documentos/vista-cotizacion";
+import { textoAceptacion } from "@/lib/cotizacion";
 import { VistaActa, VistaBrief } from "@/components/documentos/vista-brief-acta";
 import { VistaInforme } from "@/components/documentos/vista-informe";
 import { NOMBRE_DOCUMENTO } from "@/lib/documentos";
@@ -122,7 +123,7 @@ export default async function PortalDocumento({ params }: { params: Promise<{ to
               ) : doc.documento.estado === "aceptada" && doc.documento.aceptacion ? (
                 <p className="flex items-start gap-2 rounded-lg border border-border bg-success-bg p-4 text-sm text-success-foreground">
                   <CheckCircle2 className="mt-0.5 size-4 shrink-0" aria-hidden />
-                  Aceptada por {doc.documento.aceptacion.nombre} el {formatearFechaHora(doc.documento.aceptacion.aceptado_en)}.
+                  {textoAceptacion(doc.documento.aceptacion, formatearFechaHora(doc.documento.aceptacion.aceptado_en))}.
                 </p>
               ) : doc.documento.estado === "vencida" ? (
                 <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">Esta cotización ya venció. Escríbenos y la actualizamos.</p>

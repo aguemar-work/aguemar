@@ -299,8 +299,10 @@ test("la cotización enviada se congela, editarla la devuelve a borrador (v+1) y
   const acept = await duenio.database.from("aceptaciones").select("huella, documento").eq("cotizacion_id", id).single();
   expect(acept.data?.huella).toBe(v3enviada.enviada_huella);
   expect((acept.data?.documento as { items: { descripcion: string }[] }).items[0].descripcion).toBe("Línea de prueba, corregida");
-  const final = (await anonimo.database.rpc("portal_documento", { p_token: token })).data as { documento: { estado: string; version: number; huella: string } };
+  const final = (await anonimo.database.rpc("portal_documento", { p_token: token })).data as { documento: { estado: string; version: number; huella: string; aceptacion: { por: string } } };
   expect([final.documento.estado, final.documento.version, final.documento.huella]).toEqual(["aceptada", 3, v3enviada.enviada_huella]);
+  // El documento dice por qué camino llegó la aceptación (T-31): aquí, el enlace del portal.
+  expect(final.documento.aceptacion.por).toBe("portal");
 });
 
 test("anular una cotización aceptada la saca de las deudas sin tocar la aceptación, y los cobros anulados no cuentan (T-30)", async () => {
