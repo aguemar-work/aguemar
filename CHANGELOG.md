@@ -29,6 +29,14 @@ Sprint 3, sin migraciones: pruebas de la lógica crítica en SQL (`tests/e2e/db.
 - **Arreglo:** los enlaces del panel ya no precargan; con precarga, el clic que abre una ficha en el panel lateral a veces no respondía en producción (componente `Enlace`).
 - Rama `next-16` (aparte): Next 16.4.2, `npm audit` de producción en 0 vulnerabilidades (T-27).
 
+Sprint 4 de la misma actualización. **Lleva 5 migraciones más, solo en staging** (se aplican en orden, después de las 6 del sprint 2 y antes de desplegar): `pendiente-unico`, `cotizacion-version`, `anulaciones-estado`, `anulaciones` y `aceptacion-origen`.
+
+- **Pendiente de pago:** una sola cuenta (la FIFO de `deudas_cotizacion`) para el detalle, el workspace, el portal y las fichas (T-28). Aviso antes de registrar un cobro que se pasa de lo pendiente (T-32).
+- **Cotización versionada:** al enviarla se congela una copia con su huella; aceptar acepta esa copia; editar una enviada la devuelve a borrador con una versión más. El PDF dice `v{n} · huella` (T-29).
+- **Anulaciones:** una cotización aceptada se puede anular con motivo, sin borrar la aceptación; los cobros se anulan y quedan tachados en vez de borrarse (T-30).
+- **Aceptación:** todas las pantallas y el PDF dicen quién aceptó y cómo; al registrarla desde el panel, la empresa recibe una constancia por correo (T-31).
+- **Errores:** envoltorio `accion()` en las Server Actions; los errores inesperados llegan a Sentry con la acción que falló (T-33).
+
 ## v0.14.5 · 20/10/2026
 
 Fase 14.5 y Sprint 2 en producción: migraciones `inmutabilidad-aceptados` y `sprint2-medicion`, con respaldo previo del 20/10. Sin tag en su momento: se registra aquí como punto de partida.
