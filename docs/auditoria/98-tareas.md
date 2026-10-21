@@ -65,6 +65,7 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | A-10 | Autorizar al agente a correr las pruebas API contra staging (`seguridad.spec.ts`, `equipo.spec.ts` y la nueva suite de T-23) con las cuentas `.test` de `.env.local` | Chat | Respuesta explícita | T-18, T-19, T-23 |
 | A-11 | Tener `npm run dev` corriendo contra staging en una sesión de revisión al cerrar cada sprint | Su máquina | — | Todas las "falta pantalla" |
 | A-12 | Aplicar en producción las migraciones de cada sprint, con el checklist de T-15 y un respaldo previo | CLI en el proyecto principal | `npm run db:status` igual en staging y producción | Sprint 2 y 4 |
+| A-13 | Opcional: guardar el `CRON_SECRET` de staging como secreto `STAGING_CRON_SECRET` en GitHub, para que el CI también corra la prueba de recordatorios de pago (sin él se salta) | GitHub → Settings → Secrets and variables → Actions | El job `seguridad` ya no la salta | T-23 |
 
 ## 3. Resumen de tareas del agente
 
@@ -92,11 +93,11 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | T-20 | Test de inventario para las vistas de `public` | SEC-007 (D11) | 2 | No | No | — | Hecha (`8d1f452`) |
 | T-21 | Marcar invitaciones aceptadas con una cuenta previa | SEC-002 (D10) | 2 | **Sí** | Sí | — | Hecha en staging · falta pantalla y producción (`3e849ca`) |
 | T-22 | Retirar del árbol de migraciones la limpieza del sistema heredado | DEV-006, ARQ-004 | 2 | No (solo mover) | No | — | Hecha (`d0ff4ba`) |
-| T-23 | Suite de pruebas de las funciones SQL críticas contra staging | QA-001 | 3 | No | No | A-10 | Pendiente |
-| T-24 | e2e de navegador en CI con `next start`; guard `.test` en todos los specs | QA-002, DEV-004 | 3 | No | No | A-02 | Pendiente |
-| T-25 | Fixtures con limpieza, `retries: 1`, artefactos en CI | QA-003, QA-006 | 3 | No | No | T-24 | Pendiente |
-| T-26 | Fixture compartido de totales TS ↔ SQL | ARQ-002 | 3 | No | No | T-23 | Pendiente |
-| T-27 | Next 16 en rama aparte | ARQ-008, PM-006, SEC-009 | 3 | No | Sí | T-24 | Pendiente |
+| T-23 | Suite de pruebas de las funciones SQL críticas contra staging | QA-001 | 3 | No | No | A-10 | Hecha (`e773bb2`) · en CI con secreto opcional (A-13) |
+| T-24 | e2e de navegador en CI con `next start`; guard `.test` en todos los specs | QA-002, DEV-004 | 3 | No | No | A-02 | Esperando A-02 |
+| T-25 | Fixtures con limpieza, `retries: 1`, artefactos en CI | QA-003, QA-006 | 3 | No | No | T-24 | Esperando T-24 |
+| T-26 | Fixture compartido de totales TS ↔ SQL | ARQ-002 | 3 | No | No | T-23 | Hecha (`076c50b`) |
+| T-27 | Next 16 en rama aparte | ARQ-008, PM-006, SEC-009 | 3 | No | Sí | T-24 | Esperando T-24 y A-11 |
 | T-28 | Una sola fuente de "pendiente de pago" | ARQ-001, PRO-011 | 4 | **Sí** | Sí | T-23 | Pendiente |
 | T-29 | Versionado de la cotización enviada (D3) | PRO-001 | 4 | **Sí** | Sí | T-23, T-28 | Pendiente |
 | T-30 | Anular cotización aceptada y cobros (D4) | PRO-002 | 4 | **Sí** | Sí | T-28 | Pendiente |
@@ -350,6 +351,15 @@ Las migraciones se aplicaron **solo en staging**; producción espera a A-12. Las
 **Orden en producción (A-12).** El código nuevo ya depende de la migración `invitacion-cuenta-previa`: la ficha de la empresa consulta `invitaciones.cuenta_previa`, y sin la columna fallaría. Por eso el checklist del README va en este orden: migrar producción primero, desplegar después. Las otras cinco son compatibles con el código publicado.
 
 **Revisión en pantalla pendiente (A-11):** el aviso de cuenta previa en la ficha de una empresa con acceso y en Equipo (necesita una invitación aceptada con cuenta previa en staging).
+
+### Notas del sprint 3 (en curso, 21/10/2026)
+
+**Hechas: T-23 y T-26.** T-24, T-25 y T-27 esperan a que se confirme la protección de `main` (A-02) y, T-27, la revisión en pantalla.
+
+- **T-23:** `tests/e2e/db.spec.ts` con siete casos (seis de T-23 y el de paridad de T-26), solo staging y cuentas `.test`. Reutiliza dos empresas fijas (`e2e-db-deuda`, `e2e-db-modulos`) y cuentas fijas con contraseña derivada de `E2E_PASSWORD`, porque lo aceptado no se borra y las cuentas de Auth tampoco: cada corrida deja **una cotización aceptada** (la de la aceptación doble). Lo demás se borra al terminar.
+- **Recordatorios (cambió lo planeado).** Una cotización recién aceptada no puede ser candidata a recordatorio el mismo día y la fecha de aceptación no se puede falsear. La prueba toma una cotización aceptada antes de hoy, le ajusta el plazo hasta encontrar una combinación (tipo, vencimiento) que no se haya tomado nunca, comprueba que la segunda toma no la repite y restaura plazo y recordatorio. Si todas se aceptaron hoy, anota en el informe que solo comprobó la clave y que repetir no entrega nada.
+- **T-26 encontró un error real.** `cantidad 1,005 × S/ 1,00` daba 100 céntimos en la vista previa del formulario y 101 en la base (coma flotante frente a decimales exactos). Corregido en `importeLinea` con aritmética entera. El fixture `tests/fixtures/cotizaciones.json` tiene nueve casos y lo recorren los dos lados.
+- **Cuentas de Auth huérfanas en staging:** `e2e-cuenta-previa` (con la contraseña antigua escrita en el repo, ya retirada) queda sin uso; la cuenta fija de T-21 pasó a `e2e-previa-fija`.
 
 ### Sprint 3 · Red de pruebas
 

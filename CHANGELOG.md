@@ -23,6 +23,8 @@ Sprint 2 de la misma actualización. **Lleva 6 migraciones, aplicadas hasta ahor
 - `invitacion-cuenta-previa`: las invitaciones marcan si la cuenta ya existía antes (T-21).
 - Sin migración: inventario de vistas (T-20) y nota sobre la limpieza heredada y los errores SQL (T-22).
 
+Sprint 3 (en curso), sin migraciones: pruebas de la lógica crítica en SQL (`tests/e2e/db.spec.ts`, T-23) y casos de totales compartidos entre TypeScript y la base (T-26). La vista previa de una cotización ya no se desvía un céntimo de lo que guarda la base con cantidades de tres decimales.
+
 ## v0.14.5 · 20/10/2026
 
 Fase 14.5 y Sprint 2 en producción: migraciones `inmutabilidad-aceptados` y `sprint2-medicion`, con respaldo previo del 20/10. Sin tag en su momento: se registra aquí como punto de partida.
