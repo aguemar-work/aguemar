@@ -188,3 +188,71 @@ test("una empresa no puede crear invitaciones ni tocar el equipo", async () => {
   const auto = await colab.database.rpc("equipo_actualizar", { p_usuario: uidColab, p_activo: true, p_empresas: [] });
   expect(auto.error).not.toBeNull();
 });
+
+test("la invitación marca si la cuenta ya existía antes de ella (SEC-002)", async () => {
+  test.setTimeout(90_000);
+  const { duenio, uidDuenio } = await ids();
+  const sufijo = `${Date.now()}`;
+  const clave = `Prueba-${sufijo}-aA1`;
+  const empresa = await duenio.database
+    .from("clientes")
+    .insert([{ owner_id: uidDuenio, nombre: `E2E invitación ${sufijo}`, tipo_doc: "DNI", num_doc: sufijo.slice(-8), slug: `e2e-inv-${sufijo}` }])
+    .select("id")
+    .single();
+  expect(empresa.error).toBeNull();
+
+  /** Registra la cuenta (o entra si ya existía) y devuelve su sesión. */
+  async function cuenta(correo: string, password: string) {
+    const c = await clienteNuevo();
+    const alta = await c.auth.signUp({ email: correo, password, name: "e2e" });
+    if (alta.error) expect(String(alta.error.message ?? ""), "alta de la cuenta de prueba").toMatch(/exist|registered|duplicate/i);
+    const ses = await c.auth.signInWithPassword({ email: correo, password });
+    expect(ses.error).toBeNull();
+    return c;
+  }
+  const invitar = async (correo: string) => {
+    const inv = await duenio.database.from("invitaciones").insert([{ owner_id: uidDuenio, tipo: "empresa", correo, cliente_id: empresa.data!.id }]).select("id, token").single();
+    expect(inv.error).toBeNull();
+    return inv.data as { id: string; token: string };
+  };
+  const marca = async (id: string) => ((await duenio.database.from("invitaciones").select("cuenta_previa, usada_en").eq("id", id).single()).data as { cuenta_previa: boolean; usada_en: string | null });
+  const ultimaDeLaEmpresa = async () =>
+    (
+      await duenio.database
+        .from("invitaciones")
+        .select("cuenta_previa")
+        .eq("tipo", "empresa")
+        .eq("cliente_id", empresa.data!.id)
+        .not("usada_en", "is", null)
+        .order("usada_en", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    ).data?.cuenta_previa;
+  const desvincular = () => duenio.database.from("clientes").update({ usuario_id: null }).eq("id", empresa.data!.id);
+
+  try {
+    // 1. Cuenta anterior a la invitación (fija: se reutiliza en cada corrida): se marca.
+    const previa = "e2e-cuenta-previa@staging.aguemar.test";
+    const cPrevia = await cuenta(previa, "Previa-e2e-aA1-fija");
+    const invPrevia = await invitar(previa);
+    expect((await cPrevia.database.rpc("invitacion_aceptar", { p_token: invPrevia.token })).error).toBeNull();
+    expect(await marca(invPrevia.id)).toMatchObject({ cuenta_previa: true });
+    expect((await marca(invPrevia.id)).usada_en).not.toBeNull();
+    // La misma consulta que usa la ficha de la empresa (cuentaPreviaDeEmpresa) y el listado del equipo.
+    expect(await ultimaDeLaEmpresa()).toBe(true);
+    const lista = (await duenio.database.rpc("equipo_listar")).data as { cuenta_previa: unknown }[];
+    for (const colaborador of lista) expect(typeof colaborador.cuenta_previa).toBe("boolean");
+    await desvincular();
+
+    // 2. Cuenta creada después de la invitación (el flujo normal): no se marca.
+    const nueva = `e2e-nueva-${sufijo}@staging.aguemar.test`;
+    const invNueva = await invitar(nueva);
+    const cNueva = await cuenta(nueva, clave);
+    expect((await cNueva.database.rpc("invitacion_aceptar", { p_token: invNueva.token })).error).toBeNull();
+    expect(await marca(invNueva.id)).toMatchObject({ cuenta_previa: false });
+    expect(await ultimaDeLaEmpresa()).toBe(false);
+  } finally {
+    // Las cuentas de Auth no se pueden borrar por la API; la empresa y sus invitaciones sí.
+    await duenio.database.from("clientes").delete().eq("id", empresa.data!.id);
+  }
+});

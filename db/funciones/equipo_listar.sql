@@ -1,4 +1,4 @@
--- Vigente según migrations/20261016200506_equipo-invitaciones.sql.
+-- Vigente según migrations/20261021161658_invitacion-cuenta-previa.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.equipo_listar()
@@ -10,6 +10,11 @@ set search_path = pg_catalog, public, pg_temp
 as $$
   select coalesce(jsonb_agg(jsonb_build_object(
            'user_id', m.user_id, 'nombre', m.nombre, 'correo', u.email, 'activo', m.activo, 'desde', m.created_at,
+           'cuenta_previa', coalesce((
+             select i.cuenta_previa from public.invitaciones i
+             where i.usuario_id = m.user_id and i.tipo = 'colaborador' and i.usada_en is not null
+             order by i.usada_en desc limit 1
+           ), false),
            'empresas', coalesce((
              select jsonb_agg(jsonb_build_object('id', c.id, 'nombre', c.nombre) order by c.nombre)
              from public.miembro_empresas me join public.clientes c on c.id = me.cliente_id

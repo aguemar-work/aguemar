@@ -25,6 +25,8 @@ interface Props {
   /** Correo de contacto de la empresa, para sugerirlo al invitar. */
   correoSugerido: string | null;
   invitacion: { id: string; token: string; correo: string; expira_en: string } | null;
+  /** Aceptó con una cuenta anterior a la invitación: se avisa para confirmarlo con la persona. */
+  cuentaPrevia?: boolean;
   /** Estado del acceso (invitación, activa, sin ingresar…), junto al título. */
   estado?: React.ReactNode;
 }
@@ -34,7 +36,7 @@ interface Props {
  * el enlace; la persona fija su contraseña. Con acceso activo: enviar código de
  * recuperación o quitar el acceso.
  */
-export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario, correoSugerido, invitacion, estado }: Props) {
+export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario, correoSugerido, invitacion, cuentaPrevia, estado }: Props) {
   const ruta = `/panel/clientes/${clienteId}`;
   return (
     <Card>
@@ -56,7 +58,7 @@ export function AccesoEmpresa({ clienteId, slug, usuarioId, correoUsuario, corre
       </CardHeader>
       <CardContent>
         {usuarioId ? (
-          <AccesoActivo clienteId={clienteId} correo={correoUsuario} />
+          <AccesoActivo clienteId={clienteId} correo={correoUsuario} cuentaPrevia={Boolean(cuentaPrevia)} />
         ) : invitacion ? (
           <InvitacionPendiente id={invitacion.id} token={invitacion.token} correo={invitacion.correo} expiraEn={invitacion.expira_en} tipo="empresa" ruta={ruta} />
         ) : (
@@ -106,7 +108,7 @@ function Invitar({ clienteId, correoSugerido }: { clienteId: string; correoSuger
   );
 }
 
-function AccesoActivo({ clienteId, correo }: { clienteId: string; correo: string | null }) {
+function AccesoActivo({ clienteId, correo, cuentaPrevia }: { clienteId: string; correo: string | null; cuentaPrevia: boolean }) {
   const [pendiente, iniciar] = useTransition();
 
   const recuperar = () =>
@@ -124,6 +126,11 @@ function AccesoActivo({ clienteId, correo }: { clienteId: string; correo: string
         </Badge>
         {correo ? <span className="font-mono text-sm">{correo}</span> : null}
       </div>
+      {cuentaPrevia ? (
+        <p role="status" className="rounded-md border border-border bg-warn-soft px-3 py-2 text-sm text-warn dark:bg-warning-bg dark:text-warning-foreground">
+          Esta cuenta ya existía cuando se creó la invitación. Confirma con la persona que la creó ella: quien conociera el correo pudo registrarlo antes.
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={recuperar} disabled={pendiente}>
           {pendiente ? <Loader2 className="animate-spin" aria-hidden /> : <KeyRound aria-hidden />} Enviar código de recuperación

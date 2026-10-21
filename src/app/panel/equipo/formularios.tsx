@@ -117,6 +117,11 @@ export function TarjetaColaborador({ colaborador: c, empresas }: { colaborador: 
           <p className="font-medium">{c.nombre ?? c.correo}</p>
           <p className="truncate font-mono text-xs text-muted-foreground">{c.correo}</p>
           <p className="text-xs text-muted-foreground">En el equipo desde {formatearFecha(c.desde)}</p>
+          {c.cuenta_previa ? (
+            <p role="status" className="mt-2 rounded-md border border-border bg-warn-soft px-3 py-2 text-sm text-warn dark:bg-warning-bg dark:text-warning-foreground">
+              Esta cuenta ya existía cuando se creó la invitación. Confirma con la persona que la creó ella: quien conociera el correo pudo registrarlo antes.
+            </p>
+          ) : null}
         </div>
         <label className="flex items-center gap-2 text-sm">
           <Badge variant={c.activo ? "ok" : "outline"} dot>

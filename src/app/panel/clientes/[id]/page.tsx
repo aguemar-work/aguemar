@@ -23,7 +23,7 @@ import { eliminarCliente } from "../acciones";
 import { informesDe } from "@/lib/datos/informes";
 import { textoPeriodo } from "@/lib/informe";
 import { soloPropietario } from "@/lib/datos/base";
-import { invitacionDeEmpresa } from "@/lib/datos/equipo";
+import { cuentaPreviaDeEmpresa, invitacionDeEmpresa } from "@/lib/datos/equipo";
 import { estadoAcceso } from "@/lib/acceso-empresa";
 import { EtiquetaAcceso } from "@/components/panel/etiqueta-acceso";
 
@@ -33,13 +33,14 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
   // Solo el propietario (el colaborador recibe 404).
   await soloPropietario();
   const { id } = await params;
-  const [cliente, historial, informes, invitacion, deudas, recordatorios] = await Promise.all([
+  const [cliente, historial, informes, invitacion, deudas, recordatorios, cuentaPrevia] = await Promise.all([
     obtenerCliente(id),
     historialCliente(id),
     informesDe({ cliente: id }),
     invitacionDeEmpresa(id),
     deudasCotizacion(id),
     recordatoriosDeCliente(id),
+    cuentaPreviaDeEmpresa(id),
   ]);
   if (!cliente) notFound();
   const correoAcceso = await correoDeUsuario(cliente.usuario_id);
@@ -114,6 +115,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
             usuarioId={cliente.usuario_id}
             correoUsuario={correoAcceso}
             correoSugerido={cliente.correo}
+            cuentaPrevia={cuentaPrevia}
             invitacion={invitacion ? { id: invitacion.id, token: invitacion.token, correo: invitacion.correo, expira_en: invitacion.expira_en } : null}
             estado={
               <EtiquetaAcceso

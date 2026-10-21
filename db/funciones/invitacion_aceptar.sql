@@ -1,4 +1,4 @@
--- Vigente según migrations/20261016200506_equipo-invitaciones.sql.
+-- Vigente según migrations/20261021161658_invitacion-cuenta-previa.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.invitacion_aceptar(p_token text)
@@ -11,6 +11,7 @@ declare
   v_inv public.invitaciones%rowtype;
   v_uid uuid := auth.uid();
   v_correo text;
+  v_previa boolean;
   v_slug text;
 begin
   if v_uid is null then
@@ -27,7 +28,8 @@ begin
     raise exception 'Esta invitación venció. Pide un enlace nuevo.' using errcode = '22023';
   end if;
 
-  select u.email into v_correo from auth.users u where u.id = v_uid;
+  -- La cuenta existía antes de la invitación: alguien pudo registrar ese correo antes que su dueño.
+  select u.email, u.created_at < v_inv.created_at into v_correo, v_previa from auth.users u where u.id = v_uid;
   if lower(coalesce(v_correo, '')) <> lower(v_inv.correo) then
     raise exception 'Esta invitación es para otro correo.' using errcode = '42501';
   end if;
@@ -59,7 +61,7 @@ begin
     on conflict do nothing;
   end if;
 
-  update public.invitaciones set usada_en = now(), usuario_id = v_uid where id = v_inv.id;
+  update public.invitaciones set usada_en = now(), usuario_id = v_uid, cuenta_previa = coalesce(v_previa, false) where id = v_inv.id;
   return jsonb_build_object('tipo', v_inv.tipo, 'slug', v_slug);
 end;
 $$;

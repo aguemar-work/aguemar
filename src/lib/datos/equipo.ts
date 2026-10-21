@@ -33,6 +33,8 @@ export interface Colaborador {
   correo: string;
   activo: boolean;
   desde: string;
+  /** Aceptó su invitación con una cuenta que ya existía antes de ella (ver migración invitacion-cuenta-previa). */
+  cuenta_previa: boolean;
   empresas: { id: string; nombre: string }[];
 }
 
@@ -63,6 +65,22 @@ export async function listarEquipo(): Promise<{ colaboradores: Colaborador[]; in
   if (equipo.error) throw equipo.error;
   if (invitaciones.error) throw invitaciones.error;
   return { colaboradores: (equipo.data ?? []) as Colaborador[], invitaciones: (invitaciones.data ?? []) as InvitacionPendiente[] };
+}
+
+/** ¿La empresa aceptó su última invitación con una cuenta que ya existía antes de ella? */
+export async function cuentaPreviaDeEmpresa(clienteId: string): Promise<boolean> {
+  const { db } = await conSesion();
+  const { data, error } = await db
+    .from("invitaciones")
+    .select("cuenta_previa")
+    .eq("tipo", "empresa")
+    .eq("cliente_id", clienteId)
+    .not("usada_en", "is", null)
+    .order("usada_en", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean((data as { cuenta_previa: boolean } | null)?.cuenta_previa);
 }
 
 /** Invitación pendiente de una empresa (acceso a su workspace), si la hay. */
