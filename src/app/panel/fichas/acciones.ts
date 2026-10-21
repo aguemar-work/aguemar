@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
+import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { EQUIPO_NUEVO, fichaSchema, type FichaInput } from "@/lib/validators/ficha";
 import type { TipoDocumento } from "@/types/database";
@@ -67,7 +67,7 @@ export async function guardarFicha(input: FichaInput, id?: string): Promise<Resu
   }
   const d = parsed.data;
 
-  try {
+  return accion("fichas.guardarFicha", async () => {
     const { db, usuario } = await conSesion();
     const equipo = await resolverEquipo(db, usuario.id, d.cliente_id, d);
     if (!equipo.ok) return equipo;
@@ -90,19 +90,19 @@ export async function guardarFicha(input: FichaInput, id?: string): Promise<Resu
     let fichaId = id;
     if (id) {
       const { error } = await db.from("fichas").update(fila).eq("id", id);
-      if (error) return fallo(traducirError(error).mensaje);
+      if (error) throw error;
       const borrados = await Promise.all(
         ["ficha_diagnosticos", "ficha_trabajos", "ficha_incidencias", "ficha_recomendaciones"].map((t) => db.from(t).delete().eq("ficha_id", id)),
       );
       const conError = borrados.find((r) => r.error);
-      if (conError?.error) return fallo(traducirError(conError.error).mensaje);
+      if (conError?.error) throw conError.error;
     } else {
       const { data, error } = await db
         .from("fichas")
         .insert([{ ...fila, owner_id: usuario.id }])
         .select("id")
         .single();
-      if (error) return fallo(traducirError(error).mensaje);
+      if (error) throw error;
       fichaId = (data as { id: string }).id;
     }
 
@@ -117,51 +117,45 @@ export async function guardarFicha(input: FichaInput, id?: string): Promise<Resu
     ].filter(Boolean);
     const resultados = await Promise.all(inserciones);
     const errorFilas = resultados.find((r) => r?.error);
-    if (errorFilas?.error) return fallo(traducirError(errorFilas.error).mensaje);
+    if (errorFilas?.error) throw errorFilas.error;
 
     revalidar();
     return exito({ id: fichaId! });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /** Publicar: la empresa la ve en su workspace y el enlace público queda activo. */
 export async function publicarFicha(id: string, publicar: boolean): Promise<Resultado<{ token: string | null }>> {
-  try {
+  return accion("fichas.publicarFicha", async () => {
     const { db } = await conSesion();
     const { error } = await db
       .from("fichas")
       .update({ publicada: publicar, publicada_en: publicar ? new Date().toISOString() : null })
       .eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     let token: string | null = null;
     if (publicar) {
       const r = await db.rpc("obtener_enlace", { p_tipo: "ficha", p_id: id, p_renovar: false });
-      if (r.error) return fallo(traducirError(r.error).mensaje);
+      if (r.error) throw r.error;
       token = r.data as string;
       await avisarDocumentoEmpresa("ficha", id);
     }
     revalidar();
     return exito({ token });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 export async function eliminarFicha(id: string): Promise<Resultado<void>> {
-  try {
+  return accion("fichas.eliminarFicha", async () => {
     // Solo el propietario (el colaborador no borra ni reorganiza): mensaje claro en vez de un falso éxito.
     await exigirPropietario();
     const { db } = await conSesion();
     await db.from("enlaces_publicos").delete().eq("tipo", "ficha").eq("documento_id", id);
     const { error } = await db.from("fichas").delete().eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -169,25 +163,21 @@ export async function eliminarFicha(id: string): Promise<Resultado<void>> {
 // ---------------------------------------------------------------------------
 /** Obtiene (o crea) el enlace; con renovar, cambia el token y el anterior deja de funcionar. */
 export async function enlaceDocumento(tipo: TipoDocumento, id: string, renovar = false): Promise<Resultado<{ token: string }>> {
-  try {
+  return accion("fichas.enlaceDocumento", async () => {
     const { db } = await conSesion();
     const { data, error } = await db.rpc("obtener_enlace", { p_tipo: tipo, p_id: id, p_renovar: renovar });
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito({ token: data as string });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 export async function revocarEnlace(tipo: TipoDocumento, id: string): Promise<Resultado<void>> {
-  try {
+  return accion("fichas.revocarEnlace", async () => {
     const { db } = await conSesion();
     const { error } = await db.from("enlaces_publicos").update({ revocado: true }).eq("tipo", tipo).eq("documento_id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
