@@ -9,9 +9,9 @@ import * as Sentry from "@sentry/nextjs";
  * Error que no sabemos traducir: el detalle técnico va a Sentry (nunca a la pantalla, puede traer
  * nombres de tablas o texto en inglés) y la persona recibe una referencia corta para citarla.
  */
-export function reportarInesperado(error: unknown, contexto: string): string {
+export function reportarInesperado(error: unknown, contexto: string, accion?: string): string {
   const ref = crypto.randomUUID().slice(0, 6);
-  Sentry.captureException(error, { tags: { ref, contexto } });
+  Sentry.captureException(error, { tags: { ref, contexto, ...(accion ? { accion } : {}) } });
   return ref;
 }
 
@@ -52,7 +52,8 @@ const UNICOS: Record<string, ErrorTraducido> = {
   },
 };
 
-export function traducirError(error: unknown): ErrorTraducido {
+/** `accion` (opcional) es la Server Action que falló: viaja a Sentry como etiqueta si el error es inesperado. */
+export function traducirError(error: unknown, accion?: string): ErrorTraducido {
   // Errores propios de la app (exigirPropietario, conSesion): su mensaje ya es para el usuario.
   if (error instanceof Error && (error.name === "SinPermisoError" || error.name === "SinSesionError")) {
     return { mensaje: error.message };
@@ -98,7 +99,7 @@ export function traducirError(error: unknown): ErrorTraducido {
   if (e.statusCode === 401) {
     return { mensaje: "Tu sesión venció. Vuelve a iniciar sesión." };
   }
-  return { mensaje: mensajeInesperado(reportarInesperado(error, "traducirError")) };
+  return { mensaje: mensajeInesperado(reportarInesperado(error, "traducirError", accion)) };
 }
 
 /**
