@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
+import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { marcaSchema, porcentajeABasis, type MarcaInput } from "@/lib/validators/marca";
 
@@ -15,11 +15,11 @@ export async function guardarMarca(input: MarcaInput): Promise<Resultado<{ id: s
   const { igv_porcentaje, ...resto } = parsed.data;
   const datos = { ...resto, igv_pct: porcentajeABasis(igv_porcentaje) };
 
-  try {
+  return accion("configuracion.guardarMarca", async () => {
     await exigirPropietario();
     const { db, usuario } = await conSesion();
     const existente = await db.from("perfil_marca").select("id").maybeSingle();
-    if (existente.error) return fallo(traducirError(existente.error).mensaje);
+    if (existente.error) throw existente.error;
 
     const id = (existente.data as { id: string } | null)?.id;
     const consulta = id
@@ -38,7 +38,5 @@ export async function guardarMarca(input: MarcaInput): Promise<Resultado<{ id: s
     revalidatePath("/");
     revalidatePath("/en");
     return exito({ id: (data as { id: string }).id });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
