@@ -70,22 +70,22 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 
 | ID | Título | Hallazgos | Sprint | Migración | Pantalla | Depende de | Estado |
 |---|---|---|---|---|---|---|---|
-| T-01 | Contraste del formulario de contacto | A11Y-001 | 1 | No | Sí | — | Pendiente |
-| T-02 | Metadatos de la landing: imagen en `/en`, JSON-LD limpio, título con ciudad | SEO-001, SEO-003, SEO-002 (etapa 1) | 1 | No | No | A-09 (solo 2b) | Pendiente |
-| T-03 | Sin `[PENDIENTE]` en PDF, `/privacidad` y servicios; validador estricto; aviso de Mi marca | UX-001, COD-008 | 1 | No | Sí | — | Pendiente |
-| T-04 | Mensajes de error genéricos con referencia y detalle a Sentry | COD-002, UX-009, SEC-004 | 1 | No | No | — | Pendiente |
-| T-05 | Cron y PDF reportan a Sentry | DEV-003, DEV-005 | 1 | No | No | — | Pendiente |
-| T-06 | `exigirPropietario()` en todas las acciones solo-propietario + test estático | SEC-005, COD-007 | 1 | No | No | — | Pendiente |
-| T-07 | Peso de la landing: Sentry optimizado, Zod fuera del chunk común, Toaster por layout | PER-001, SEO-007 | 1 | No | Sí | — | Pendiente |
-| T-08 | `solicitudes` en el perfil de acceso Soporte | PRO-005 | 1 | No | No | — | Pendiente |
-| T-09 | Obligatorios anunciados, objetivos de 32 px, toasts que no desaparecen | A11Y-002, A11Y-003, A11Y-004 | 1 | No | Sí | T-07 | Pendiente |
-| T-10 | Calendario como tabla, `scroll-padding`, contrastes, skip link en el portal, `scope` | A11Y-005, 006, 008, 009 | 1 | No | Sí | — | Pendiente |
-| T-11 | `not-found.tsx` en panel y workspace; módulo inactivo explicado | UX-002 | 1 | No | Sí | — | Pendiente |
-| T-12 | Alertas del inicio que llegan filtradas | UX-004 | 1 | No | Sí | — | Pendiente |
-| T-13 | Ligadura "fi" en el texto de los PDF | UX-006 | 1 | No | No | — | Pendiente |
-| T-14 | Mensaje de WhatsApp para la cotización aceptada | PRO-012 | 1 | No | Sí | — | Pendiente |
-| T-15 | Checklist de migración a producción y `CHANGELOG.md` | DEV-006, PM-003 | 1 | No | No | — | Pendiente |
-| T-16 | `robots.txt` deja leer el `noindex` de `/d/` y `/login` | SEO-005 | 1 | No | No | — | Pendiente |
+| T-01 | Contraste del formulario de contacto | A11Y-001 | 1 | No | Sí | — | Hecha · falta pantalla (`6edb6c4`) |
+| T-02 | Metadatos de la landing: imagen en `/en`, JSON-LD limpio, título con ciudad | SEO-001, SEO-003, SEO-002 (etapa 1) | 1 | No | No | A-09 (solo 2b) | 2a hecha (`dddb62a`) · 2b bloqueada por A-09 |
+| T-03 | Sin `[PENDIENTE]` en PDF, `/privacidad` y servicios; validador estricto; aviso de Mi marca | UX-001, COD-008 | 1 | No | Sí | — | Hecha · falta pantalla (`b5e88d9`) |
+| T-04 | Mensajes de error genéricos con referencia y detalle a Sentry | COD-002, UX-009, SEC-004 | 1 | No | No | — | Hecha (`1975d13`) |
+| T-05 | Cron y PDF reportan a Sentry | DEV-003, DEV-005 | 1 | No | No | — | Hecha (`98abd7b`) |
+| T-06 | `exigirPropietario()` en todas las acciones solo-propietario + test estático | SEC-005, COD-007 | 1 | No | No | — | Hecha (`edc6250`) |
+| T-07 | Peso de la landing: Sentry optimizado, Zod fuera del chunk común, Toaster por layout | PER-001, SEO-007 | 1 | No | Sí | — | Hecha · falta pantalla (`7ed2aae`) |
+| T-08 | `solicitudes` en el perfil de acceso Soporte | PRO-005 | 1 | No | No | — | Hecha (`396cffe`) |
+| T-09 | Obligatorios anunciados, objetivos de 32 px, toasts que no desaparecen | A11Y-002, A11Y-003, A11Y-004 | 1 | No | Sí | T-07 | Hecha · falta pantalla (`26d5192`) |
+| T-10 | Calendario como tabla, `scroll-padding`, contrastes, skip link en el portal, `scope` | A11Y-005, 006, 008, 009 | 1 | No | Sí | — | Hecha · falta pantalla (`318db83`) |
+| T-11 | `not-found.tsx` en panel y workspace; módulo inactivo explicado | UX-002 | 1 | No | Sí | — | Hecha · falta pantalla (`29f62e3`) |
+| T-12 | Alertas del inicio que llegan filtradas | UX-004 | 1 | No | Sí | — | Hecha · falta pantalla (`7830140`) |
+| T-13 | Ligadura "fi" en el texto de los PDF | UX-006 | 1 | No | No | — | Hecha (`0180bbd`) |
+| T-14 | Mensaje de WhatsApp para la cotización aceptada | PRO-012 | 1 | No | Sí | — | Hecha · falta pantalla (`b93abb0`) |
+| T-15 | Checklist de migración a producción y `CHANGELOG.md` | DEV-006, PM-003 | 1 | No | No | — | Hecha (`7907066`) |
+| T-16 | `robots.txt` deja leer el `noindex` de `/d/` y `/login` | SEO-005 | 1 | No | No | — | Hecha (`0e80323`) |
 | T-17 | Topes de `crear_lead` reordenados; tope global al respaldo | SEC-003 | 2 | **Sí** | No | — | Pendiente |
 | T-18 | `ws_trabajos`, `ws_trabajo` y `ws_comentarios` comprueban el módulo | ARQ-006 | 2 | **Sí** | No | A-10 | Pendiente |
 | T-19 | La empresa es la única que puede cambiar el texto de sus comentarios | SEC-006 | 2 | **Sí** | No | A-10 | Pendiente |
@@ -266,6 +266,28 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 - `src/app/robots.ts:7`: quitar `"/d/"` y `"/login"` del `disallow`.
 - `next.config.ts` `headers()`: añadir `{ source: "/d/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }` y lo mismo para `/login`.
 - Hecho cuando: un test unitario de `robots()` comprueba que `/panel` sigue bloqueado y `/d/` no.
+
+### Notas del sprint 1 (21/10/2026)
+
+Cambios respecto a lo escrito en §4, ya incorporados en el código:
+
+- **T-05:** el 401 del cron solo se reporta a Sentry si la llamada viene de Vercel Cron (agente `vercel-cron`). Si no, cualquiera que pruebe la URL llenaría Sentry.
+- **T-07:** importar `config` desde `zod/v4/core` seguía metiendo el núcleo de Zod en el chunk común, y reexportar `z` desde un módulo propio sumaba los textos en otros idiomas. Quedó `src/lib/zod-sin-jit.ts`, importado solo por su efecto en validadores, `env.ts` y `diagnostico.ts`. El formulario de contacto se carga en el navegador con `dynamic(…, { ssr: false })` desde `formulario-diferido.tsx`, porque desde un Server Component igual entraba en la carga inicial. Resultado: landing de 242 a 164 kB, compartido de 174 a 141 kB.
+- **T-09:** en vez de pasar `requerido` a `propsCampo` en cada formulario, `Campo` le pone `aria-required` a su control, así cubre todos. Los errores pasan por `avisoError()` (`src/lib/avisos.ts`, 10 s) en vez de editar cada llamada. Se configuró `jest-dom` (`tests/setup-dom.ts`) para el primer test de componente.
+- **T-14:** el botón "Descargar PDF" del diálogo de WhatsApp se muestra siempre, no solo sin workspace (respuesta 4: la cotización siempre va en PDF).
+- **T-15:** se corrigió en `CLAUDE.md` la frase "despliega tras pasar CI", que no es cierta mientras `main` no exija los checks.
+
+**Revisión en pantalla pendiente** (A-11), con `npm run dev` contra staging:
+- landing (formulario, contraste y envío);
+- `/privacidad` con Mi marca incompleta;
+- aviso de Mi marca en el inicio;
+- avisos en panel, workspace y portal;
+- cerrar el panel lateral en móvil;
+- calendario mes;
+- foco al tabular hacia atrás en el panel lateral;
+- 404 de un trabajo inexistente (también en el panel lateral) y de un módulo inactivo;
+- cifras de las alertas frente a la lista filtrada;
+- marcar una cotización aceptada y abrir WhatsApp.
 
 ### Sprint 2 · Migraciones pequeñas
 
