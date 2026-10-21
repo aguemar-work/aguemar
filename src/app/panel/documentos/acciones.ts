@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
+import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { actaSchema, briefSchema, type ActaInput, type BriefInput } from "@/lib/validators/brief-acta";
 import { aceptacionSchema } from "@/lib/validators/cotizacion";
@@ -84,53 +84,47 @@ export async function eliminarActa(id: string): Promise<Resultado<void>> {
 export async function aceptarActa(id: string, input: { nombre: string; dni?: string }): Promise<Resultado<void>> {
   const parsed = aceptacionSchema.safeParse(input);
   if (!parsed.success) return primerError(parsed.error.issues);
-  try {
+  return accion("documentos.aceptarActa", async () => {
     const { db } = await conSesion();
     const { error } = await db.rpc("acta_aceptar_panel", { p_id: id, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni || null });
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 // ---------------------------------------------------------------------------
 // Comunes
 // ---------------------------------------------------------------------------
 async function publicar_(tabla: "briefs" | "actas_entrega", tipo: "brief" | "acta", campo: "publicado" | "publicada", id: string, publicar: boolean): Promise<Resultado<{ token: string | null }>> {
-  try {
+  return accion("documentos.aceptarActa", async () => {
     const { db } = await conSesion();
     const { error } = await db
       .from(tabla)
       .update({ [campo]: publicar, [`${campo}_en`]: publicar ? new Date().toISOString() : null })
       .eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     let token: string | null = null;
     if (publicar) {
       const r = await db.rpc("obtener_enlace", { p_tipo: tipo, p_id: id, p_renovar: false });
-      if (r.error) return fallo(traducirError(r.error).mensaje);
+      if (r.error) throw r.error;
       token = r.data as string;
       await avisarDocumentoEmpresa(tipo, id);
     }
     revalidar();
     return exito({ token });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 async function eliminar_(tabla: "briefs" | "actas_entrega", tipo: "brief" | "acta", id: string): Promise<Resultado<void>> {
-  try {
+  return accion("documentos.aceptarActa", async () => {
     // Solo el propietario (el colaborador no borra ni reorganiza): mensaje claro en vez de un falso éxito.
     await exigirPropietario();
     const { db } = await conSesion();
     await db.from("enlaces_publicos").delete().eq("tipo", tipo).eq("documento_id", id);
     const { error } = await db.from(tabla).delete().eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
