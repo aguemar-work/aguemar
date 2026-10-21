@@ -4,7 +4,8 @@ Auditoría externa de solo lectura realizada el 20/10/2026 sobre `main` = `f47ac
 
 ## Cómo leerla
 
-1. Empieza por [99-plan-de-accion.md](99-plan-de-accion.md): resumen ejecutivo, notas por área, quick wins, roadmap, backlog priorizado y preguntas abiertas.
+0. Para **trabajar**, ve directo a [98-tareas.md](98-tareas.md): es la lista ejecutable, con reglas para el agente.
+1. Para **entender**, empieza por [99-plan-de-accion.md](99-plan-de-accion.md): resumen ejecutivo, notas por área, quick wins, roadmap, backlog priorizado y preguntas abiertas.
 2. Sigue con [90-sintesis.md](90-sintesis.md): doce temas transversales, conflictos entre perfiles y los cinco riesgos principales.
 3. Los informes por perfil (`01`–`10`) tienen el mismo formato: diagnóstico, fortalezas, tabla de hallazgos previos verificados (de `AUDITORIA.md`), hallazgos con ID / severidad / evidencia / impacto / recomendación / esfuerzo / dependencias, y supuestos.
 
@@ -25,6 +26,7 @@ Auditoría externa de solo lectura realizada el 20/10/2026 sobre `main` = `f47ac
 | [10-seo.md](10-seo.md) | SEO | 7 | Alta (SEO-002) |
 | [90-sintesis.md](90-sintesis.md) | Síntesis cruzada | 12 temas, 8 conflictos, 5 riesgos | — |
 | [95-respuestas-y-evidencia.md](95-respuestas-y-evidencia.md) | Respuestas del 21/10 y lo que muestran las capturas de Vercel, Sentry e InsForge | 4 nuevos | Alta (SEC-010) |
+| [98-tareas.md](98-tareas.md) | Hoja de tareas para ejecutar el plan: 35 tareas del agente en 5 sprints, 12 de Alejandro, 12 decisiones tomadas | — | — |
 | [99-plan-de-accion.md](99-plan-de-accion.md) | Plan de acción (PM + PO + Arquitecto) | 15 quick wins, 4 fases, 91 ítems | — |
 
 Totales: **95 hallazgos** (0 críticos, 14 altos, 45 medios, 36 bajos), contando los 4 añadidos el 21/10. De los 43 de `AUDITORIA.md` (16/10): 19 cerrados con evidencia nueva, 17 parciales, 5 abiertos, 2 no verificables.

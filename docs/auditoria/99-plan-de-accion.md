@@ -2,6 +2,8 @@
 
 Fecha: 20/10/2026 · Commit auditado: `f47ac68` (`main`) · Redactado como Project Manager + Product Owner + Arquitecto a partir de `01`–`10` y `90-sintesis.md`. Priorización: **MoSCoW + esfuerzo** (un equipo de una persona sin datos de alcance ni de tráfico para RICE). Esfuerzos en **horas o días de Alejandro**, no de generación de código (PM-007).
 
+> **Para ejecutar este plan, usa `98-tareas.md`**: tareas del agente (T-xx) y de Alejandro (A-xx), con archivos, migración, decisiones tomadas y cómo se comprueba cada una.
+>
 > **Actualizado el 21/10** con las respuestas a las preguntas 1–5 y las capturas de Vercel, Sentry e InsForge (`95-respuestas-y-evidencia.md`). Cambios: cuatro hallazgos nuevos (SEC-010 alto, SEC-011, DEV-008, PRO-012), Sentry ya conectado, prioridades movidas hacia la experiencia del workspace y del panel, y comprobantes y portafolio con alcance confirmado.
 
 ## 1. Resumen ejecutivo
@@ -39,7 +41,7 @@ Fecha: 20/10/2026 · Commit auditado: `f47ac68` (`main`) · Redactado como Proje
 | 3 | Monitor de uptime gratuito sobre `/`, `/login` y un `/d/<token>` de prueba, con aviso a correo/WhatsApp | DEV-003, PM-004 | 30 min |
 | 4 | Simulacro de restauración en una rama desechable de InsForge; cronometrar y escribir los pasos en el README (quitar el `[PENDIENTE]`) | DEV-002, PM-002 | 2–3 h |
 | 5 | Copia cifrada de `_respaldos/` fuera del equipo (7-Zip con contraseña o `age`) y recordatorio semanal; borrar los volcados heredados y `.env.local.bak-produccion` | DEV-002, DEV-005, SEC-008 | 30 min |
-| 6 | En la consola de Auth de InsForge (producción y staging): verificación de correo obligatoria, OAuth github/google desactivados, mínimo 8 caracteres | SEC-002 | 20 min + confirmar con el proveedor |
+| 6 | En la consola de Auth de InsForge (producción y staging): OAuth github/google desactivados y mínimo 8 caracteres. **No** activar la verificación de correo ni cerrar el registro: rompería las invitaciones (`src/lib/insforge/admin.ts:4-9`; corregido el 21/10, decisión D10 de `98-tareas.md`) | SEC-002 | 10 min |
 | 7 | Contraste del formulario de contacto: borde `white/40`, placeholder y ayuda `white/55` | A11Y-001 | 15 min |
 | 8 | Título y descripción de la landing con intención y ciudad; `addressLocality` en JSON-LD; `og:image` explícito en `/en` | SEO-002 (etapa 1), SEO-003, SEO-001 | 2 h |
 | 9 | `[PENDIENTE]` fuera de PDF, `/privacidad` y servicios; rechazarlo en `marca.ts`; aviso en el panel si Mi marca está incompleta | UX-001, COD-008 | 2 h |
@@ -160,7 +162,7 @@ Impacto: N (negocio: dinero, clientes, legal), U (usuario), T (técnico). Fase: 
 | ARQ-004 | Migraciones sin reversa; generadores de un uso | ARQ | Media | M | T | Should | M |
 | SEC-001 | Token legible por JS; CSP solo reporte | SEC | Media | M | T | Should | M |
 | SEC-006 | Comentarios de la empresa editables | SEC | Baja | S | T | Could | M |
-| SEC-007 | Vistas sin `security_invoker` | SEC | Baja | S | T | Could | M |
+| SEC-007 | Vistas del colaborador sin test de inventario (no usar `security_invoker`: rompe el acceso del colaborador; D11 de `98-tareas.md`) | SEC | Baja | S | T | Could | M |
 | QA-004 | Cobertura no medida; capas sin tests | QA | Media | L | T | Could | M |
 | QA-005 | Tests de PDF de humo | QA | Media | S | U | Should | M |
 | COD-004 | Hotspots que crecen | COD | Baja | M | T | Could | M |
