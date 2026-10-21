@@ -1,4 +1,4 @@
--- Vigente según migrations/20261020171216_inmutabilidad-aceptados.sql.
+-- Vigente según migrations/20261021223421_pendiente-unico.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.cotizacion_json_vivo(p_id uuid)
@@ -21,9 +21,16 @@ as $$
     'aceptacion', (select jsonb_build_object('nombre', a.nombre, 'dni', public.dni_visible(a.dni), 'aceptado_en', a.aceptado_en)
                    from public.aceptaciones a where a.cotizacion_id = z.id order by a.aceptado_en desc limit 1),
     'cobrado', coalesce((select sum(k.monto) from public.cobros k where k.cotizacion_id = z.id), 0),
+    'pendiente', d.pendiente, 'vence_pago', d.vence_pago, 'atraso_dias', d.dias_atraso,
     'cliente', (select jsonb_build_object('nombre', c.nombre, 'tipo_doc', c.tipo_doc, 'num_doc', c.num_doc, 'contacto', c.contacto, 'direccion', c.direccion)
                 from public.clientes c where c.id = z.cliente_id),
     'marca', public.marca_json(z.owner_id)
   )
-  from public.cotizaciones z where z.id = p_id;
+  from public.cotizaciones z
+  left join lateral (
+    select v.pendiente, v.vence_pago, v.dias_atraso
+    from public.deudas_cotizacion(z.cliente_id) v
+    where v.cotizacion_id = z.id
+  ) d on true
+  where z.id = p_id;
 $$;

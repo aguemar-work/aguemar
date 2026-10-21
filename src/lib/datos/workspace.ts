@@ -101,6 +101,8 @@ export interface WsCotizaciones {
   cobros: WsCobro[];
   total_aceptado: number;
   total_cobrado: number;
+  /** Lo que falta por pagar (soles), con el reparto FIFO de deudas_cotizacion(). */
+  total_pendiente: number;
   /** Lo pendiente (soles) cuya fecha de pago ya pasó. */
   total_vencido: number;
   /** El pago pendiente que vence primero. */
@@ -129,6 +131,10 @@ export interface WsCotizacion {
   items: { descripcion: string; unidad: string; cantidad: number | string; precio_unitario: number; descuento: number; importe: number }[];
   aceptacion: { nombre: string; dni: string | null; aceptado_en: string } | null;
   cobrado: number;
+  /** Lo que falta por pagar según deudas_cotizacion(); null si la cotización no está aceptada. */
+  pendiente: number | null;
+  vence_pago: string | null;
+  atraso_dias: number | null;
   cliente: { nombre: string; tipo_doc: string | null; num_doc: string | null; contacto: string | null; direccion: string | null };
   marca: {
     nombre_comercial: string;

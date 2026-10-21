@@ -1,4 +1,4 @@
--- Vigente según migrations/20261019223047_cobros-vencimientos.sql.
+-- Vigente según migrations/20261021223421_pendiente-unico.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.ws_cotizaciones()
@@ -33,6 +33,7 @@ as $$
     'cobros', coalesce((select jsonb_agg(to_jsonb(k) order by k.fecha desc) from cob k), '[]'::jsonb),
     'total_aceptado', coalesce((select sum(total) from cots where estado = 'aceptada'), 0),
     'total_cobrado', coalesce((select sum(monto) from cob), 0),
+    'total_pendiente', coalesce((select sum(pendiente) from deuda where moneda = 'PEN'), 0),
     'total_vencido', coalesce((select sum(pendiente) from deuda where dias_atraso > 0 and moneda = 'PEN'), 0),
     'proximo_pago', (
       select jsonb_build_object('vence_pago', d.vence_pago, 'pendiente', d.pendiente, 'moneda', d.moneda)

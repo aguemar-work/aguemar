@@ -9,7 +9,7 @@ import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ws } from "@/lib/datos/workspace";
 import { moduloActivo } from "@/lib/modulos";
-import { MEDIOS_PAGO, estadoPago, saldo } from "@/lib/cotizacion";
+import { MEDIOS_PAGO, estadoPago } from "@/lib/cotizacion";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Cotizaciones y cobros" };
@@ -19,7 +19,7 @@ export default async function CotizacionesWorkspace({ params }: { params: Promis
   const [empresa, datos] = await Promise.all([ws.miEmpresa(), ws.cotizaciones()]);
   if (!moduloActivo(empresa?.modulos, "cotizaciones") || !datos) notFound();
 
-  const pendiente = saldo(datos.total_aceptado, datos.total_cobrado);
+  const pendiente = datos.total_pendiente;
   const porResponder = datos.cotizaciones.filter((c) => c.estado === "enviada");
   const hoy = hoyLima();
   const vencido = datos.total_vencido ?? 0;

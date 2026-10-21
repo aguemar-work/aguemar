@@ -6,7 +6,7 @@ import { ConfirmarEliminar } from "@/components/panel/confirmar-eliminar";
 import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
 import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { deudasCotizacion, obtenerCotizacion } from "@/lib/datos/cotizaciones";
+import { obtenerCotizacion, obtenerDocumentoCotizacion } from "@/lib/datos/cotizaciones";
 import { enlaceDe } from "@/lib/datos/fichas";
 import { estadoEfectivo, fechaVence, saldo } from "@/lib/cotizacion";
 import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
@@ -19,7 +19,7 @@ import { PagoCotizacion } from "./pago";
 
 /** Detalle de una cotización. Se usa en la página completa y en el panel lateral (@modal). */
 export async function DetalleCotizacion({ id }: { id: string }) {
-  const [c, enlace, deudas] = await Promise.all([obtenerCotizacion(id), enlaceDe("cotizacion", id), deudasCotizacion()]);
+  const [c, enlace, doc] = await Promise.all([obtenerCotizacion(id), enlaceDe("cotizacion", id), obtenerDocumentoCotizacion(id)]);
   if (!c) notFound();
   const hoy = hoyLima();
   const estado = estadoEfectivo(c, hoy);
@@ -27,7 +27,8 @@ export async function DetalleCotizacion({ id }: { id: string }) {
   const venc = textoVencimiento(vence, hoy);
   const cobrado = c.cobros.reduce((s, k) => s + k.monto, 0);
   const pendiente = saldo(c.total, cobrado);
-  const deuda = deudas.find((d) => d.cotizacion_id === c.id) ?? null;
+  // Pendiente y vencimiento: los mismos que ven la empresa y el portal (deudas_cotizacion).
+  const deuda = doc?.vence_pago && doc.pendiente != null ? { pendiente: doc.pendiente, vence_pago: doc.vence_pago } : null;
   const aceptacion = c.aceptaciones[0];
   const empresa = c.clientes;
   const conWorkspace = Boolean(empresa?.usuario_id && empresa.slug && empresa.modulos?.includes("cotizaciones"));

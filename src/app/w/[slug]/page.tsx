@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ws } from "@/lib/datos/workspace";
 import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
-import { saldo } from "@/lib/cotizacion";
 import { infoTipo } from "@/lib/calendario";
 import { moduloActivo } from "@/lib/modulos";
 import { textoPeriodo } from "@/lib/informe";
@@ -78,7 +77,7 @@ export default async function InicioWorkspace({ params }: { params: Promise<{ sl
                   <CardTitle className="text-xs font-medium text-muted-foreground">Saldo pendiente</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
-                  <p className="font-mono text-lg font-semibold tabular">{formatearMonto(saldo(cot.total_aceptado, cot.total_cobrado))}</p>
+                  <p className="font-mono text-lg font-semibold tabular">{formatearMonto(cot.total_pendiente)}</p>
                   {cot.total_vencido > 0 ? (
                     <p className="text-xs text-danger">{formatearMonto(cot.total_vencido)} vencido</p>
                   ) : cot.proximo_pago ? (

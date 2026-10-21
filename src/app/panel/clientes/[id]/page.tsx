@@ -16,7 +16,7 @@ import { correoDeUsuario, historialCliente, obtenerCliente } from "@/lib/datos/c
 import { AccesoEmpresa } from "./acceso";
 import { ModulosEmpresa } from "./modulos";
 import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
-import { ETIQUETA_RECORDATORIO, estadoEfectivo, saldo } from "@/lib/cotizacion";
+import { ETIQUETA_RECORDATORIO, estadoEfectivo } from "@/lib/cotizacion";
 import { deudasCotizacion, recordatoriosDeCliente } from "@/lib/datos/cotizaciones";
 import { ListaCobros, RegistrarCobro } from "../../cotizaciones/cobros";
 import { eliminarCliente } from "../acciones";
@@ -48,7 +48,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
   const aceptadas = historial.cotizaciones.filter((c) => c.estado === "aceptada");
   const totalAceptado = aceptadas.filter((c) => c.moneda === "PEN").reduce((s, c) => s + c.total, 0);
   const totalCobrado = historial.cobros.filter((k) => k.moneda === "PEN").reduce((s, k) => s + k.monto, 0);
-  const saldoEmpresa = saldo(totalAceptado, totalCobrado);
+  const saldoEmpresa = deudas.filter((d) => d.moneda === "PEN").reduce((s, d) => s + d.pendiente, 0);
   const vencidas = deudas.filter((d) => d.moneda === "PEN" && d.pendiente > 0 && d.dias_atraso > 0);
   const vencido = vencidas.reduce((s, d) => s + d.pendiente, 0);
   const atraso = Math.max(0, ...vencidas.map((d) => d.dias_atraso));

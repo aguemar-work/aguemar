@@ -1,4 +1,4 @@
--- Vigente según migrations/20261020171216_inmutabilidad-aceptados.sql.
+-- Vigente según migrations/20261021223421_pendiente-unico.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.cotizacion_contenido(p_id uuid)
@@ -9,5 +9,6 @@ security definer
 set search_path = pg_catalog, public, pg_temp
 as $$
   select public.cotizacion_json_vivo(p_id)
-         - array['id', 'estado', 'enviada_en', 'aceptada_en', 'trabajo_id', 'aceptacion', 'cobrado'];
+         - array['id', 'estado', 'enviada_en', 'aceptada_en', 'trabajo_id', 'aceptacion', 'cobrado',
+                 'pendiente', 'vence_pago', 'atraso_dias'];
 $$;

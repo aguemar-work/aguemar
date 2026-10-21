@@ -125,22 +125,23 @@ test("diez fichas creadas a la vez reciben diez números distintos", async () =>
   }
 });
 
+/** Cotización aceptada fija: se crea y acepta la primera vez; las corridas siguientes la reutilizan. */
+async function cotizacionAceptadaFija(duenio: Cliente, uid: string, clienteId: string, asunto: string, plazo: number): Promise<{ id: string; total: number }> {
+  const existente = await duenio.database.from("cotizaciones").select("id, estado, total").eq("cliente_id", clienteId).eq("asunto", asunto).maybeSingle();
+  let id = existente.data?.id as string | undefined;
+  if (!id) id = await cotizacion(duenio, uid, clienteId, asunto, { plazo_pago_dias: plazo });
+  if (existente.data?.estado !== "aceptada") expect((await aceptar(duenio, id)).error).toBeNull();
+  const fila = await duenio.database.from("cotizaciones").select("id, total").eq("id", id).single();
+  return fila.data as { id: string; total: number };
+}
+
 test("un cobro suelto paga primero la cotización que vence antes (FIFO) y el exceso no inventa deuda", async () => {
   test.setTimeout(120_000);
   const { c: duenio, uid } = await propietario();
   const empresa = await empresaFija(duenio, uid, "e2e-db-deuda", "90000001");
 
-  /** Cotización aceptada fija: se crea y acepta la primera vez; las corridas siguientes la reutilizan. */
-  async function fija(asunto: string, plazo: number): Promise<{ id: string; total: number }> {
-    const existente = await duenio.database.from("cotizaciones").select("id, estado, total").eq("cliente_id", empresa.id).eq("asunto", asunto).maybeSingle();
-    let id = existente.data?.id as string | undefined;
-    if (!id) id = await cotizacion(duenio, uid, empresa.id, asunto, { plazo_pago_dias: plazo });
-    if (existente.data?.estado !== "aceptada") expect((await aceptar(duenio, id)).error).toBeNull();
-    const fila = await duenio.database.from("cotizaciones").select("id, total").eq("id", id).single();
-    return fila.data as { id: string; total: number };
-  }
-  const a = await fija("E2E deuda A (vence antes)", 5);
-  const b = await fija("E2E deuda B (vence después)", 30);
+  const a = await cotizacionAceptadaFija(duenio, uid, empresa.id, "E2E deuda A (vence antes)", 5);
+  const b = await cotizacionAceptadaFija(duenio, uid, empresa.id, "E2E deuda B (vence después)", 30);
   expect(a.total).toBeGreaterThan(1000);
 
   const pendientes = async () => {
@@ -184,6 +185,61 @@ test("un cobro suelto paga primero la cotización que vence antes (FIFO) y el ex
   // Borrados los cobros, todo vuelve a deberse.
   const final = await pendientes();
   expect([final.a.pendiente, final.b.pendiente]).toEqual([a.total, b.total]);
+});
+
+test("el pendiente es el mismo en el panel, el workspace y el portal (T-28)", async () => {
+  test.setTimeout(120_000);
+  const { c: duenio, uid } = await propietario();
+  const empresa = await empresaFija(duenio, uid, "e2e-db-deuda", "90000001");
+  const correo = "e2e-db-deuda@staging.aguemar.test";
+  const cuenta = await cuentaFija(correo);
+  if (!empresa.usuario_id) {
+    const inv = await duenio.database.from("invitaciones").insert([{ owner_id: uid, tipo: "empresa", correo, cliente_id: empresa.id }]).select("id, token").single();
+    expect(inv.error).toBeNull();
+    expect((await cuenta.database.rpc("invitacion_aceptar", { p_token: inv.data!.token })).error).toBeNull();
+  }
+  await duenio.database.from("clientes").update({ modulos: ["cotizaciones"], activa: true }).eq("id", empresa.id);
+  const a = await cotizacionAceptadaFija(duenio, uid, empresa.id, "E2E deuda A (vence antes)", 5);
+  const b = await cotizacionAceptadaFija(duenio, uid, empresa.id, "E2E deuda B (vence después)", 30);
+
+  const anonimo = await clienteNuevo();
+  const token = async (id: string) => {
+    const r = await duenio.database.rpc("obtener_enlace", { p_tipo: "cotizacion", p_id: id });
+    expect(r.error).toBeNull();
+    return r.data as string;
+  };
+  const tokenA = await token(a.id);
+  const tokenB = await token(b.id);
+
+  /** Lo que dice cada superficie de una cotización: [deudas_cotizacion, panel, workspace, portal]. */
+  const lecturas = async (id: string, tk: string) => {
+    const deudas = await duenio.database.rpc("deudas_cotizacion", { p_cliente: empresa.id });
+    expect(deudas.error).toBeNull();
+    const d = (deudas.data as { cotizacion_id: string; pendiente: number; vence_pago: string }[]).find((f) => f.cotizacion_id === id)!;
+    const panel = (await duenio.database.rpc("cotizacion_panel", { p_id: id })).data as { pendiente: number; vence_pago: string };
+    const ws = (await cuenta.database.rpc("ws_cotizacion", { p_id: id })).data as { pendiente: number; vence_pago: string };
+    const portal = (await anonimo.database.rpc("portal_documento", { p_token: tk })).data as { documento: { pendiente: number; vence_pago: string } };
+    return { d, panel, ws, portal: portal.documento };
+  };
+  const igual = (l: Awaited<ReturnType<typeof lecturas>>, pendiente: number, nombre: string) => {
+    for (const [donde, v] of Object.entries({ deudas: l.d, panel: l.panel, workspace: l.ws, portal: l.portal })) {
+      expect(v.pendiente, `${nombre}: pendiente en ${donde}`).toBe(pendiente);
+      expect(v.vence_pago, `${nombre}: vence_pago en ${donde}`).toBe(l.d.vence_pago);
+    }
+  };
+
+  // Un cobro suelto de "A + 1 000": A queda pagada y B debe su total menos 1 000, vea quien lo vea.
+  const k = await duenio.database.from("cobros").insert([{ owner_id: uid, cliente_id: empresa.id, monto: a.total + 1000, moneda: "PEN" }]).select("id").single();
+  expect(k.error).toBeNull();
+  try {
+    igual(await lecturas(a.id, tokenA), 0, "A");
+    igual(await lecturas(b.id, tokenB), b.total - 1000, "B");
+    const resumen = (await cuenta.database.rpc("ws_cotizaciones")).data as { total_pendiente: number };
+    expect(resumen.total_pendiente, "suma del workspace").toBe(b.total - 1000);
+  } finally {
+    await duenio.database.from("cobros").delete().eq("id", k.data!.id);
+  }
+  igual(await lecturas(a.id, tokenA), a.total, "A sin cobros");
 });
 
 test("recordatorios de pago: la clave mala no entra y lo ya tomado no se entrega otra vez", async () => {

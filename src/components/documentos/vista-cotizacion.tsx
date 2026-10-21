@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { estadoPago, saldo } from "@/lib/cotizacion";
-import { formatearFecha, formatearMonto } from "@/lib/format";
+import { estadoPago } from "@/lib/cotizacion";
+import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 import type { WsCotizacion } from "@/lib/datos/workspace";
 
 /**
  * Cotización en pantalla para quien la recibe (workspace y portal): detalle,
  * totales, condiciones, fechas, pagos y datos de pago. Sin notas internas.
  */
-export function VistaCotizacion({ c, arriba, pago }: { c: WsCotizacion; arriba?: React.ReactNode; pago?: { vence_pago: string; pendiente: number; hoy: string } | null }) {
-  const pendiente = pago ? pago.pendiente : saldo(c.total, c.cobrado);
-  const estado = pago && c.estado === "aceptada" ? estadoPago(pago, pago.hoy) : null;
+export function VistaCotizacion({ c, arriba }: { c: WsCotizacion; arriba?: React.ReactNode }) {
+  // El pendiente y la fecha de pago vienen del documento (deudas_cotizacion): una sola cuenta para todos.
+  const pago = c.estado === "aceptada" && c.vence_pago && c.pendiente != null ? { vence_pago: c.vence_pago, pendiente: c.pendiente } : null;
+  const pendiente = pago ? pago.pendiente : 0;
+  const estado = pago ? estadoPago(pago, hoyLima()) : null;
   const condiciones = (c.condiciones ?? "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const pagos = c.marca
     ? ([
