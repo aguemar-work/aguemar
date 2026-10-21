@@ -44,7 +44,8 @@ jobs:
         env:
           NEXT_PUBLIC_SITE_URL: https://aguemar.com
 
-  # Aislamiento entre empresas e inmutabilidad de lo aceptado, contra la rama staging de InsForge
+  # Aislamiento entre empresas, inmutabilidad de lo aceptado y la lógica crítica en SQL (aceptación doble,
+  # numeración concurrente, reparto de cobros, invitaciones, módulos), contra la rama staging de InsForge
   # (ARQUITECTURA.md, ADR-09). Solo llamadas a la API: sin servidor ni navegador. Usa las cuentas
   # de prueba de `npm run staging:cuentas` guardadas como secretos del repo; sin ellos se salta.
   seguridad:
@@ -59,6 +60,8 @@ jobs:
       E2E_EMPRESA_PASSWORD: ${{ secrets.E2E_EMPRESA_PASSWORD }}
       E2E_EMPRESA_B_EMAIL: ${{ secrets.E2E_EMPRESA_B_EMAIL }}
       E2E_EMPRESA_B_PASSWORD: ${{ secrets.E2E_EMPRESA_B_PASSWORD }}
+      # Opcional: sin él se saltan las pruebas de recordatorios de pago (db.spec.ts). Es el CRON_SECRET de staging.
+      CRON_SECRET: ${{ secrets.STAGING_CRON_SECRET }}
     steps:
       - uses: actions/checkout@v7
         if: env.E2E_EMAIL != ''
@@ -74,7 +77,7 @@ jobs:
 
       - name: Seguridad contra staging
         if: env.E2E_EMAIL != ''
-        run: npx playwright test tests/e2e/seguridad.spec.ts --project escritorio
+        run: npx playwright test tests/e2e/seguridad.spec.ts tests/e2e/db.spec.ts --project escritorio
 
       - name: Sin secretos de staging
         if: env.E2E_EMAIL == ''

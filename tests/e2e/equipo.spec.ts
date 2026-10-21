@@ -193,7 +193,8 @@ test("la invitación marca si la cuenta ya existía antes de ella (SEC-002)", as
   test.setTimeout(90_000);
   const { duenio, uidDuenio } = await ids();
   const sufijo = `${Date.now()}`;
-  const clave = `Prueba-${sufijo}-aA1`;
+  // Cuenta nueva de un solo uso: contraseña aleatoria. La fija deriva de E2E_PASSWORD (nada escrito en el repo).
+  const clave = `${crypto.randomUUID()}-aA1`;
   const empresa = await duenio.database
     .from("clientes")
     .insert([{ owner_id: uidDuenio, nombre: `E2E invitación ${sufijo}`, tipo_doc: "DNI", num_doc: sufijo.slice(-8), slug: `e2e-inv-${sufijo}` }])
@@ -232,8 +233,8 @@ test("la invitación marca si la cuenta ya existía antes de ella (SEC-002)", as
 
   try {
     // 1. Cuenta anterior a la invitación (fija: se reutiliza en cada corrida): se marca.
-    const previa = "e2e-cuenta-previa@staging.aguemar.test";
-    const cPrevia = await cuenta(previa, "Previa-e2e-aA1-fija");
+    const previa = "e2e-previa-fija@staging.aguemar.test";
+    const cPrevia = await cuenta(previa, `${PROPIETARIO.password}-Prev1`);
     const invPrevia = await invitar(previa);
     expect((await cPrevia.database.rpc("invitacion_aceptar", { p_token: invPrevia.token })).error).toBeNull();
     expect(await marca(invPrevia.id)).toMatchObject({ cuenta_previa: true });
