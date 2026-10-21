@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SaltarContenido } from "@/components/ui/saltar-contenido";
+import { Avisos } from "@/components/avisos";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/panel/sidebar";
 import { Topbar } from "@/components/panel/topbar";
@@ -29,6 +30,7 @@ export default async function PanelLayout({ children, modal }: { children: React
     <>
       <div className="flex min-h-dvh">
         <SaltarContenido />
+        <Avisos />
         <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 md:block">
           <Sidebar rol={rolPanel} />
         </aside>

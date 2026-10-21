@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Avisos } from "@/components/avisos";
 import { CheckCircle2, FileDown, ShieldCheck, ShieldX } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -151,6 +152,7 @@ function Botones({ pdf }: { pdf: string }) {
 function Marco({ children, marca, contacto }: { children: React.ReactNode; marca?: string; contacto?: string[] }) {
   return (
     <div className="min-h-dvh bg-background">
+      <Avisos />
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Logo alto={30} className="dark:hidden" />

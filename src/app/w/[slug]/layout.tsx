@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SaltarContenido } from "@/components/ui/saltar-contenido";
+import { Avisos } from "@/components/avisos";
 import { notFound, redirect } from "next/navigation";
 import { NavWorkspace } from "@/components/workspace/nav-workspace";
 import { TopbarWorkspace } from "@/components/workspace/topbar-workspace";
@@ -31,6 +32,7 @@ export default async function WorkspaceLayout({ children, params }: { children: 
   return (
     <div className="flex min-h-dvh">
       <SaltarContenido />
+      <Avisos />
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 md:block">
         <NavWorkspace slug={slug} nombreEmpresa={empresa.nombre} modulos={empresa.modulos} />
       </aside>

@@ -1,3 +1,4 @@
+import "@/lib/zod-sin-jit";
 import { z } from "zod";
 import { MAX_INDICADORES, MAX_SECCIONES } from "@/lib/informe";
 

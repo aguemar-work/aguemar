@@ -3,6 +3,7 @@
  * diagnóstico con estado sugerido e indicadores para la portada de la ficha.
  * Puro y testeable; todo lo que devuelve es editable antes de guardar.
  */
+import "@/lib/zod-sin-jit";
 import { z } from "zod";
 import type { EstadoDiagnostico } from "@/types/database";
 

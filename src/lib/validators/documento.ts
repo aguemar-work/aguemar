@@ -1,3 +1,4 @@
+import "@/lib/zod-sin-jit";
 import { z } from "zod";
 
 export type TipoDocumento = "RUC" | "DNI";

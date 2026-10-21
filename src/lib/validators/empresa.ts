@@ -1,3 +1,4 @@
+import "@/lib/zod-sin-jit";
 import { z } from "zod";
 import { CLAVES_MODULO } from "@/lib/modulos";
 import { SLUG_REGEX } from "@/lib/slug";

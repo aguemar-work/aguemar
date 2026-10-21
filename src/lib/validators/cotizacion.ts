@@ -1,3 +1,4 @@
+import "@/lib/zod-sin-jit";
 import { z } from "zod";
 import { aCentimos } from "@/lib/format";
 import { aCantidad } from "@/lib/cotizacion";

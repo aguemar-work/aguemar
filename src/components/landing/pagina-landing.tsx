@@ -1,5 +1,4 @@
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { ArrowRight, LogIn, Mail, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { TituloSticky } from "@/components/landing/titulo-sticky";
 import { Fila, ListaFilas } from "@/components/landing/fila";
 import { Servicios } from "@/components/landing/servicios";
 import { Proyectos } from "@/components/landing/proyectos";
+import { FormularioContactoDiferido as FormularioContacto } from "@/components/landing/formulario-diferido";
 import { datosLanding } from "@/lib/datos/landing";
 import { enlaceWhatsApp, telefonoLegible } from "@/lib/landing";
 import { contenidoLanding } from "@/lib/landing-contenido";
@@ -21,10 +21,6 @@ import { RUTA_IDIOMA, TEXTOS, type Idioma } from "@/lib/landing-textos";
 import { jsonLdLanding } from "@/lib/landing-meta";
 import { envPublico } from "@/lib/env";
 
-// El formulario (React Hook Form + Zod) se carga aparte: la landing es casi estática y así pesa menos al entrar.
-const FormularioContacto = dynamic(() => import("@/components/landing/formulario-contacto").then((m) => m.FormularioContacto), {
-  loading: () => <div aria-hidden className="min-h-[420px] animate-pulse rounded-xl border border-white/10 bg-white/[0.04]" />,
-});
 
 const SECCION = "mb-16 scroll-mt-16 lg:mb-24 lg:scroll-mt-24";
 const ENLACE_LATERAL = "inline-flex items-center gap-2 rounded-sm transition-colors hover:text-mint";

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Sora, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
 import "./globals.css";
 
 const sora = Sora({
@@ -36,7 +35,6 @@ export default function RootLayout({
       <body className={`${sora.variable} ${jetbrainsMono.variable} min-h-dvh`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
-          <Toaster richColors position="top-center" />
         </ThemeProvider>
       </body>
     </html>
