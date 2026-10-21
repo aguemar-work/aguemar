@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { notFound } from "next/navigation";
 import { KanbanSquare } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";

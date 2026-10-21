@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { cn } from "@/lib/utils";
 import { AJUSTES } from "./nav";
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import type { LucideIcon } from "lucide-react";
 import { AlarmClock, CalendarClock, CheckCircle2, FileText, Inbox, KanbanSquare, ListTodo, MessageSquare, PauseCircle, Plus, Users, Wallet } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";

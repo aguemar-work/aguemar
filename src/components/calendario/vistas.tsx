@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { Plus } from "lucide-react";
 import { DIAS_SEMANA, infoTipo, porDia, semanasDelMes, textoHoras, type ItemCalendario } from "@/lib/calendario";
 import { cn } from "@/lib/utils";

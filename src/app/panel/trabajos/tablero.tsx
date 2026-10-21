@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { avisoError } from "@/lib/avisos";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { SearchX } from "lucide-react";
 import { EmptyState } from "@/components/panel/empty-state";
 import { Button } from "@/components/ui/button";

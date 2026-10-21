@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { avisoError } from "@/lib/avisos";
 import { ExternalLink, KeyRound, Loader2, Send, UserX } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

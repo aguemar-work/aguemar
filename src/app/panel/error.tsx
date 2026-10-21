@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useReportarError } from "@/lib/reportar-error";

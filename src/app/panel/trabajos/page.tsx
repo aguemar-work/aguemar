@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { Suspense } from "react";
 import { KanbanSquare, Plus } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { notFound } from "next/navigation";
 import { Pencil, FileText, Wallet, FileSignature } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
