@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { nombreArchivo } from "@/lib/cotizacion";
 import { urlPortal, type ActaJson, type BriefJson, type FichaJson, type InformeJson } from "@/lib/documentos";
 import { pdfCotizacion, type DatosCotizacionPdf } from "./cotizacion-pdf";
@@ -26,6 +27,7 @@ async function generar(documento: string, crear: () => Promise<Uint8Array>, arch
     return responder(await crear(), archivo, request);
   } catch (e) {
     console.error(`[pdf] No se pudo generar ${documento}:`, e);
+    Sentry.captureException(e, { tags: { pdf: documento } });
     return new Response(`No se pudo generar el PDF de ${documento}. Ya quedó registrado el error; inténtalo en unos minutos o escríbenos.`, {
       status: 500,
       headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" },

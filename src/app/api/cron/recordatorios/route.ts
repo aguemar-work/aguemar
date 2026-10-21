@@ -1,4 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
+import * as Sentry from "@sentry/nextjs";
 import { envServidor } from "@/lib/env";
 import { enviarRecordatoriosPago } from "@/lib/correo/recordatorio-pago";
 
@@ -18,16 +19,26 @@ function mismoSecreto(a: string, b: string): boolean {
  */
 export async function GET(request: Request) {
   const { CRON_SECRET } = envServidor();
-  if (!CRON_SECRET) return Response.json({ error: "Falta CRON_SECRET" }, { status: 503 });
+  // Vercel Cron llama con este agente: si es él y falla la autorización, los recordatorios no están saliendo.
+  const esVercelCron = (request.headers.get("user-agent") ?? "").startsWith("vercel-cron");
+  if (!CRON_SECRET) {
+    if (esVercelCron) Sentry.captureMessage("Cron de recordatorios: falta CRON_SECRET en el entorno", "warning");
+    return Response.json({ error: "Falta CRON_SECRET" }, { status: 503 });
+  }
   const recibido = request.headers.get("authorization") ?? "";
-  if (!mismoSecreto(recibido, `Bearer ${CRON_SECRET}`)) return Response.json({ error: "No autorizado" }, { status: 401 });
+  if (!mismoSecreto(recibido, `Bearer ${CRON_SECRET}`)) {
+    if (esVercelCron) Sentry.captureMessage("Cron de recordatorios: el secreto de Vercel no coincide con CRON_SECRET", "warning");
+    return Response.json({ error: "No autorizado" }, { status: 401 });
+  }
 
   try {
     const r = await enviarRecordatoriosPago(CRON_SECRET);
     console.info("[recordatorios]", JSON.stringify(r));
+    if (r.fallidos > 0) Sentry.captureMessage(`Cron de recordatorios: ${r.fallidos} correo(s) no salieron; se reintentan mañana`, "warning");
     return Response.json(r);
   } catch (e) {
     console.error("[recordatorios] Falló la tarea:", e);
+    Sentry.captureException(e, { tags: { tarea: "recordatorios" } });
     return Response.json({ error: "Falló la tarea" }, { status: 500 });
   }
 }

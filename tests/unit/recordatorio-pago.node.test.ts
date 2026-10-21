@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.fn();
 vi.mock("@/lib/datos/landing", () => ({ clienteAnonimo: () => ({ database: { rpc } }) }));
+const sentry = vi.hoisted(() => ({ captureException: vi.fn(), captureMessage: vi.fn() }));
+vi.mock("@sentry/nextjs", () => sentry);
 
 const { correoRecordatorioPago, datosDePago, enviarRecordatoriosPago } = await import("@/lib/correo/recordatorio-pago");
 type R = Parameters<typeof correoRecordatorioPago>[0];
@@ -129,6 +131,25 @@ describe("ruta /api/cron/recordatorios", () => {
     expect((await pedir("Bearer otro")).status).toBe(401);
     expect((await pedir("s".repeat(43))).status).toBe(401);
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("si la tarea falla responde 500 y avisa a Sentry", async () => {
+    vi.stubEnv("CRON_SECRET", "s".repeat(43));
+    vi.stubEnv("RESEND_API_KEY", "re_prueba");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    sentry.captureException.mockClear();
+    rpc.mockResolvedValue({ data: null, error: { message: "base caída" } });
+    expect((await pedir(`Bearer ${"s".repeat(43)}`)).status).toBe(500);
+    expect(sentry.captureException).toHaveBeenCalledOnce();
+  });
+
+  it("un 401 solo avisa a Sentry si lo pide Vercel Cron (secreto desalineado)", async () => {
+    vi.stubEnv("CRON_SECRET", "s".repeat(43));
+    sentry.captureMessage.mockClear();
+    await pedir("Bearer otro");
+    expect(sentry.captureMessage).not.toHaveBeenCalled();
+    await GET(new Request("http://localhost/api/cron/recordatorios", { headers: { authorization: "Bearer otro", "user-agent": "vercel-cron/1.0" } }));
+    expect(sentry.captureMessage).toHaveBeenCalledOnce();
   });
 
   it("con el secreto ejecuta la tarea", async () => {
