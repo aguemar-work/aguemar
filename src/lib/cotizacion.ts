@@ -11,10 +11,18 @@ function redondear(n: number): number {
   return Math.round(n + Number.EPSILON * Math.sign(n));
 }
 
-/** Importe de una línea en céntimos: cantidad × precio − descuento, nunca negativo. */
+/**
+ * Importe de una línea en céntimos: cantidad × precio − descuento, nunca negativo.
+ *
+ * La base multiplica con decimales exactos (`numeric(12,3)`) y redondea la mitad hacia arriba. En coma
+ * flotante `1,005 × 100` da 100,49999… y salía 100 en la vista previa mientras la base guardaba 101. Por eso
+ * la cantidad pasa a milésimas (la base admite tres decimales) y el producto se hace en enteros exactos.
+ */
 export function importeLinea(cantidad: number, precioUnitario: number, descuento = 0): number {
   if (!Number.isFinite(cantidad) || cantidad <= 0) return 0;
-  return Math.max(redondear(cantidad * precioUnitario) - descuento, 0);
+  const milesimas = BigInt(Math.round(cantidad * 1000));
+  const bruto = Number((milesimas * BigInt(Math.round(precioUnitario)) + BigInt(500)) / BigInt(1000));
+  return Math.max(bruto - descuento, 0);
 }
 
 export interface Totales {

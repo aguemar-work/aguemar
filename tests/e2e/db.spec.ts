@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import fixtureTotales from "../fixtures/cotizaciones.json";
 
 /**
  * Lógica crítica que vive en Postgres, probada con sus casos límite contra la base (QA-001), sin
@@ -328,5 +329,36 @@ test("con el módulo Solicitudes desactivado o la empresa inactiva, la base no a
   } finally {
     await ajustar({ modulos: todos, activa: true });
     await duenio.database.from("solicitudes").delete().eq("titulo", marca);
+  }
+});
+
+test("los triggers de la base dan los mismos totales que el cálculo de TypeScript (tests/fixtures/cotizaciones.json)", async () => {
+  test.setTimeout(120_000);
+  const { c: duenio, uid } = await propietario();
+  const empresa = await empresaFija(duenio, uid, "e2e-db-modulos", "90000002");
+  const creadas: string[] = [];
+  try {
+    for (const caso of fixtureTotales.casos) {
+      const cot = await duenio.database
+        .from("cotizaciones")
+        .insert([{ owner_id: uid, cliente_id: empresa.id, asunto: `E2E totales: ${caso.nombre}`, area: "soporte", igv_pct: caso.igv_pct, igv_modo: caso.igv_modo }])
+        .select("id")
+        .single();
+      expect(cot.error, caso.nombre).toBeNull();
+      creadas.push(cot.data!.id as string);
+      const items = await duenio.database
+        .from("cotizacion_items")
+        .insert(caso.items.map((i, orden) => ({ owner_id: uid, cotizacion_id: cot.data!.id, descripcion: "Línea de prueba", unidad: "servicio", orden, ...i })))
+        .select("id");
+      expect(items.error, caso.nombre).toBeNull();
+
+      const importes = (await duenio.database.from("cotizacion_items").select("importe").eq("cotizacion_id", cot.data!.id).order("orden")).data!.map((i) => i.importe);
+      expect(importes, `${caso.nombre}: importes por línea`).toEqual(caso.esperado.importes);
+      const fila = (await duenio.database.from("cotizaciones").select("subtotal, igv, total").eq("id", cot.data!.id).single()).data;
+      expect(fila, `${caso.nombre}: totales`).toEqual({ subtotal: caso.esperado.subtotal, igv: caso.esperado.igv, total: caso.esperado.total });
+    }
+  } finally {
+    // Son borradores: se borran (junto con sus líneas).
+    if (creadas.length) await duenio.database.from("cotizaciones").delete().in("id", creadas);
   }
 });

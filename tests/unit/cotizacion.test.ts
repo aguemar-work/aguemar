@@ -92,3 +92,19 @@ describe("mensaje de WhatsApp de la cotización", async () => {
     expect(m).not.toMatch(/aceptarla|válida hasta/);
   });
 });
+
+describe("totales: casos compartidos con la base (tests/fixtures/cotizaciones.json)", async () => {
+  const { importeLinea, calcularTotales } = await import("@/lib/cotizacion");
+  const fixture = (await import("../fixtures/cotizaciones.json")).default as {
+    casos: { nombre: string; igv_pct: number; igv_modo: "sumar" | "incluido"; items: { cantidad: number; precio_unitario: number; descuento: number }[]; esperado: { importes: number[]; subtotal: number; igv: number; total: number } }[];
+  };
+
+  for (const caso of fixture.casos) {
+    it(caso.nombre, () => {
+      const importes = caso.items.map((i) => importeLinea(i.cantidad, i.precio_unitario, i.descuento));
+      expect(importes).toEqual(caso.esperado.importes);
+      const { subtotal, igv, total } = calcularTotales(importes, caso.igv_pct, caso.igv_modo);
+      expect({ subtotal, igv, total }).toEqual({ subtotal: caso.esperado.subtotal, igv: caso.esperado.igv, total: caso.esperado.total });
+    });
+  }
+});

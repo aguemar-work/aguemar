@@ -1,0 +1,443 @@
+{
+ "_nota": "Casos de totales de cotización con su resultado esperado. Los usan tests/unit/cotizacion.test.ts (cálculo en TypeScript, vista previa del formulario) y tests/e2e/db.spec.ts (triggers de la base): si los dos lados no dan lo mismo, uno de los dos falla. Montos en céntimos; igv_pct en centésimas de punto (1800 = 18 %).",
+ "casos": [
+  {
+   "nombre": "IGV sumado",
+   "igv_pct": 1800,
+   "igv_modo": "sumar",
+   "items": [
+    {
+     "cantidad": 1,
+     "precio_unitario": 10000,
+     "descuento": 0
+    }
+   ],
+   "esperado": {
+    "importes": [
+     10000
+    ],
+    "subtotal": 10000,
+    "igv": 1800,
+    "total": 11800
+   }
+  },
+  {
+   "nombre": "IGV incluido en el precio",
+   "igv_pct": 1800,
+   "igv_modo": "incluido",
+   "items": [
+    {
+     "cantidad": 1,
+     "precio_unitario": 11800,
+     "descuento": 0
+    }
+   ],
+   "esperado": {
+    "importes": [
+     11800
+    ],
+    "subtotal": 10000,
+    "igv": 1800,
+    "total": 11800
+   }
+  },
+  {
+   "nombre": "descuento por línea",
+   "igv_pct": 1800,
+   "igv_modo": "sumar",
+   "items": [
+    {
+     "cantidad": 2,
+     "precio_unitario": 5000,
+     "descuento": 1500
+    }
+   ],
+   "esperado": {
+    "importes": [
+     8500
+    ],
+    "subtotal": 8500,
+    "igv": 1530,
+    "total": 10030
+   }
+  },
+  {
+   "nombre": "la mitad en la línea sube (cantidades con decimales)",
+   "igv_pct": 1800,
+   "igv_modo": "sumar",
+   "items": [
+    {
+     "cantidad": 1.005,
+     "precio_unitario": 100,
+     "descuento": 0
+    },
+    {
+     "cantidad": 2.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.255,
+     "precio_unitario": 100,
+     "descuento": 0
+    },
+    {
+     "cantidad": 8.575,
+     "precio_unitario": 100,
+     "descuento": 0
+    }
+   ],
+   "esperado": {
+    "importes": [
+     101,
+     833,
+     126,
+     858
+    ],
+    "subtotal": 1918,
+    "igv": 345,
+    "total": 2263
+   }
+  },
+  {
+   "nombre": "la mitad en el IGV sube",
+   "igv_pct": 1800,
+   "igv_modo": "sumar",
+   "items": [
+    {
+     "cantidad": 1,
+     "precio_unitario": 25,
+     "descuento": 0
+    }
+   ],
+   "esperado": {
+    "importes": [
+     25
+    ],
+    "subtotal": 25,
+    "igv": 5,
+    "total": 30
+   }
+  },
+  {
+   "nombre": "descuento mayor que la línea deja la línea en cero",
+   "igv_pct": 1800,
+   "igv_modo": "sumar",
+   "items": [
+    {
+     "cantidad": 1,
+     "precio_unitario": 1000,
+     "descuento": 5000
+    },
+    {
+     "cantidad": 1,
+     "precio_unitario": 2000,
+     "descuento": 0
+    }
+   ],
+   "esperado": {
+    "importes": [
+     0,
+     2000
+    ],
+    "subtotal": 2000,
+    "igv": 360,
+    "total": 2360
+   }
+  },
+  {
+   "nombre": "IGV incluido con redondeo",
+   "igv_pct": 1800,
+   "igv_modo": "incluido",
+   "items": [
+    {
+     "cantidad": 1,
+     "precio_unitario": 1000,
+     "descuento": 0
+    }
+   ],
+   "esperado": {
+    "importes": [
+     1000
+    ],
+    "subtotal": 847,
+    "igv": 153,
+    "total": 1000
+   }
+  },
+  {
+   "nombre": "cuarenta líneas",
+   "igv_pct": 1800,
+   "igv_modo": "sumar",
+   "items": [
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    },
+    {
+     "cantidad": 1.5,
+     "precio_unitario": 333,
+     "descuento": 0
+    }
+   ],
+   "esperado": {
+    "importes": [
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500,
+     500
+    ],
+    "subtotal": 20000,
+    "igv": 3600,
+    "total": 23600
+   }
+  },
+  {
+   "nombre": "sin IGV (exonerado)",
+   "igv_pct": 0,
+   "igv_modo": "sumar",
+   "items": [
+    {
+     "cantidad": 3,
+     "precio_unitario": 1234,
+     "descuento": 0
+    }
+   ],
+   "esperado": {
+    "importes": [
+     3702
+    ],
+    "subtotal": 3702,
+    "igv": 0,
+    "total": 3702
+   }
+  }
+ ]
+}
