@@ -93,6 +93,10 @@ npx insforge branch switch --parent; npm run db:migrate; npx insforge branch swi
 
 Convenciones de migraciones: se crean con `npx insforge db migrations new <nombre-en-kebab>`, no llevan `BEGIN/COMMIT`, y no usan bloques `DO` con SQL dinámico ni `set_config` (la CLI los rechaza). `npm run db:status` muestra el historial remoto del contexto actual. Si staging queda inservible, `npx insforge branch reset staging` la devuelve al estado inicial y `npm run staging:cuentas` la vuelve a poblar.
 
+La primera migración (`20261013171105_limpiar-esquema-sgtd.sql`) es una limpieza única del sistema anterior (SGTD): todos sus `DROP` llevan `IF EXISTS`, así que en una base nueva no hace nada. Se conserva en la cadena porque ya está registrada como aplicada en staging y producción y moverla desalinearía el historial; no se edita ni se copia.
+
+**Errores de las funciones SQL.** Un `raise exception` solo llega a la app con su mensaje si su `errcode` es `P0001` (el predeterminado), `P0002`, de la clase `22` o `42501`. Cualquier otro código (la clase `53`, otros `P0xxx`) lo devuelve InsForge como el texto "Something went wrong", sin código ni mensaje. Para distinguir dos casos con el mismo código usa `hint` (viaja hasta la app): ver `crear_lead` y `tests/e2e/seguridad.spec.ts`.
+
 Después de una migración que cree o cambie funciones, corre `npm run db:funciones`: vuelca la definición vigente de cada función a `db/funciones/<nombre>.sql` para leerla y revisarla en el diff sin recorrer todas las migraciones (se commitea junto con la migración; un test falla si quedó desactualizada). El mismo test revisa que toda función `security definer` fije `search_path`, revoque PUBLIC y que `anon` solo llegue a las funciones públicas por diseño.
 
 ### Respaldos
