@@ -9,7 +9,9 @@ describe("perfiles de acceso", () => {
   });
 
   it("reconoce el perfil sin importar el orden", () => {
-    expect(perfilDeModulos(["equipos", "documentos", "cotizaciones"])).toBe("soporte");
+    // Soporte incluye Solicitudes: la empresa que solo contrató soporte puede pedir ayuda desde su espacio.
+    expect(perfilDeModulos(["equipos", "documentos", "cotizaciones", "solicitudes"])).toBe("soporte");
+    expect(perfilDeModulos(["equipos", "documentos", "cotizaciones"])).toBeNull();
     expect(perfilDeModulos([...CLAVES_MODULO].reverse())).toBe("completo");
     expect(perfilDeModulos(["proyectos"])).toBeNull();
     expect(perfilDeModulos([])).toBeNull();

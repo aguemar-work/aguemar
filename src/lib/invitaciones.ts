@@ -23,8 +23,8 @@ export const PERFILES_ACCESO: { clave: string; etiqueta: string; descripcion: st
   {
     clave: "soporte",
     etiqueta: "Soporte",
-    descripcion: "Cotización, fichas técnicas, equipos y cobros.",
-    modulos: ["documentos", "cotizaciones", "equipos"],
+    descripcion: "Cotización, fichas técnicas, equipos, cobros y pedidos de soporte.",
+    modulos: ["documentos", "cotizaciones", "equipos", "solicitudes"],
   },
   {
     clave: "proyecto",
