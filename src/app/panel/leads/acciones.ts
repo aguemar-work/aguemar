@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import type { EstadoLead } from "@/types/database";
@@ -15,6 +15,7 @@ function revalidar() {
 export async function cambiarEstadoLead(id: string, estado: EstadoLead): Promise<Resultado<void>> {
   if (!["nuevo", "contactado", "convertido"].includes(estado)) return fallo("Estado no válido.");
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("leads").update({ estado }).eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
@@ -27,6 +28,7 @@ export async function cambiarEstadoLead(id: string, estado: EstadoLead): Promise
 
 export async function eliminarLead(id: string): Promise<Resultado<void>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("leads").delete().eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
@@ -43,6 +45,7 @@ export async function eliminarLead(id: string): Promise<Resultado<void>> {
  */
 export async function convertirLeadEnEmpresa(id: string): Promise<Resultado<{ clienteId: string }>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.from("leads").select("nombre, telefono, correo, servicio, mensaje, cliente_id").eq("id", id).maybeSingle();
     if (error) return fallo(traducirError(error).mensaje);

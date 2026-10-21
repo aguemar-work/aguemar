@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { marcaSchema, porcentajeABasis, type MarcaInput } from "@/lib/validators/marca";
@@ -16,6 +16,7 @@ export async function guardarMarca(input: MarcaInput): Promise<Resultado<{ id: s
   const datos = { ...resto, igv_pct: porcentajeABasis(igv_porcentaje) };
 
   try {
+    await exigirPropietario();
     const { db, usuario } = await conSesion();
     const existente = await db.from("perfil_marca").select("id").maybeSingle();
     if (existente.error) return fallo(traducirError(existente.error).mensaje);

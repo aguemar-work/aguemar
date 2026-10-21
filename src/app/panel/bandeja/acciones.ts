@@ -53,15 +53,3 @@ export async function marcarComentarioLeido(id: string, leido = true): Promise<R
     return fallo(traducirError(e).mensaje);
   }
 }
-
-export async function eliminarComentario(id: string): Promise<Resultado<void>> {
-  try {
-    const { db } = await conSesion();
-    const { error } = await db.from("comentarios").delete().eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
-    revalidatePath("/panel/bandeja");
-    return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
-}

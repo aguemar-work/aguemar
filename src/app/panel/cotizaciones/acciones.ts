@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { aCentimos, hoyLima } from "@/lib/format";
@@ -32,6 +32,7 @@ export async function guardarCotizacion(input: CotizacionInput, id?: string): Pr
   const datos = { ...resto, igv_pct: porcentajeABasis(igv_porcentaje) };
 
   try {
+    await exigirPropietario();
     const { db, usuario } = await conSesion();
     let cotId = id;
 
@@ -68,6 +69,7 @@ export async function guardarCotizacion(input: CotizacionInput, id?: string): Pr
 /** Pasa a "enviada": la empresa la ve en su workspace. Si estaba vencida, se renueva con fecha de hoy. */
 export async function enviarCotizacion(id: string): Promise<Resultado<{ token: string | null }>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const actual = await db.from("cotizaciones").select("estado, total").eq("id", id).maybeSingle();
     const c = actual.data as Pick<CotizacionRow, "estado" | "total"> | null;
@@ -93,6 +95,7 @@ export async function aceptarCotizacion(id: string, input: { nombre: string; dni
   const parsed = aceptacionSchema.safeParse(input);
   if (!parsed.success) return primerError(parsed.error.issues);
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.rpc("cotizacion_aceptar_panel", { p_cot: id, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni || null });
     if (error) return fallo(traducirError(error).mensaje);
@@ -105,6 +108,7 @@ export async function aceptarCotizacion(id: string, input: { nombre: string; dni
 
 export async function rechazarCotizacion(id: string, motivo: string): Promise<Resultado<void>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db
       .from("cotizaciones")
@@ -122,6 +126,7 @@ export async function rechazarCotizacion(id: string, motivo: string): Promise<Re
 /** Copia como borrador nuevo (número nuevo, fecha de hoy). */
 export async function duplicarCotizacion(id: string): Promise<Resultado<{ id: string }>> {
   try {
+    await exigirPropietario();
     const { db, usuario } = await conSesion();
     const { data, error } = await db.from("cotizaciones").select("*, cotizacion_items(*)").eq("id", id).maybeSingle();
     if (error || !data) return fallo(error ? traducirError(error).mensaje : "No encontramos la cotización.");
@@ -172,6 +177,7 @@ export async function duplicarCotizacion(id: string): Promise<Resultado<{ id: st
 
 export async function eliminarCotizacion(id: string): Promise<Resultado<void>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const actual = await db.from("cotizaciones").select("estado").eq("id", id).maybeSingle();
     if ((actual.data as { estado?: string } | null)?.estado === "aceptada") {
@@ -194,6 +200,7 @@ export async function registrarCobro(input: CobroInput): Promise<Resultado<{ id:
   if (!parsed.success) return primerError(parsed.error.issues);
   const { monto, ...resto } = parsed.data;
   try {
+    await exigirPropietario();
     const { db, usuario } = await conSesion();
     const { data, error } = await db
       .from("cobros")
@@ -210,6 +217,7 @@ export async function registrarCobro(input: CobroInput): Promise<Resultado<{ id:
 
 export async function eliminarCobro(id: string): Promise<Resultado<void>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("cobros").delete().eq("id", id);
     if (error) return fallo(traducirError(error).mensaje);
@@ -227,6 +235,7 @@ export async function actualizarPagoCotizacion(id: string, input: PagoCotizacion
   const parsed = pagoCotizacionSchema.safeParse(input);
   if (!parsed.success) return primerError(parsed.error.issues);
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.from("cotizaciones").update(parsed.data).eq("id", id).select("id");
     if (error) return fallo(traducirError(error).mensaje);

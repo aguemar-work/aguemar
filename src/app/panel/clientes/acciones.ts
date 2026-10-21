@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { segundosDeEspera, traducirError } from "@/lib/insforge/errores";
 import { clienteSchema, type ClienteInput } from "@/lib/validators/cliente";
@@ -20,6 +20,7 @@ export async function guardarCliente(input: ClienteInput, id?: string): Promise<
   }
 
   try {
+    await exigirPropietario();
     const { db, usuario } = await conSesion();
     const datos = parsed.data;
 
@@ -60,6 +61,7 @@ export async function guardarCliente(input: ClienteInput, id?: string): Promise<
 
 export async function eliminarCliente(id: string): Promise<Resultado<void>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const [cot, fichas] = await Promise.all([
       db.from("cotizaciones").select("id", { count: "exact", head: true }).eq("cliente_id", id),
@@ -86,6 +88,7 @@ export async function actualizarModulosEmpresa(clienteId: string, modulos: Clave
   const parsed = modulosSchema.safeParse(modulos);
   if (!parsed.success) return fallo("Módulo desconocido.");
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("clientes").update({ modulos: parsed.data }).eq("id", clienteId);
     if (error) return fallo(traducirError(error).mensaje);
@@ -105,6 +108,7 @@ export async function invitarEmpresa(clienteId: string, input: InvitarEmpresaInp
   const parsed = invitarEmpresaSchema.safeParse(input);
   if (!parsed.success) return fallo(parsed.error.issues[0]?.message ?? "Revisa el correo.", "correo");
   try {
+    await exigirPropietario();
     const { db, usuario } = await conSesion();
     const empresa = await db.from("clientes").select("id, nombre, contacto, usuario_id").eq("id", clienteId).maybeSingle();
     if (empresa.error) return fallo(traducirError(empresa.error).mensaje);
@@ -132,6 +136,7 @@ export async function invitarEmpresa(clienteId: string, input: InvitarEmpresaInp
 /** Nuevo enlace (y 7 días más) para una invitación pendiente; el anterior deja de servir. */
 export async function renovarInvitacion(invitacionId: string, ruta: string): Promise<Resultado<{ enlace: string }>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.rpc("invitacion_renovar", { p_id: invitacionId });
     if (error) return fallo(traducirError(error).mensaje);
@@ -146,6 +151,7 @@ export async function renovarInvitacion(invitacionId: string, ruta: string): Pro
 /** Anula una invitación pendiente: su enlace deja de funcionar. */
 export async function revocarInvitacion(invitacionId: string, ruta: string): Promise<Resultado<void>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("invitaciones").update({ revocada: true }).eq("id", invitacionId).is("usada_en", null);
     if (error) return fallo(traducirError(error).mensaje);
@@ -162,6 +168,7 @@ export async function revocarInvitacion(invitacionId: string, ruta: string): Pro
  */
 export async function quitarAccesoEmpresa(clienteId: string): Promise<Resultado<void>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("clientes").update({ usuario_id: null }).eq("id", clienteId);
     if (error) return fallo(traducirError(error).mensaje);
@@ -178,6 +185,7 @@ export async function quitarAccesoEmpresa(clienteId: string): Promise<Resultado<
  */
 export async function enviarRecuperacionEmpresa(clienteId: string): Promise<Resultado<{ correo: string }>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const empresa = await db.from("clientes").select("usuario_id").eq("id", clienteId).maybeSingle();
     const usuarioId = (empresa.data as { usuario_id: string | null } | null)?.usuario_id;
@@ -203,6 +211,7 @@ export async function enviarRecuperacionEmpresa(clienteId: string): Promise<Resu
 /** Activa o desactiva los avisos por correo a la empresa. */
 export async function cambiarAvisosEmpresa(clienteId: string, avisos: boolean): Promise<Resultado<void>> {
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("clientes").update({ avisos_correo: avisos }).eq("id", clienteId);
     if (error) return fallo(traducirError(error).mensaje);

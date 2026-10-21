@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { conSesion } from "@/lib/datos/base";
+import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { enlaceInvitacion } from "@/lib/invitaciones";
@@ -23,6 +23,7 @@ export async function invitarColaborador(input: InvitarColaboradorInput): Promis
     return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
   }
   try {
+    await exigirPropietario();
     const { db, usuario } = await conSesion();
     // Una invitación pendiente por correo: la anterior se anula.
     await db.from("invitaciones").update({ revocada: true }).eq("tipo", "colaborador").eq("correo", parsed.data.correo).is("usada_en", null);
@@ -46,6 +47,7 @@ export async function actualizarColaborador(usuarioId: string, input: Actualizar
   const parsed = actualizarColaboradorSchema.safeParse(input);
   if (!parsed.success) return fallo(parsed.error.issues[0]?.message ?? "Revisa los datos.");
   try {
+    await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.rpc("equipo_actualizar", { p_usuario: usuarioId, p_activo: parsed.data.activo, p_empresas: parsed.data.empresas });
     if (error) return fallo(traducirError(error).mensaje);
