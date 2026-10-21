@@ -4,6 +4,15 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Cada noche (02:00 en Lima) y a mano: las pruebas de navegador dependen de staging y de una base viva,
+  # y así se nota si algo cambió fuera del código.
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+# El token del workflow solo lee el repositorio: ningún job necesita escribir.
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -37,6 +46,13 @@ jobs:
       - name: Auditoría de dependencias de producción
         run: npm audit --omit=dev --audit-level=high
         continue-on-error: true
+
+      # Caché de compilación de Next: el build tarda ~1 min; con la caché, bastante menos.
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**') }}
+          restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
 
       # Sin variables de InsForge: la app compila igual (la landing sale con sus textos base).
       - name: Build de producción
@@ -82,3 +98,72 @@ jobs:
       - name: Sin secretos de staging
         if: env.E2E_EMAIL == ''
         run: echo "::notice::Faltan los secretos STAGING_* y E2E_* en GitHub; no se corrieron las pruebas de seguridad."
+
+  # Flujos de navegador (Playwright, solo Chromium de escritorio) contra un build de producción servido
+  # con `next start` y la rama staging de InsForge. Las NEXT_PUBLIC_* se fijan al compilar, por eso este
+  # job hace su propio build con las variables de staging. Un solo worker: los specs con sesión comparten
+  # la cuenta del propietario y la empresa SGC. Las pruebas que fallan solo contra `next start` están en
+  # cuarentena (test.fixme, ver tests/e2e/esperas.ts) y aparecen como omitidas en el informe.
+  # No bloquea el merge hasta que se añada como check requerido en la protección de `main`.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_INSFORGE_URL: ${{ secrets.STAGING_INSFORGE_URL }}
+      NEXT_PUBLIC_INSFORGE_ANON_KEY: ${{ secrets.STAGING_INSFORGE_ANON_KEY }}
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      PLAYWRIGHT_WEBSERVER: "1"
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      E2E_EMPRESA_EMAIL: ${{ secrets.E2E_EMPRESA_EMAIL }}
+      E2E_EMPRESA_PASSWORD: ${{ secrets.E2E_EMPRESA_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+        if: env.E2E_EMAIL != ''
+
+      - uses: actions/setup-node@v7
+        if: env.E2E_EMAIL != ''
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+        if: env.E2E_EMAIL != ''
+
+      - uses: actions/cache@v4
+        if: env.E2E_EMAIL != ''
+        with:
+          path: .next/cache
+          key: next-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**') }}
+          restore-keys: next-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
+      - name: Build de producción con staging
+        if: env.E2E_EMAIL != ''
+        run: npx next build
+
+      - name: Navegador (Chromium)
+        if: env.E2E_EMAIL != ''
+        run: npx playwright install --with-deps chromium
+
+      - name: Flujos de navegador
+        if: env.E2E_EMAIL != ''
+        run: >
+          npx playwright test --project escritorio
+          tests/e2e/base.spec.ts tests/e2e/fase2.spec.ts tests/e2e/fase3.spec.ts tests/e2e/fase4.spec.ts
+          tests/e2e/fase5.spec.ts tests/e2e/fase6.spec.ts tests/e2e/fase7.spec.ts tests/e2e/fase8.spec.ts
+          tests/e2e/fase9.spec.ts tests/e2e/fase10.spec.ts
+
+      # Con el informe HTML y las trazas se ve qué falló sin repetir la corrida.
+      - name: Informe y trazas
+        if: failure() && env.E2E_EMAIL != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Sin secretos de staging
+        if: env.E2E_EMAIL == ''
+        run: echo "::notice::Faltan los secretos STAGING_* y E2E_* en GitHub; no se corrieron los flujos de navegador."
