@@ -52,6 +52,7 @@ const ESTADO: Record<EstadoCotizacion, { texto: string } & Tono> = {
   aceptada: { texto: "Aceptada", ...TONO.ok },
   rechazada: { texto: "Rechazada", ...TONO.error },
   vencida: { texto: "Vencida", ...TONO.neutro },
+  anulada: { texto: "Anulada", ...TONO.error },
 };
 
 const cantidadTexto = (c: number | string) => String(Number(c)).replace(".", ",");

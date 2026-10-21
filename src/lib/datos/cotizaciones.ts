@@ -7,7 +7,7 @@ import { filtroOr } from "./busqueda";
 
 export type CotizacionResumen = CotizacionRow & {
   clientes: { id: string; nombre: string } | null;
-  cobros: { monto: number }[];
+  cobros: { monto: number; anulado_en: string | null }[];
 };
 
 export interface FiltrosCotizaciones {
@@ -20,7 +20,7 @@ export async function listarCotizaciones(filtros: FiltrosCotizaciones = {}): Pro
   const { db } = await conSesion();
   let consulta = db
     .from("cotizaciones")
-    .select("*, clientes(id, nombre), cobros(monto)")
+    .select("*, clientes(id, nombre), cobros(monto, anulado_en)")
     .order("fecha", { ascending: false })
     .order("numero", { ascending: false })
     .limit(200);
@@ -101,11 +101,11 @@ export async function cotizacionesParaCobro(clienteId: string): Promise<{ id: st
 /** Cotización que originó un trabajo (si la hay), con lo cobrado. */
 export async function cotizacionDeTrabajo(trabajoId: string): Promise<{ id: string; numero: string | null; total: number; moneda: CotizacionRow["moneda"]; cobrado: number } | null> {
   const { db } = await conSesion();
-  const { data, error } = await db.from("cotizaciones").select("id, numero, total, moneda, cobros(monto)").eq("trabajo_id", trabajoId).limit(1).maybeSingle();
+  const { data, error } = await db.from("cotizaciones").select("id, numero, total, moneda, cobros(monto, anulado_en)").eq("trabajo_id", trabajoId).limit(1).maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const c = data as { id: string; numero: string | null; total: number; moneda: CotizacionRow["moneda"]; cobros: { monto: number }[] };
-  return { id: c.id, numero: c.numero, total: c.total, moneda: c.moneda, cobrado: c.cobros.reduce((s, k) => s + k.monto, 0) };
+  const c = data as { id: string; numero: string | null; total: number; moneda: CotizacionRow["moneda"]; cobros: { monto: number; anulado_en: string | null }[] };
+  return { id: c.id, numero: c.numero, total: c.total, moneda: c.moneda, cobrado: c.cobros.filter((k) => !k.anulado_en).reduce((s, k) => s + k.monto, 0) };
 }
 
 /**

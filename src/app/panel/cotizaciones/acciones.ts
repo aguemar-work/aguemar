@@ -215,11 +215,31 @@ export async function registrarCobro(input: CobroInput): Promise<Resultado<{ id:
   }
 }
 
-export async function eliminarCobro(id: string): Promise<Resultado<void>> {
+/** Un cobro no se borra: se anula con motivo y deja de contar (la base impide cambiarlo o eliminarlo después). */
+export async function anularCobro(id: string, motivo: string): Promise<Resultado<void>> {
+  const texto = motivo.trim();
+  if (texto.length < 3) return fallo("Escribe el motivo de la anulación.", "motivo");
   try {
     await exigirPropietario();
     const { db } = await conSesion();
-    const { error } = await db.from("cobros").delete().eq("id", id);
+    const { data, error } = await db.from("cobros").update({ anulado_en: new Date().toISOString(), anulado_motivo: texto }).eq("id", id).is("anulado_en", null).select("id");
+    if (error) return fallo(traducirError(error).mensaje);
+    if (!data || data.length === 0) return fallo("No encontramos el cobro, o ya estaba anulado.");
+    revalidar();
+    return exito(undefined);
+  } catch (e) {
+    return fallo(traducirError(e).mensaje);
+  }
+}
+
+/** Anula una cotización aceptada: sale de las deudas y de los recordatorios, y la aceptación queda intacta. */
+export async function anularCotizacion(id: string, motivo: string): Promise<Resultado<void>> {
+  const texto = motivo.trim();
+  if (texto.length < 3) return fallo("Escribe el motivo de la anulación.", "motivo");
+  try {
+    await exigirPropietario();
+    const { db } = await conSesion();
+    const { error } = await db.rpc("cotizacion_anular", { p_id: id, p_motivo: texto });
     if (error) return fallo(traducirError(error).mensaje);
     revalidar();
     return exito(undefined);

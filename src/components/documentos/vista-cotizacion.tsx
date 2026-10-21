@@ -26,6 +26,11 @@ export function VistaCotizacion({ c, arriba }: { c: WsCotizacion; arriba?: React
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
         {arriba}
+        {c.estado === "anulada" ? (
+          <p role="status" className="rounded-lg border border-border bg-soft p-4 text-sm dark:bg-secondary/50">
+            Esta cotización fue anulada{c.anulada_en ? ` el ${formatearFecha(c.anulada_en.slice(0, 10))}` : ""}. Si tienes dudas, escríbenos.
+          </p>
+        ) : null}
 
         <Card>
           <CardHeader className="pb-2">

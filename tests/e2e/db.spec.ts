@@ -303,6 +303,80 @@ test("la cotización enviada se congela, editarla la devuelve a borrador (v+1) y
   expect([final.documento.estado, final.documento.version, final.documento.huella]).toEqual(["aceptada", 3, v3enviada.enviada_huella]);
 });
 
+test("anular una cotización aceptada la saca de las deudas sin tocar la aceptación, y los cobros anulados no cuentan (T-30)", async () => {
+  test.setTimeout(120_000);
+  const { c: duenio, uid } = await propietario();
+  const empresa = await empresaFija(duenio, uid, "e2e-db-deuda", "90000001");
+  const correo = "e2e-db-deuda@staging.aguemar.test";
+  const cuenta = await cuentaFija(correo);
+  if (!empresa.usuario_id) {
+    const inv = await duenio.database.from("invitaciones").insert([{ owner_id: uid, tipo: "empresa", correo, cliente_id: empresa.id }]).select("id, token").single();
+    expect(inv.error).toBeNull();
+    expect((await cuenta.database.rpc("invitacion_aceptar", { p_token: inv.data!.token })).error).toBeNull();
+  }
+  await duenio.database.from("clientes").update({ modulos: ["cotizaciones"], activa: true }).eq("id", empresa.id);
+
+  const asunto = `E2E anulación ${Date.now()}`;
+  const id = await cotizacion(duenio, uid, empresa.id, asunto, { recordar_pago: false });
+  expect((await aceptar(duenio, id)).error).toBeNull();
+  const fila = await duenio.database.from("cotizaciones").select("total").eq("id", id).single();
+  const total = fila.data!.total as number;
+
+  const deuda = async () => {
+    const r = await duenio.database.rpc("deudas_cotizacion", { p_cliente: empresa.id });
+    expect(r.error).toBeNull();
+    return (r.data as { cotizacion_id: string; pendiente: number }[]).find((f) => f.cotizacion_id === id) ?? null;
+  };
+  const pendienteWs = async () => ((await cuenta.database.rpc("ws_cotizaciones")).data as { total_pendiente: number }).total_pendiente;
+  expect((await deuda())?.pendiente).toBe(total);
+  const conDeuda = await pendienteWs();
+
+  // Un cobro anulado deja de contar; el motivo es obligatorio y no se cambia ni se borra después.
+  const k = await duenio.database.from("cobros").insert([{ owner_id: uid, cliente_id: empresa.id, cotizacion_id: id, monto: 1000, moneda: "PEN" }]).select("id").single();
+  expect(k.error).toBeNull();
+  expect((await deuda())?.pendiente).toBe(total - 1000);
+  const sinMotivo = await duenio.database.from("cobros").update({ anulado_en: new Date().toISOString() }).eq("id", k.data!.id);
+  expect(sinMotivo.error, "anular exige motivo").not.toBeNull();
+  const anulado = await duenio.database.from("cobros").update({ anulado_en: new Date().toISOString(), anulado_motivo: "Se pagó dos veces" }).eq("id", k.data!.id);
+  expect(anulado.error).toBeNull();
+  expect((await deuda())?.pendiente, "el cobro anulado no cuenta").toBe(total);
+  expect((await duenio.database.from("cobros").update({ monto: 5000 }).eq("id", k.data!.id)).error, "un cobro anulado no se modifica").not.toBeNull();
+  expect((await duenio.database.from("cobros").delete().eq("id", k.data!.id)).error, "ni se borra").not.toBeNull();
+  const visible = (await cuenta.database.rpc("ws_cotizaciones")).data as { cobros: { id: string }[] };
+  expect(visible.cobros.map((c) => c.id), "la empresa no ve el cobro anulado").not.toContain(k.data!.id);
+
+  // Anular: ni por UPDATE directo, ni sin motivo, ni siendo la empresa; sí el propietario con motivo.
+  expect((await duenio.database.from("cotizaciones").update({ estado: "anulada" }).eq("id", id)).error, "por UPDATE directo no").not.toBeNull();
+  expect((await duenio.database.rpc("cotizacion_anular", { p_id: id, p_motivo: "no" })).error, "sin motivo no").not.toBeNull();
+  expect((await cuenta.database.rpc("cotizacion_anular", { p_id: id, p_motivo: "La empresa no puede" })).error, "la empresa no anula").not.toBeNull();
+  const aceptacionAntes = await duenio.database.from("aceptaciones").select("huella, documento, nombre").eq("cotizacion_id", id).single();
+  const r = await duenio.database.rpc("cotizacion_anular", { p_id: id, p_motivo: "El proyecto se canceló" });
+  expect(r.error).toBeNull();
+
+  // Ya no es deuda: ni suya ni en el total de la empresa. La aceptación sigue idéntica.
+  expect(await deuda(), "una anulada no es deuda").toBeNull();
+  expect(await pendienteWs()).toBe(conDeuda - total);
+  const despues = await duenio.database.from("cotizaciones").select("estado, anulada_motivo, anulada_por").eq("id", id).single();
+  expect(despues.data).toEqual({ estado: "anulada", anulada_motivo: "El proyecto se canceló", anulada_por: uid });
+  const aceptacionDespues = await duenio.database.from("aceptaciones").select("huella, documento, nombre").eq("cotizacion_id", id).single();
+  expect(aceptacionDespues.data).toEqual(aceptacionAntes.data);
+  const vista = (await cuenta.database.rpc("ws_cotizacion", { p_id: id })).data as { estado: string; pendiente: number | null; anulada_en: string | null };
+  expect([vista.estado, vista.pendiente]).toEqual(["anulada", null]);
+  expect(vista.anulada_en).toBeTruthy();
+
+  // Una anulada queda fija: ni se edita, ni se borra, ni se vuelve a aceptar, ni se anula de nuevo con otro motivo.
+  expect((await duenio.database.from("cotizaciones").update({ asunto: `${asunto} (cambio)` }).eq("id", id)).error).not.toBeNull();
+  expect((await duenio.database.from("cotizaciones").update({ estado: "enviada" }).eq("id", id)).error).not.toBeNull();
+  expect((await duenio.database.from("cotizaciones").delete().eq("id", id)).error).not.toBeNull();
+  expect((await duenio.database.from("cotizacion_items").update({ cantidad: 9 }).eq("cotizacion_id", id)).error).not.toBeNull();
+  const otra = await aceptar(duenio, id);
+  expect(otra.error).not.toBeNull();
+  expect(String(otra.error?.message)).toMatch(/anulada/);
+  const doble = await duenio.database.rpc("cotizacion_anular", { p_id: id, p_motivo: "Otro motivo" });
+  expect((doble.data as { ya_anulada: boolean }).ya_anulada).toBe(true);
+  expect((await duenio.database.from("cotizaciones").select("anulada_motivo").eq("id", id).single()).data?.anulada_motivo).toBe("El proyecto se canceló");
+});
+
 test("recordatorios de pago: la clave mala no entra y lo ya tomado no se entrega otra vez", async () => {
   test.setTimeout(120_000);
   test.skip(!CRON_SECRET, "Define CRON_SECRET (el de staging, el mismo cuyo hash está en ajustes_sistema).");

@@ -7,6 +7,7 @@ const COTIZACION: Record<EstadoCotizacion, { texto: string; variant: "default" |
   aceptada: { texto: "Aceptada", variant: "ok" },
   rechazada: { texto: "Rechazada", variant: "danger" },
   vencida: { texto: "Vencida", variant: "danger" },
+  anulada: { texto: "Anulada", variant: "default" },
 };
 
 const FICHA: Record<EstadoFinalFicha, { texto: string; variant: "ok" | "warn" | "danger" }> = {

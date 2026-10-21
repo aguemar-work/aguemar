@@ -1,4 +1,4 @@
--- Vigente según migrations/20261019223047_cobros-vencimientos.sql.
+-- Vigente según migrations/20261021224712_anulaciones.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.deudas_cotizacion(p_cliente uuid default null)
@@ -26,7 +26,7 @@ as $$
     select z.id, z.owner_id, z.cliente_id, z.moneda, z.total, z.plazo_pago_dias, z.recordar_pago, z.aceptada_en,
            (z.aceptada_en at time zone 'America/Lima')::date as aceptada_el,
            (z.aceptada_en at time zone 'America/Lima')::date + z.plazo_pago_dias as vence_pago,
-           coalesce((select sum(k.monto) from public.cobros k where k.cotizacion_id = z.id and k.moneda = z.moneda), 0) as ligado
+           coalesce((select sum(k.monto) from public.cobros k where k.cotizacion_id = z.id and k.moneda = z.moneda and k.anulado_en is null), 0) as ligado
     from public.cotizaciones z
     where z.estado = 'aceptada' and z.aceptada_en is not null
       and (p_cliente is null or z.cliente_id = p_cliente)
@@ -39,6 +39,7 @@ as $$
       select k.cliente_id, k.moneda, k.monto
       from public.cobros k
       where (p_cliente is null or k.cliente_id = p_cliente)
+        and k.anulado_en is null
         and not exists (select 1 from cots c where c.id = k.cotizacion_id and c.moneda = k.moneda)
       union all
       select c.cliente_id, c.moneda, c.ligado - c.total from cots c where c.ligado > c.total

@@ -131,6 +131,8 @@ export interface WsCotizacion {
   /** Versión enviada y huella de esa copia (la de lo aceptado, si ya se aceptó). */
   version: number;
   huella: string | null;
+  /** Cuándo se anuló (el motivo es interno y no sale del panel). */
+  anulada_en: string | null;
   items: { descripcion: string; unidad: string; cantidad: number | string; precio_unitario: number; descuento: number; importe: number }[];
   aceptacion: { nombre: string; dni: string | null; aceptado_en: string } | null;
   cobrado: number;

@@ -21,7 +21,7 @@ interface Props {
   searchParams: Promise<{ estado?: string; cliente?: string; q?: string }>;
 }
 
-const ESTADOS: EstadoCotizacion[] = ["borrador", "enviada", "aceptada", "rechazada", "vencida"];
+const ESTADOS: EstadoCotizacion[] = ["borrador", "enviada", "aceptada", "rechazada", "vencida", "anulada"];
 
 export default async function CotizacionesPage({ searchParams }: Props) {
   // Solo el propietario (el colaborador recibe 404).
@@ -38,7 +38,7 @@ export default async function CotizacionesPage({ searchParams }: Props) {
   const hoy = hoyLima();
   const filas = todas
     .map((c) => {
-      const cobrado = c.cobros.reduce((s, k) => s + k.monto, 0);
+      const cobrado = c.cobros.filter((k) => !k.anulado_en).reduce((s, k) => s + k.monto, 0);
       const deuda = deudaDe.get(c.id);
       // Pendiente como lo ve la base: los cobros sueltos de la empresa pagan primero lo que vence antes.
       return { ...c, efectivo: estadoEfectivo(c, hoy), cobrado, pendiente: deuda ? deuda.pendiente : saldo(c.total, cobrado), deuda };

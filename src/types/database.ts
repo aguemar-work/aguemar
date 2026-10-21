@@ -9,7 +9,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type TipoDoc = "RUC" | "DNI";
 export type Moneda = "PEN" | "USD";
 export type IgvModo = "incluido" | "sumar";
-export type EstadoCotizacion = "borrador" | "enviada" | "aceptada" | "rechazada" | "vencida";
+export type EstadoCotizacion = "borrador" | "enviada" | "aceptada" | "rechazada" | "vencida" | "anulada";
 export type ModalidadServicio = "remota" | "presencial";
 export type EstadoFinalFicha = "operativo" | "operativo_observaciones" | "requiere_reparacion";
 export type EstadoDiagnostico = "optimo" | "mejorable" | "atendido" | "critico";
@@ -152,6 +152,10 @@ export type CotizacionRow = Base & {
   /** Copia que se congela al enviar y huella sha256 de esa copia. */
   enviada_documento: Record<string, unknown> | null;
   enviada_huella: string | null;
+  /** Una aceptada se anula con cotizacion_anular(); la aceptación queda intacta. */
+  anulada_en: string | null;
+  anulada_motivo: string | null;
+  anulada_por: string | null;
 };
 
 export type CotizacionItemRow = Base & {
@@ -177,6 +181,9 @@ export type CobroRow = Base & {
   medio: MedioPago;
   referencia: string | null;
   notas: string | null;
+  /** Un cobro no se borra: se anula, con motivo, y deja de contar. */
+  anulado_en: string | null;
+  anulado_motivo: string | null;
 };
 
 export type FichaRow = Base & {

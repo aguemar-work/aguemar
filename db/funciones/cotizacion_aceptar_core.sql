@@ -1,4 +1,4 @@
--- Vigente según migrations/20261021224131_cotizacion-version.sql.
+-- Vigente según migrations/20261021224712_anulaciones.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.cotizacion_aceptar_core(
@@ -24,6 +24,9 @@ begin
   select * into v_cot from public.cotizaciones where id = p_cot for update;
   if not found then
     raise exception 'Cotización no encontrada' using errcode = 'P0002';
+  end if;
+  if v_cot.estado = 'anulada' then
+    raise exception 'Esta cotización fue anulada' using errcode = '22023';
   end if;
   if v_cot.estado = 'aceptada' then
     return jsonb_build_object('ok', true, 'ya_aceptada', true, 'trabajo_id', v_cot.trabajo_id, 'numero', v_cot.numero);

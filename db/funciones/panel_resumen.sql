@@ -1,4 +1,4 @@
--- Vigente según migrations/20261019223047_cobros-vencimientos.sql.
+-- Vigente según migrations/20261021224712_anulaciones.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.panel_resumen()
@@ -28,7 +28,7 @@ as $$
     from (
       select z.cliente_id, z.moneda, z.total as aceptado, 0 as cobrado from public.cotizaciones z where z.estado = 'aceptada'
       union all
-      select k.cliente_id, k.moneda, 0, k.monto from public.cobros k
+      select k.cliente_id, k.moneda, 0, k.monto from public.cobros k where k.anulado_en is null
     ) x
     join public.clientes c on c.id = x.cliente_id
     group by c.id, c.nombre, x.moneda

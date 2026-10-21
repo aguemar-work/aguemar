@@ -1,6 +1,6 @@
 import Link from "@/components/panel/enlace";
 import { notFound } from "next/navigation";
-import { KanbanSquare } from "lucide-react";
+import { Ban, KanbanSquare } from "lucide-react";
 import { PageHeader } from "@/components/panel/page-header";
 import { ConfirmarEliminar } from "@/components/panel/confirmar-eliminar";
 import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
@@ -25,7 +25,7 @@ export async function DetalleCotizacion({ id }: { id: string }) {
   const estado = estadoEfectivo(c, hoy);
   const vence = fechaVence(c.fecha, c.validez_dias);
   const venc = textoVencimiento(vence, hoy);
-  const cobrado = c.cobros.reduce((s, k) => s + k.monto, 0);
+  const cobrado = c.cobros.filter((k) => !k.anulado_en).reduce((s, k) => s + k.monto, 0);
   // Pendiente y vencimiento: los mismos que ven la empresa y el portal (deudas_cotizacion).
   const deuda = doc?.vence_pago && doc.pendiente != null ? { pendiente: doc.pendiente, vence_pago: doc.vence_pago } : null;
   const saldoLigado = saldo(c.total, cobrado);
@@ -65,9 +65,20 @@ export async function DetalleCotizacion({ id }: { id: string }) {
             empresa={{ nombre: empresa?.nombre ?? "la empresa", contacto: empresa?.contacto ?? null, telefono: empresa?.telefono ?? null, slug: empresa?.slug ?? null, conWorkspace }}
             token={enlace && !enlace.revocado ? enlace.token : null}
             aceptadaEn={estado === "aceptada" ? (aceptacion?.aceptado_en ?? c.aceptada_en ?? null) : null}
+            cobrado={cobrado}
           />
         }
       />
+
+      {c.estado === "anulada" ? (
+        <p role="status" className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-soft p-4 text-sm dark:bg-secondary/50">
+          <Ban className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <span>
+            Anulada{c.anulada_en ? ` el ${formatearFechaHora(c.anulada_en)}` : ""}
+            {c.anulada_motivo ? `: ${c.anulada_motivo}` : ""}. Ya no cuenta como deuda ni genera recordatorios; la aceptación sigue guardada tal como fue.
+          </span>
+        </p>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

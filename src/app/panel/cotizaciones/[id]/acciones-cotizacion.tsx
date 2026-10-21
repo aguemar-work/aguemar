@@ -5,7 +5,7 @@ import Link from "@/components/panel/enlace";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { avisoError } from "@/lib/avisos";
-import { Check, Copy, FileDown, Loader2, MessageCircle, MoreHorizontal, Pencil, Send, X, CopyPlus } from "lucide-react";
+import { Ban, Check, Copy, FileDown, Loader2, MessageCircle, MoreHorizontal, Pencil, Send, X, CopyPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,7 @@ import { Campo } from "@/components/formulario/campo";
 import { formatearFecha, formatearMonto, hoyLima, type Moneda } from "@/lib/format";
 import { mensajeWhatsAppCotizacion } from "@/lib/cotizacion";
 import type { EstadoCotizacion } from "@/types/database";
-import { aceptarCotizacion, duplicarCotizacion, enviarCotizacion, rechazarCotizacion } from "../acciones";
+import { aceptarCotizacion, anularCotizacion, duplicarCotizacion, enviarCotizacion, rechazarCotizacion } from "../acciones";
 
 interface Props {
   id: string;
@@ -30,14 +30,16 @@ interface Props {
   token: string | null;
   /** Fecha de aceptación (ISO) si está aceptada. */
   aceptadaEn: string | null;
+  /** Lo cobrado y vigente (céntimos), para avisar al anular. */
+  cobrado: number;
 }
 
 /** Acciones de una cotización según su estado: editar, enviar, aceptar, rechazar, duplicar, PDF y WhatsApp. */
-export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, vence, empresa, token: tokenInicial, aceptadaEn }: Props) {
+export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, vence, empresa, token: tokenInicial, aceptadaEn, cobrado }: Props) {
   const router = useRouter();
   const [pendiente, iniciar] = useTransition();
   const [token, setToken] = useState(tokenInicial);
-  const [dialogo, setDialogo] = useState<"aceptar" | "rechazar" | "mensaje" | null>(null);
+  const [dialogo, setDialogo] = useState<"aceptar" | "rechazar" | "anular" | "mensaje" | null>(null);
 
   const enviar = () =>
     iniciar(async () => {
@@ -56,9 +58,9 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
       router.push(`/panel/cotizaciones/${r.data.id}`);
     });
 
-  const editable = estado !== "aceptada";
+  const editable = estado !== "aceptada" && estado !== "anulada";
   const enviable = estado === "borrador" || estado === "vencida" || estado === "rechazada";
-  const aceptable = estado !== "aceptada" && total > 0;
+  const aceptable = estado !== "aceptada" && estado !== "anulada" && total > 0;
 
   return (
     <>
@@ -108,6 +110,11 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
                 <X /> Marcar rechazada
               </DropdownMenuItem>
             ) : null}
+            {estado === "aceptada" ? (
+              <DropdownMenuItem onSelect={() => setDialogo("anular")}>
+                <Ban /> Anular cotización
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -121,6 +128,7 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
         total={formatearMonto(total, moneda)}
       />
       <DialogoRechazar abierto={dialogo === "rechazar"} onCerrar={() => setDialogo(null)} id={id} />
+      <DialogoAnular abierto={dialogo === "anular"} onCerrar={() => setDialogo(null)} id={id} numero={numero} cobrado={cobrado > 0 ? formatearMonto(cobrado, moneda) : null} />
       <DialogoMensaje
         abierto={dialogo === "mensaje"}
         onCerrar={() => setDialogo(null)}
@@ -233,6 +241,48 @@ function DialogoRechazar({ abierto, onCerrar, id }: { abierto: boolean; onCerrar
           </Button>
           <Button variant="danger" onClick={rechazar} disabled={pendiente}>
             {pendiente ? <Loader2 className="animate-spin" /> : <X />} Marcar rechazada
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DialogoAnular({ abierto, onCerrar, id, numero, cobrado }: { abierto: boolean; onCerrar: () => void; id: string; numero: string | null; cobrado: string | null }) {
+  const [motivo, setMotivo] = useState("");
+  const [error, setError] = useState<string>();
+  const [pendiente, iniciar] = useTransition();
+  const anular = () =>
+    iniciar(async () => {
+      setError(undefined);
+      const r = await anularCotizacion(id, motivo);
+      if (!r.ok) return setError(r.error);
+      toast.success("Cotización anulada.");
+      onCerrar();
+    });
+  return (
+    <Dialog open={abierto} onOpenChange={(o) => (o ? null : onCerrar())}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Anular {numero ?? "la cotización"}</DialogTitle>
+          <DialogDescription>
+            Deja de contar como deuda y de generar recordatorios. La aceptación queda guardada tal como fue. Esto no se deshace: si el trabajo sigue, haz otra cotización.
+          </DialogDescription>
+        </DialogHeader>
+        {cobrado ? (
+          <p className="rounded-md bg-warning-bg p-3 text-sm text-warning-foreground">
+            Tiene {cobrado} cobrados. Seguirán a favor de la empresa y pagarán sus otras deudas; si los devolviste, anula cada cobro desde su lista.
+          </p>
+        ) : null}
+        <Campo id="anular-motivo" etiqueta="Motivo" requerido error={error}>
+          <Textarea id="anular-motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={3} autoFocus aria-invalid={error ? true : undefined} />
+        </Campo>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCerrar}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={anular} disabled={pendiente || motivo.trim().length < 3}>
+            {pendiente ? <Loader2 className="animate-spin" /> : <Ban />} Anular cotización
           </Button>
         </DialogFooter>
       </DialogContent>

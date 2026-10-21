@@ -50,7 +50,8 @@ export async function guardarTrabajo(input: TrabajoInput, id?: string): Promise<
   }
 }
 
-export async function cambiarEstadoTrabajo(id: string, estado: EstadoTrabajo): Promise<Resultado<void>> {
+/** Si el trabajo se canceló y su cotización sigue aceptada, la devuelve para ofrecer anularla (solo la ve el propietario). */
+export async function cambiarEstadoTrabajo(id: string, estado: EstadoTrabajo): Promise<Resultado<{ cotizacion: { id: string; numero: string | null } | null }>> {
   const ok = z.enum(["propuesta", "en_curso", "en_revision", "entregado", "cerrado", "cancelado"]).safeParse(estado);
   if (!ok.success) return fallo("Estado inválido.");
   try {
@@ -60,7 +61,12 @@ export async function cambiarEstadoTrabajo(id: string, estado: EstadoTrabajo): P
     const { data, error } = await db.from("trabajos").update(cambios).eq("id", id).select("cliente_id").single();
     if (error) return fallo(traducirError(error).mensaje);
     revalidar(id, (data as { cliente_id: string | null }).cliente_id);
-    return exito(undefined);
+    let cotizacion: { id: string; numero: string | null } | null = null;
+    if (estado === "cancelado") {
+      const c = await db.from("cotizaciones").select("id, numero").eq("trabajo_id", id).eq("estado", "aceptada").limit(1).maybeSingle();
+      cotizacion = (c.data as { id: string; numero: string | null } | null) ?? null;
+    }
+    return exito({ cotizacion });
   } catch (e) {
     return fallo(traducirError(e).mensaje);
   }

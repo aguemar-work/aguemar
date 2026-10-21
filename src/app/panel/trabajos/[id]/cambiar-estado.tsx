@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { avisoError } from "@/lib/avisos";
 import { Loader2 } from "lucide-react";
@@ -10,6 +11,7 @@ import type { EstadoTrabajo } from "@/types/database";
 import { cambiarEstadoTrabajo } from "../acciones";
 
 export function CambiarEstado({ id, estado }: { id: string; estado: EstadoTrabajo }) {
+  const router = useRouter();
   const [pendiente, iniciar] = useTransition();
 
   return (
@@ -26,7 +28,14 @@ export function CambiarEstado({ id, estado }: { id: string; estado: EstadoTrabaj
           iniciar(async () => {
             const r = await cambiarEstadoTrabajo(id, e.target.value as EstadoTrabajo);
             if (!r.ok) avisoError(r.error);
-            else toast.success("Estado actualizado.");
+            else if (r.data.cotizacion) {
+              const cot = r.data.cotizacion;
+              toast.success("Trabajo cancelado.", {
+                description: `${cot.numero ?? "Su cotización"} sigue aceptada y con deuda. ¿Quieres anularla?`,
+                duration: 12000,
+                action: { label: "Ir a la cotización", onClick: () => router.push(`/panel/cotizaciones/${cot.id}`) },
+              });
+            } else toast.success("Estado actualizado.");
           })
         }
       >

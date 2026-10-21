@@ -47,7 +47,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
   const hoy = hoyLima();
   const aceptadas = historial.cotizaciones.filter((c) => c.estado === "aceptada");
   const totalAceptado = aceptadas.filter((c) => c.moneda === "PEN").reduce((s, c) => s + c.total, 0);
-  const totalCobrado = historial.cobros.filter((k) => k.moneda === "PEN").reduce((s, k) => s + k.monto, 0);
+  const totalCobrado = historial.cobros.filter((k) => k.moneda === "PEN" && !k.anulado_en).reduce((s, k) => s + k.monto, 0);
   const saldoEmpresa = deudas.filter((d) => d.moneda === "PEN").reduce((s, d) => s + d.pendiente, 0);
   const vencidas = deudas.filter((d) => d.moneda === "PEN" && d.pendiente > 0 && d.dias_atraso > 0);
   const vencido = vencidas.reduce((s, d) => s + d.pendiente, 0);

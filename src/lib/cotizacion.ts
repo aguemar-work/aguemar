@@ -103,6 +103,7 @@ export const ESTADOS_COTIZACION: { valor: EstadoCotizacion; etiqueta: string; va
   { valor: "aceptada", etiqueta: "Aceptada", variant: "ok" },
   { valor: "rechazada", etiqueta: "Rechazada", variant: "danger" },
   { valor: "vencida", etiqueta: "Vencida", variant: "default" },
+  { valor: "anulada", etiqueta: "Anulada", variant: "default" },
 ];
 
 export const MEDIOS_PAGO = [

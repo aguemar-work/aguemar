@@ -1,4 +1,4 @@
--- Vigente según migrations/20261021223421_pendiente-unico.sql.
+-- Vigente según migrations/20261021224712_anulaciones.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.ws_cotizaciones()
@@ -26,7 +26,7 @@ as $$
     select k.id, k.fecha, k.monto, k.moneda, k.medio, k.referencia, k.cotizacion_id,
            (select z.numero from public.cotizaciones z where z.id = k.cotizacion_id) as cotizacion_numero
     from public.cobros k, emp
-    where k.cliente_id = emp.id
+    where k.cliente_id = emp.id and k.anulado_en is null
   )
   select jsonb_build_object(
     'cotizaciones', coalesce((select jsonb_agg(to_jsonb(c) order by c.fecha desc, c.numero desc) from cots c), '[]'::jsonb),
