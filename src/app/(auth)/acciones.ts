@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { segundosDeEspera } from "@/lib/insforge/errores";
+import { mensajeInesperado, reportarInesperado, segundosDeEspera } from "@/lib/insforge/errores";
 import { crearAccionesAuth, crearClienteServidor, obtenerRol, rutaInicio } from "@/lib/insforge/server";
 
 const correoSchema = z.string().trim().email("Escribe un correo válido.");
@@ -43,17 +43,15 @@ export async function iniciarSesion(_: EstadoLogin, formData: FormData): Promise
 
   const { data, error } = await auth.signInWithPassword({ email: correo.data, password: contrasena.data });
   if (error || !data?.user) {
-    if (error?.statusCode === 401 || error?.statusCode === 400) {
+    // 403 (correo sin verificar) responde igual que una contraseña errada: no confirma que la cuenta exista.
+    if (error?.statusCode === 401 || error?.statusCode === 400 || error?.statusCode === 403) {
       return {
         ok: false,
         campo: "contrasena",
         mensaje: "Correo o contraseña incorrectos. Si aún no tienes contraseña, créala desde el enlace de abajo.",
       };
     }
-    if (error?.statusCode === 403) {
-      return { ok: false, campo: "correo", mensaje: "Tu correo no está verificado. Crea una contraseña nueva para verificarlo." };
-    }
-    return { ok: false, mensaje: `No pudimos iniciar tu sesión: ${error?.message ?? "error desconocido"}.` };
+    return { ok: false, mensaje: `No pudimos iniciar tu sesión. ${mensajeInesperado(reportarInesperado(error, "login"))}` };
   }
 
   // Según el rol: propietario y colaborador → /panel, empresa → /w/[slug]. Una invitación pendiente siempre se respeta. Si pidió una ruta concreta y le corresponde, se respeta.
@@ -112,7 +110,7 @@ export async function enviarCodigoRecuperacion(
         mensaje: `Ya enviamos un código a ${correo.data} hace poco. Revisa tu correo (también spam) y escríbelo aquí; si no llegó, podrás pedir otro en ${espera} segundos.`,
       };
     }
-    return { paso: "correo", ok: false, mensaje: `No pudimos enviar el código: ${error.message}.` };
+    return { paso: "correo", ok: false, mensaje: `No pudimos enviar el código. ${mensajeInesperado(reportarInesperado(error, "enviar-codigo"))}` };
   }
 
   return {
@@ -194,7 +192,7 @@ export async function establecerContrasena(
       correo: correo.data,
       token: vencido ? undefined : token.data,
       ok: false,
-      mensaje: vencido ? "El código venció. Pide uno nuevo." : `No pudimos guardar la contraseña: ${error.message}.`,
+      mensaje: vencido ? "El código venció. Pide uno nuevo." : `No pudimos guardar la contraseña. ${mensajeInesperado(reportarInesperado(error, "guardar-contrasena"))}`,
     };
   }
 

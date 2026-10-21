@@ -1,7 +1,24 @@
+import * as Sentry from "@sentry/nextjs";
+
 /**
  * Traduce errores de PostgREST / Postgres a mensajes claros para el usuario,
  * indicando además a qué campo pertenecen cuando se puede deducir.
  */
+
+/**
+ * Error que no sabemos traducir: el detalle técnico va a Sentry (nunca a la pantalla, puede traer
+ * nombres de tablas o texto en inglés) y la persona recibe una referencia corta para citarla.
+ */
+export function reportarInesperado(error: unknown, contexto: string): string {
+  const ref = crypto.randomUUID().slice(0, 6);
+  Sentry.captureException(error, { tags: { ref, contexto } });
+  return ref;
+}
+
+/** Mensaje para un error inesperado, con la referencia que quedó en Sentry. */
+export function mensajeInesperado(ref: string): string {
+  return `No se pudo completar. Inténtalo de nuevo; si sigue, escríbeme con la referencia ${ref}.`;
+}
 
 export interface ErrorTraducido {
   mensaje: string;
@@ -81,7 +98,7 @@ export function traducirError(error: unknown): ErrorTraducido {
   if (e.statusCode === 401) {
     return { mensaje: "Tu sesión venció. Vuelve a iniciar sesión." };
   }
-  return { mensaje: e.message ? `No se pudo completar: ${e.message}` : "Ocurrió un error inesperado. Inténtalo de nuevo." };
+  return { mensaje: mensajeInesperado(reportarInesperado(error, "traducirError")) };
 }
 
 /**
