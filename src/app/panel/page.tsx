@@ -44,9 +44,9 @@ export default async function InicioPanel() {
   const activos = r ? r.por_estado.propuesta + r.por_estado.en_curso + r.por_estado.en_revision : 0;
 
   const alertas: Alerta[] = [
-    { etiqueta: "Entregas vencidas", valor: r?.entregas_vencidas ?? 0, tono: "danger", icono: AlarmClock, href: "/panel/trabajos" },
-    { etiqueta: "Entregan esta semana", valor: r?.entregas_semana ?? 0, tono: "warn", icono: CalendarClock, href: "/panel/trabajos" },
-    { etiqueta: "Tareas vencidas", valor: r?.tareas_vencidas ?? 0, tono: "warn", icono: ListTodo, href: "/panel/trabajos" },
+    { etiqueta: "Entregas vencidas", valor: r?.entregas_vencidas ?? 0, tono: "danger", icono: AlarmClock, href: "/panel/trabajos?foco=vencidas" },
+    { etiqueta: "Entregan esta semana", valor: r?.entregas_semana ?? 0, tono: "warn", icono: CalendarClock, href: "/panel/trabajos?foco=semana" },
+    { etiqueta: "Tareas vencidas", valor: r?.tareas_vencidas ?? 0, tono: "warn", icono: ListTodo, href: "/panel/trabajos?foco=tareas_vencidas" },
     { etiqueta: "Por responder", valor: (r?.comentarios_sin_leer ?? 0) + (r?.solicitudes_nuevas ?? 0), tono: "info", icono: MessageSquare, href: "/panel/bandeja" },
     { etiqueta: "Cotizaciones sin respuesta", valor: r?.cotizaciones_sin_respuesta ?? 0, tono: "info", icono: FileText, href: "/panel/cotizaciones" },
     {

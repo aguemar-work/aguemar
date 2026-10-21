@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { opcionesClientes } from "@/lib/datos/clientes";
 import { listarTrabajos, type FiltrosTrabajos } from "@/lib/datos/trabajos";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
-import { calcularAvance, textoVencimiento } from "@/lib/trabajos-util";
+import { FOCOS_TRABAJOS, calcularAvance, esFoco, textoVencimiento } from "@/lib/trabajos-util";
 import type { Area, EstadoTrabajo } from "@/types/database";
 import { FiltrosTrabajos as Filtros } from "./filtros";
 import { Tablero } from "./tablero";
@@ -20,7 +20,7 @@ import { obtenerRol } from "@/lib/insforge/server";
 export const metadata: Metadata = { title: "Trabajos" };
 
 interface Props {
-  searchParams: Promise<{ q?: string; area?: string; estado?: string; cliente?: string; vista?: string }>;
+  searchParams: Promise<{ q?: string; area?: string; estado?: string; cliente?: string; vista?: string; foco?: string }>;
 }
 
 export default async function TrabajosPage({ searchParams }: Props) {
@@ -31,12 +31,13 @@ export default async function TrabajosPage({ searchParams }: Props) {
     estado: vista === "tablero" ? "todos" : ((sp.estado as EstadoTrabajo | "activos" | "todos") || "activos"),
     clienteId: sp.cliente || undefined,
     busqueda: sp.q,
+    foco: esFoco(sp.foco) ? sp.foco : undefined,
   };
   const [trabajos, clientes, rol] = await Promise.all([listarTrabajos(filtros), opcionesClientes(), obtenerRol()]);
   // El colaborador no crea trabajos ni ve montos.
   const propietario = rol.tipo === "propietario";
   const hoy = hoyLima();
-  const hayFiltros = Boolean(sp.q || sp.area || sp.cliente || (sp.estado && sp.estado !== "activos"));
+  const hayFiltros = Boolean(sp.q || sp.area || sp.cliente || filtros.foco || (sp.estado && sp.estado !== "activos"));
 
   return (
     <>
@@ -58,6 +59,15 @@ export default async function TrabajosPage({ searchParams }: Props) {
       <Suspense>
         <Filtros clientes={clientes} vista={vista} />
       </Suspense>
+
+      {filtros.foco ? (
+        <p className="mb-4 flex items-center gap-2 text-sm">
+          <Badge variant="outline">Filtro: {FOCOS_TRABAJOS[filtros.foco]}</Badge>
+          <Link href="/panel/trabajos" className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
+            Quitar filtro
+          </Link>
+        </p>
+      ) : null}
 
       {trabajos.length === 0 ? (
         <EmptyState

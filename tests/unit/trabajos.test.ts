@@ -69,3 +69,28 @@ describe("entregableSchema", () => {
     expect(entregableSchema.safeParse({ nombre: "Acceso", tipo: "acceso", url: "" }).success).toBe(true);
   });
 });
+
+describe("foco de trabajos desde las alertas del inicio", async () => {
+  const { cumpleFoco, esFoco } = await import("@/lib/trabajos-util");
+  const hoy = "2026-10-21";
+  const en7 = "2026-10-28";
+  const t = (fecha_compromiso: string | null, tareas: { hecha: boolean; fecha_limite: string | null }[] = []) => ({ fecha_compromiso, trabajo_tareas: tareas });
+
+  it("reconoce solo los focos conocidos", () => {
+    expect(esFoco("vencidas")).toBe(true);
+    expect(esFoco("cualquiera")).toBe(false);
+    expect(esFoco(undefined)).toBe(false);
+  });
+
+  it("aplica las mismas reglas que panel_resumen()", () => {
+    expect(cumpleFoco("vencidas", t("2026-10-20"), hoy, en7)).toBe(true);
+    expect(cumpleFoco("vencidas", t("2026-10-21"), hoy, en7)).toBe(false);
+    expect(cumpleFoco("vencidas", t(null), hoy, en7)).toBe(false);
+    expect(cumpleFoco("semana", t("2026-10-21"), hoy, en7)).toBe(true);
+    expect(cumpleFoco("semana", t("2026-10-28"), hoy, en7)).toBe(true);
+    expect(cumpleFoco("semana", t("2026-10-29"), hoy, en7)).toBe(false);
+    expect(cumpleFoco("tareas_vencidas", t(null, [{ hecha: false, fecha_limite: "2026-10-20" }]), hoy, en7)).toBe(true);
+    expect(cumpleFoco("tareas_vencidas", t(null, [{ hecha: true, fecha_limite: "2026-10-20" }]), hoy, en7)).toBe(false);
+    expect(cumpleFoco("tareas_vencidas", t(null, [{ hecha: false, fecha_limite: null }]), hoy, en7)).toBe(false);
+  });
+});

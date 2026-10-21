@@ -35,3 +35,27 @@ export function textoVencimiento(fecha: string | null, hoy: string): { texto: st
   if (dias <= 7) return { texto: `Vence en ${dias} ${dias === 1 ? "día" : "días"}`, tono: "warn" };
   return { texto: `Vence en ${dias} días`, tono: "ok" };
 }
+
+/** Focos que llegan desde las alertas del inicio (`/panel/trabajos?foco=…`). Mismas reglas que `panel_resumen()`. */
+export const FOCOS_TRABAJOS = {
+  vencidas: "Entregas vencidas",
+  semana: "Entregan esta semana",
+  tareas_vencidas: "Con tareas vencidas",
+} as const;
+export type FocoTrabajos = keyof typeof FOCOS_TRABAJOS;
+
+export function esFoco(valor: string | undefined): valor is FocoTrabajos {
+  return valor !== undefined && valor in FOCOS_TRABAJOS;
+}
+
+/** ¿El trabajo entra en el foco? `hoy` y las fechas en ISO (aaaa-mm-dd, Lima); "semana" = hoy … hoy + 7. */
+export function cumpleFoco(
+  foco: FocoTrabajos,
+  t: { fecha_compromiso: string | null; trabajo_tareas?: { hecha: boolean; fecha_limite?: string | null }[] },
+  hoy: string,
+  enSieteDias: string,
+): boolean {
+  if (foco === "vencidas") return t.fecha_compromiso !== null && t.fecha_compromiso < hoy;
+  if (foco === "semana") return t.fecha_compromiso !== null && t.fecha_compromiso >= hoy && t.fecha_compromiso <= enSieteDias;
+  return (t.trabajo_tareas ?? []).some((x) => !x.hecha && x.fecha_limite != null && x.fecha_limite < hoy);
+}

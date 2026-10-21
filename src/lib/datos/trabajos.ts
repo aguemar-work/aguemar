@@ -2,10 +2,12 @@ import { cache } from "react";
 import type { Area, EstadoTrabajo, TrabajoEntregableRow, TrabajoEtapaRow, TrabajoRow, TrabajoTareaRow } from "@/types/database";
 import { conSesionPanel } from "./base";
 import { filtroOr } from "./busqueda";
+import { hoyLima, sumarDias } from "@/lib/format";
+import { cumpleFoco, type FocoTrabajos } from "@/lib/trabajos-util";
 
 export interface TrabajoResumen extends TrabajoRow {
   clientes: { id: string; nombre: string } | null;
-  trabajo_tareas: { hecha: boolean }[];
+  trabajo_tareas: { hecha: boolean; fecha_limite: string | null }[];
 }
 
 export interface FiltrosTrabajos {
@@ -13,6 +15,8 @@ export interface FiltrosTrabajos {
   estado?: EstadoTrabajo | "activos" | "todos";
   clienteId?: string;
   busqueda?: string;
+  /** Desde las alertas del inicio: solo activos, con las mismas reglas que panel_resumen(). */
+  foco?: FocoTrabajos;
 }
 
 const ACTIVOS: EstadoTrabajo[] = ["propuesta", "en_curso", "en_revision"];
@@ -21,19 +25,24 @@ export async function listarTrabajos(filtros: FiltrosTrabajos = {}): Promise<Tra
   const { db } = await conSesionPanel();
   let consulta = db
     .from("trabajos")
-    .select("*, clientes(id, nombre), trabajo_tareas(hecha)")
+    .select("*, clientes(id, nombre), trabajo_tareas(hecha, fecha_limite)")
     .order("orden", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(300);
   if (filtros.area) consulta = consulta.eq("area", filtros.area);
   if (filtros.clienteId) consulta = consulta.eq("cliente_id", filtros.clienteId);
   if (filtros.estado && filtros.estado !== "todos" && filtros.estado !== "activos") consulta = consulta.eq("estado", filtros.estado);
-  if (!filtros.estado || filtros.estado === "activos") consulta = consulta.in("estado", ACTIVOS);
+  if (!filtros.estado || filtros.estado === "activos" || filtros.foco) consulta = consulta.in("estado", ACTIVOS);
   const q = filtros.busqueda?.trim();
   if (q) consulta = consulta.or(filtroOr(q, ["titulo", "descripcion"]));
   const { data, error } = await consulta;
   if (error) throw error;
-  return (data ?? []) as TrabajoResumen[];
+  const trabajos = (data ?? []) as TrabajoResumen[];
+  if (!filtros.foco) return trabajos;
+  const foco = filtros.foco;
+  const hoy = hoyLima();
+  const enSieteDias = sumarDias(hoy, 7);
+  return trabajos.filter((t) => cumpleFoco(foco, t, hoy, enSieteDias));
 }
 
 export interface TrabajoDetalle extends TrabajoRow {
@@ -72,7 +81,7 @@ export async function trabajosDeCliente(clienteId: string): Promise<TrabajoResum
   const { db } = await conSesionPanel();
   const { data, error } = await db
     .from("trabajos")
-    .select("*, clientes(id, nombre), trabajo_tareas(hecha)")
+    .select("*, clientes(id, nombre), trabajo_tareas(hecha, fecha_limite)")
     .eq("cliente_id", clienteId)
     .order("created_at", { ascending: false })
     .limit(50);
