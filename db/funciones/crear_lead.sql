@@ -1,4 +1,4 @@
--- Vigente según migrations/20261020210512_sprint2-medicion.sql.
+-- Vigente según migrations/20261021160834_lead-topes-hint.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.crear_lead(
@@ -25,13 +25,15 @@ begin
     raise exception 'Algún dato es demasiado largo.' using errcode = '22001';
   end if;
 
-  -- Tope global: aunque alguien llame la función directamente con la clave anónima y sin IP.
-  if (select count(*) from public.leads where created_at > now() - interval '1 hour') >= 30 then
-    raise exception 'Demasiados envíos en este momento. Intenta en una hora.' using errcode = '53400';
-  end if;
+  -- Primero el tope por IP (hint 'tope_ip'): el freno contra quien insiste desde la misma conexión.
   if p_ip is not null
      and (select count(*) from public.leads where ip = p_ip and created_at > now() - interval '1 hour') >= 5 then
-    raise exception 'Demasiados envíos desde esta dirección. Intenta en una hora.' using errcode = '53400';
+    raise exception 'Demasiados envíos desde esta dirección. Intenta en una hora.' using errcode = 'P0001', hint = 'tope_ip';
+  end if;
+  -- Tope global: aunque alguien llame la función directamente con la clave anónima y sin IP.
+  -- hint 'tope_global': la app lo deriva al respaldo por correo en vez de rechazar al visitante.
+  if (select count(*) from public.leads where created_at > now() - interval '1 hour') >= 30 then
+    raise exception 'Hay muchos mensajes en este momento.' using errcode = 'P0001', hint = 'tope_global';
   end if;
 
   v_owner := public.propietario_id();

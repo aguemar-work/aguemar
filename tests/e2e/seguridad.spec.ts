@@ -391,3 +391,37 @@ test("crear_lead guarda el origen saneado y nunca falla por él (HU 1.3)", async
   expect(lead.utm.medium).toBe("cpc");
   await duenio.database.from("leads").delete().eq("id", lead.id);
 });
+
+test("crear_lead: el tope por IP va antes que el global y el global se distingue por su hint (SEC-003)", async () => {
+  test.setTimeout(120_000);
+  const anon = await clienteNuevo();
+  const { c: duenio } = await sesion(PROPIETARIO);
+  const prefijo = "E2E topes";
+  const limpiar = () => duenio.database.from("leads").delete().like("nombre", `${prefijo}%`);
+  const crear = (n: number, ip: string) =>
+    anon.database.rpc("crear_lead", { p_nombre: `${prefijo} ${n}`, p_telefono: "999999999", p_correo: "", p_servicio: "", p_mensaje: "Prueba de topes", p_ip: ip });
+  const tope = (r: { error: unknown }) => (r.error as { hint?: string | null } | null)?.hint;
+
+  await limpiar();
+  try {
+    const desde = new Date(Date.now() - 3_600_000).toISOString();
+    const existentes = ((await duenio.database.from("leads").select("id").gte("created_at", desde)).data ?? []).length;
+    test.skip(existentes > 24, `Hay ${existentes} leads en la última hora: no se puede preparar el tope global sin borrar datos que no son de esta prueba.`);
+
+    // 5 leads desde la misma IP (el tope por IP) y el resto desde IPs distintas hasta llegar a 30 en la hora.
+    for (let i = 0; i < 5; i++) expect((await crear(i, "192.0.2.200")).error).toBeNull();
+    for (let i = 0; i < 25 - existentes; i++) expect((await crear(100 + i, `192.0.2.${i + 1}`)).error).toBeNull();
+
+    // Con el cupo global ya lleno, quien agotó el suyo recibe el mensaje de SU dirección (tope_ip): el tope por IP va primero.
+    const repetida = await crear(900, "192.0.2.200");
+    expect(tope(repetida)).toBe("tope_ip");
+    expect(String((repetida.error as { message?: string }).message)).toMatch(/esta dirección/);
+
+    // Otra conexión choca con el tope global, que ahora tiene su propio código y no culpa a la persona.
+    const otra = await crear(901, "192.0.2.250");
+    expect(tope(otra)).toBe("tope_global");
+    expect(String((otra.error as { message?: string }).message)).not.toMatch(/demasiados/i);
+  } finally {
+    await limpiar();
+  }
+});

@@ -32,6 +32,19 @@ describe("lead garantizado", () => {
     vi.restoreAllMocks();
   });
 
+  it("el tope global de la base (hint tope_global) no rechaza al visitante: el mensaje sale por el respaldo", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "P0001", hint: "tope_global", message: "Hay muchos mensajes en este momento." } });
+    expect(await enviarContacto(datos)).toEqual({ ok: true, data: undefined });
+    expect(resend).toHaveBeenCalledOnce();
+  });
+
+  it("el tope por IP (hint tope_ip) sigue rechazando y no usa el respaldo", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "P0001", hint: "tope_ip", message: "Demasiados envíos desde esta dirección. Intenta en una hora." } });
+    const r = await enviarContacto(datos);
+    expect(r.ok).toBe(false);
+    expect(resend).not.toHaveBeenCalled();
+  });
+
   it("con la base bien, guarda y no usa el respaldo", async () => {
     rpc.mockResolvedValue({ data: "id", error: null });
     expect(await enviarContacto(datos)).toEqual({ ok: true, data: undefined });

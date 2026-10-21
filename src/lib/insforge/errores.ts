@@ -89,7 +89,7 @@ export function traducirError(error: unknown): ErrorTraducido {
     return { mensaje: "No tienes permiso para esta acción. Vuelve a iniciar sesión." };
   }
   // Mensajes propios de nuestras funciones SQL (raise exception ... using errcode): ya vienen en español.
-  if ((e.code === "22023" || e.code === "P0002" || e.code === "22001" || e.code === "53400" || e.code === "55000") && e.message) {
+  if ((e.code === "22023" || e.code === "P0002" || e.code === "22001" || e.code === "55000") && e.message) {
     return { mensaje: e.message };
   }
   if (e.code === "PGRST116") {

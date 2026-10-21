@@ -80,8 +80,11 @@ ${mensajeLead(d)}` : mensajeLead(d);
     });
     if (error) {
       const texto = error.message ?? "";
-      // Límite de envíos: no se respalda (es el freno contra abusos).
-      if (/demasiados/i.test(texto)) {
+      const tope = (error as { hint?: string | null }).hint;
+      // Tope global de la base: no es culpa de esta persona. El mensaje no se pierde: sale por el respaldo.
+      if (tope === "tope_global") return respaldo("tope global de leads");
+      // Límite de envíos de esta conexión: no se respalda (es el freno contra abusos).
+      if (tope === "tope_ip" || /demasiados/i.test(texto)) {
         return fallo(en ? "I received several messages from your connection. Try again in an hour or message me on WhatsApp." : "Recibí varios mensajes desde tu conexión. Intenta en una hora o escríbeme por WhatsApp.");
       }
       // Datos que la base rechaza: los corrige quien escribe.
