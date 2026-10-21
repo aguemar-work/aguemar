@@ -79,7 +79,8 @@ export const TONO = {
 export type Tono = { fondo: string; color: string };
 
 export const s = StyleSheet.create({
-  pagina: { fontFamily: "Sora", fontSize: 9, color: C.ink, paddingTop: 40, paddingBottom: 56, paddingHorizontal: M, lineHeight: 1.4 },
+  // Sin ligaduras en Sora: con "fi"/"fl" el texto seleccionable salía "Ofce", "frma" al copiarlo o buscarlo (UX-006).
+  pagina: { fontFamily: "Sora", fontFeatureSettings: { liga: false }, fontSize: 9, color: C.ink, paddingTop: 40, paddingBottom: 56, paddingHorizontal: M, lineHeight: 1.4 },
   // Sin ligaduras: las contextuales de JetBrains Mono (p. ej. " //") rompen fontkit.
   mono: { fontFamily: "Mono", fontFeatureSettings: { calt: false, liga: false } },
   encabezado: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 0.5, borderBottomColor: C.line, paddingBottom: 4, fontSize: 7.5, color: C.muted },
