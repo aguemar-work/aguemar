@@ -8,7 +8,7 @@ import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { obtenerCotizacion, obtenerDocumentoCotizacion } from "@/lib/datos/cotizaciones";
 import { enlaceDe } from "@/lib/datos/fichas";
-import { estadoEfectivo, fechaVence, saldo } from "@/lib/cotizacion";
+import { estadoEfectivo, etiquetaVersion, fechaVence, saldo } from "@/lib/cotizacion";
 import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
 import { textoVencimiento } from "@/lib/trabajos-util";
 import type { EstadoTrabajo } from "@/types/database";
@@ -166,6 +166,12 @@ export async function DetalleCotizacion({ id }: { id: string }) {
                   <div>
                     <dt className="text-xs uppercase tracking-wide text-muted-foreground">Enviada</dt>
                     <dd className="font-mono">{formatearFechaHora(c.enviada_en)}</dd>
+                  </div>
+                ) : null}
+                {etiquetaVersion(c.version, doc?.huella ?? c.enviada_huella) ? (
+                  <div>
+                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">Versión</dt>
+                    <dd className="font-mono">{etiquetaVersion(c.version, doc?.huella ?? c.enviada_huella)}</dd>
                   </div>
                 ) : null}
                 {aceptacion ? (

@@ -118,10 +118,12 @@ export function Pildora({ texto, fondo, color }: { texto: string } & Tono) {
  * Cabecera de la primera página: logo a la izquierda; tipo, número y fecha a
  * la derecha (y opcionalmente un QR); debajo, área, estado, titular y resumen.
  */
-export function Cabecera({ tipo, numero, fecha, area, titulo, resumen, estado, lateral }: {
+export function Cabecera({ tipo, numero, fecha, area, titulo, resumen, estado, lateral, version }: {
   tipo: string;
   numero: string | null;
   fecha: string;
+  /** Versión y huella, p. ej. "v2 · 3fa91c0b" (solo la cotización). */
+  version?: string | null;
   area: string;
   titulo: string;
   resumen?: string | null;
@@ -137,6 +139,7 @@ export function Cabecera({ tipo, numero, fecha, area, titulo, resumen, estado, l
             <Text style={[s.mono, { fontSize: 7.5, color: C.muted, letterSpacing: 0.6 }]}>{tipo}</Text>
             <Text style={[s.mono, { fontSize: 10.5, fontWeight: 600 }]}>{numero ?? "BORRADOR"}</Text>
             <Text style={[s.mono, { fontSize: 8, color: C.muted }]}>{formatearFecha(fecha)}</Text>
+            {version ? <Text style={[s.mono, { fontSize: 7.5, color: C.muted }]}>{version}</Text> : null}
           </View>
           {lateral ? <View style={{ marginLeft: 10 }}>{lateral}</View> : null}
         </View>

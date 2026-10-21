@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { C, Cabecera, Encabezado, Firmas, Pie, Seccion, TONO, contactoDe, registrarFuentes, s, type Tono } from "./base";
 import { formatearFecha, formatearMonto, type Moneda } from "@/lib/format";
+import { etiquetaVersion } from "@/lib/cotizacion";
 import { rotuloArea } from "@/lib/areas";
 import type { Area, EstadoCotizacion, IgvModo } from "@/types/database";
 
@@ -21,6 +22,9 @@ export interface DatosCotizacionPdf {
   igv: number;
   total: number;
   condiciones: string | null;
+  /** Versión y huella de lo enviado (opcionales: los tests y los borradores no las traen). */
+  version?: number;
+  huella?: string | null;
   items: { descripcion: string; unidad: string; cantidad: number | string; precio_unitario: number; descuento: number; importe: number }[];
   aceptacion: { nombre: string; dni: string | null; aceptado_en: string } | null;
   cliente: { nombre: string; tipo_doc: string | null; num_doc: string | null; contacto: string | null; direccion: string | null };
@@ -75,7 +79,7 @@ export function DocumentoCotizacion({ d }: { d: DatosCotizacionPdf }) {
         <Encabezado izquierda={nombreMarca} derecha={`${d.numero ?? "BORRADOR"} · ${d.cliente.nombre}`} />
         <Pie izquierda={`${nombreMarca} · ${area.replace("// ", "")}`} />
 
-        <Cabecera tipo="COTIZACIÓN" numero={d.numero} fecha={d.fecha} area={area} titulo={d.asunto} estado={ESTADO[d.estado]} />
+        <Cabecera tipo="COTIZACIÓN" numero={d.numero} fecha={d.fecha} area={area} titulo={d.asunto} estado={ESTADO[d.estado]} version={etiquetaVersion(d.version ?? 1, d.huella)} />
 
         {/* Partes y vigencia, sin cajas. */}
         <View style={{ flexDirection: "row", marginTop: 12 }} wrap={false}>

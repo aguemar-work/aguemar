@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { estadoPago } from "@/lib/cotizacion";
+import { estadoPago, etiquetaVersion } from "@/lib/cotizacion";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 import type { WsCotizacion } from "@/lib/datos/workspace";
 
@@ -97,6 +97,12 @@ export function VistaCotizacion({ c, arriba }: { c: WsCotizacion; arriba?: React
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Válida hasta</p>
               <p className="font-mono">{formatearFecha(c.vence)}</p>
             </div>
+            {etiquetaVersion(c.version, c.huella) ? (
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Versión</p>
+                <p className="font-mono">{etiquetaVersion(c.version, c.huella)}</p>
+              </div>
+            ) : null}
             {pago && estado && pendiente > 0 ? (
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Fecha de pago</p>

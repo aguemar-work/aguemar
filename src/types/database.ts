@@ -147,6 +147,11 @@ export type CotizacionRow = Base & {
   plazo_pago_dias: number;
   /** Si la tarea diaria envía recordatorios de pago a la empresa. */
   recordar_pago: boolean;
+  /** Sube cada vez que se edita lo que ya se había enviado (la base descarta la copia y vuelve a borrador). */
+  version: number;
+  /** Copia que se congela al enviar y huella sha256 de esa copia. */
+  enviada_documento: Record<string, unknown> | null;
+  enviada_huella: string | null;
 };
 
 export type CotizacionItemRow = Base & {

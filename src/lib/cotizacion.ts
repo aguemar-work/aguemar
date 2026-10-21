@@ -80,6 +80,12 @@ export function excesoDeCobro(monto: number, pendiente: number): number {
   return Math.max(monto - Math.max(pendiente, 0), 0);
 }
 
+/** "v2 · 3fa91c0b": versión y primeros 8 de la huella de lo enviado, para cotejar el PDF con lo aceptado. */
+export function etiquetaVersion(version: number, huella: string | null | undefined): string | null {
+  if (huella) return `v${version} · ${huella.slice(0, 8)}`;
+  return version > 1 ? `v${version}` : null;
+}
+
 /** Nombre del PDF: COT-2026-001_SGC.pdf o FT-2026-001_SGC.pdf (sin caracteres raros). */
 export function nombreArchivo(numero: string | null, empresa: string): string {
   const limpio = empresa

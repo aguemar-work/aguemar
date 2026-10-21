@@ -102,7 +102,9 @@ export function FormularioCotizacion({ cotizacion, clientes, servicios, marca, c
     if (fields.length === 0) form.setValue("area", s.area, { shouldDirty: true });
   };
 
-  const onSubmit = handleSubmit((datos) =>
+  const onSubmit = handleSubmit((datos) => {
+    // Editar una cotización ya enviada la devuelve a borrador con una versión más (la base lo hace).
+    if (cotizacion?.estado === "enviada" && !window.confirm(`Esta cotización ya se envió. Pasará a borrador v${cotizacion.version + 1} y tendrás que reenviarla (el enlace y el PDF anteriores dejan de valer). ¿Continuar?`)) return;
     iniciar(async () => {
       setErrorGeneral(undefined);
       const r = await guardarCotizacion(datos, cotizacion?.id);
@@ -111,13 +113,13 @@ export function FormularioCotizacion({ cotizacion, clientes, servicios, marca, c
         setErrorGeneral(r.error);
         return;
       }
-      toast.success(cotizacion ? "Cotización actualizada." : "Cotización guardada como borrador.");
+      toast.success(cotizacion ? (cotizacion.estado === "enviada" ? `Guardada como borrador v${cotizacion.version + 1}: reenvíala para que la empresa vea los cambios.` : "Cotización actualizada.") : "Cotización guardada como borrador.");
       form.reset(datos as CotizacionInput, { keepValues: true });
       if (panel && cotizacion) panel.cerrar(true);
       else if (panel) router.replace(`/panel/cotizaciones/${r.data.id}`);
       else router.push(`/panel/cotizaciones/${r.data.id}`);
-    }),
-  );
+    });
+  });
 
   const errorItems = errores.items?.message ?? errores.items?.root?.message;
 

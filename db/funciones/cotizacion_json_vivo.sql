@@ -1,4 +1,4 @@
--- Vigente según migrations/20261021223421_pendiente-unico.sql.
+-- Vigente según migrations/20261021224131_cotizacion-version.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.cotizacion_json_vivo(p_id uuid)
@@ -14,6 +14,8 @@ as $$
     'subtotal', z.subtotal, 'igv', z.igv, 'total', z.total, 'condiciones', z.condiciones,
     'estado', case when z.estado = 'enviada' and z.fecha + z.validez_dias < (now() at time zone 'America/Lima')::date then 'vencida' else z.estado::text end,
     'enviada_en', z.enviada_en, 'aceptada_en', z.aceptada_en, 'trabajo_id', z.trabajo_id,
+    'version', z.version,
+    'huella', coalesce((select a.huella from public.aceptaciones a where a.cotizacion_id = z.id order by a.aceptado_en desc limit 1), z.enviada_huella),
     'items', coalesce((select jsonb_agg(jsonb_build_object('descripcion', i.descripcion, 'unidad', i.unidad, 'cantidad', i.cantidad,
                                                            'precio_unitario', i.precio_unitario, 'descuento', i.descuento, 'importe', i.importe)
                                         order by i.orden, i.created_at)

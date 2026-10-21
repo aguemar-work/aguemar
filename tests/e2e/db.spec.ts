@@ -242,6 +242,67 @@ test("el pendiente es el mismo en el panel, el workspace y el portal (T-28)", as
   igual(await lecturas(a.id, tokenA), a.total, "A sin cobros");
 });
 
+test("la cotización enviada se congela, editarla la devuelve a borrador (v+1) y solo se acepta la copia enviada (T-29)", async () => {
+  test.setTimeout(120_000);
+  const { c: duenio, uid } = await propietario();
+  const empresa = await empresaFija(duenio, uid, "e2e-db-modulos", "90000002");
+  const anonimo = await clienteNuevo();
+  const asunto = `E2E versión ${Date.now()}`;
+  const id = await cotizacion(duenio, uid, empresa.id, asunto, { estado: "borrador" });
+
+  const leer = async () => {
+    const r = await duenio.database.from("cotizaciones").select("estado, version, enviada_documento, enviada_huella").eq("id", id).single();
+    expect(r.error).toBeNull();
+    return r.data as { estado: string; version: number; enviada_documento: { asunto: string } | null; enviada_huella: string | null };
+  };
+  const enviar = async () => expect((await duenio.database.from("cotizaciones").update({ estado: "enviada", enviada_en: new Date().toISOString() }).eq("id", id)).error).toBeNull();
+
+  // Borrador: sin copia. Al enviar se congela con su huella.
+  expect((await leer()).enviada_documento).toBeNull();
+  await enviar();
+  const v1 = await leer();
+  expect(v1.estado).toBe("enviada");
+  expect(v1.version).toBe(1);
+  expect(v1.enviada_documento?.asunto).toBe(asunto);
+  expect(v1.enviada_huella).toMatch(/^[0-9a-f]{64}$/);
+
+  const token = (await duenio.database.rpc("obtener_enlace", { p_tipo: "cotizacion", p_id: id })).data as string;
+  const portal = async () => (await anonimo.database.rpc("portal_documento", { p_token: token })).data as { documento: { asunto: string; version: number; huella: string; estado: string } } | null;
+  const visto = await portal();
+  expect(visto?.documento.version).toBe(1);
+  expect(visto?.documento.huella).toBe(v1.enviada_huella);
+
+  // Editar la cabecera: vuelve a borrador, v2, sin copia; el portal ya no la muestra.
+  expect((await duenio.database.from("cotizaciones").update({ asunto: `${asunto} (cambio)` }).eq("id", id)).error).toBeNull();
+  const v2 = await leer();
+  expect([v2.estado, v2.version, v2.enviada_documento]).toEqual(["borrador", 2, null]);
+  expect(await portal()).toBeNull();
+
+  // Aceptar la v1 desde el portal ya no se puede.
+  const tarde = await anonimo.database.rpc("aceptar_cotizacion", { p_token: token, p_nombre: "Persona de Prueba", p_dni: "12345678" });
+  expect(tarde.error).not.toBeNull();
+  expect(String(tarde.error?.message)).toMatch(/ya no está vigente/);
+
+  // Reenviar congela la v2; tocar solo una línea (el total no cambia) también la descarta: v3.
+  await enviar();
+  expect((await leer()).enviada_documento?.asunto).toBe(`${asunto} (cambio)`);
+  expect((await duenio.database.from("cotizacion_items").update({ descripcion: "Línea de prueba, corregida" }).eq("cotizacion_id", id)).error).toBeNull();
+  const v3 = await leer();
+  expect([v3.estado, v3.version, v3.enviada_documento]).toEqual(["borrador", 3, null]);
+
+  // Reenviar y aceptar: la aceptación guarda la copia enviada (v3) y su misma huella.
+  await enviar();
+  const v3enviada = await leer();
+  expect(v3enviada.version).toBe(3);
+  const ok = await anonimo.database.rpc("aceptar_cotizacion", { p_token: token, p_nombre: "Persona de Prueba", p_dni: "12345678" });
+  expect(ok.error).toBeNull();
+  const acept = await duenio.database.from("aceptaciones").select("huella, documento").eq("cotizacion_id", id).single();
+  expect(acept.data?.huella).toBe(v3enviada.enviada_huella);
+  expect((acept.data?.documento as { items: { descripcion: string }[] }).items[0].descripcion).toBe("Línea de prueba, corregida");
+  const final = (await anonimo.database.rpc("portal_documento", { p_token: token })).data as { documento: { estado: string; version: number; huella: string } };
+  expect([final.documento.estado, final.documento.version, final.documento.huella]).toEqual(["aceptada", 3, v3enviada.enviada_huella]);
+});
+
 test("recordatorios de pago: la clave mala no entra y lo ya tomado no se entrega otra vez", async () => {
   test.setTimeout(120_000);
   test.skip(!CRON_SECRET, "Define CRON_SECRET (el de staging, el mismo cuyo hash está en ajustes_sistema).");

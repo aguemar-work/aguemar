@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, excesoDeCobro, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
+import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, etiquetaVersion, excesoDeCobro, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
 import { pagoCotizacionSchema } from "@/lib/validators/cotizacion";
 
 describe("importeLinea", () => {
@@ -120,5 +120,16 @@ describe("excesoDeCobro", () => {
   });
   it("un pendiente negativo se trata como cero", () => {
     expect(excesoDeCobro(100, -50)).toBe(100);
+  });
+});
+
+describe("etiquetaVersion", () => {
+  it("con huella: versión y los primeros 8 caracteres", () => {
+    expect(etiquetaVersion(1, "3fa91c0b77d2e5a6c8f0")).toBe("v1 · 3fa91c0b");
+    expect(etiquetaVersion(3, "abcdef0123456789")).toBe("v3 · abcdef01");
+  });
+  it("sin huella: nada en la v1 y solo la versión desde la v2", () => {
+    expect(etiquetaVersion(1, null)).toBeNull();
+    expect(etiquetaVersion(2, undefined)).toBe("v2");
   });
 });

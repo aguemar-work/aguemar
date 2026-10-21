@@ -1,4 +1,4 @@
--- Vigente según migrations/20261020171216_inmutabilidad-aceptados.sql.
+-- Vigente según migrations/20261021224131_cotizacion-version.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.cotizacion_aceptar_core(
@@ -47,6 +47,12 @@ begin
   end if;
 
   v_doc := public.cotizacion_contenido(v_cot.id);
+  if v_cot.enviada_documento is not null then
+    if (v_doc - array['marca', 'cliente']) is distinct from (v_cot.enviada_documento - array['marca', 'cliente']) then
+      raise exception 'La cotización cambió desde que se envió: pide que te la reenvíen' using errcode = '22023';
+    end if;
+    v_doc := v_cot.enviada_documento;
+  end if;
 
   insert into public.aceptaciones (owner_id, cotizacion_id, nombre, dni, ip, user_agent, registrada_por, documento, huella)
   values (v_cot.owner_id, v_cot.id, trim(p_nombre), p_dni, p_ip, p_user_agent, p_por, v_doc, public.huella_documento(v_doc));

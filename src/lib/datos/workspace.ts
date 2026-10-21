@@ -128,6 +128,9 @@ export interface WsCotizacion {
   enviada_en: string | null;
   aceptada_en: string | null;
   trabajo_id: string | null;
+  /** Versión enviada y huella de esa copia (la de lo aceptado, si ya se aceptó). */
+  version: number;
+  huella: string | null;
   items: { descripcion: string; unidad: string; cantidad: number | string; precio_unitario: number; descuento: number; importe: number }[];
   aceptacion: { nombre: string; dni: string | null; aceptado_en: string } | null;
   cobrado: number;

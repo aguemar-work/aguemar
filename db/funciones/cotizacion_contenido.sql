@@ -1,4 +1,4 @@
--- Vigente según migrations/20261021223421_pendiente-unico.sql.
+-- Vigente según migrations/20261021224131_cotizacion-version.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.cotizacion_contenido(p_id uuid)
@@ -10,5 +10,5 @@ set search_path = pg_catalog, public, pg_temp
 as $$
   select public.cotizacion_json_vivo(p_id)
          - array['id', 'estado', 'enviada_en', 'aceptada_en', 'trabajo_id', 'aceptacion', 'cobrado',
-                 'pendiente', 'vence_pago', 'atraso_dias'];
+                 'pendiente', 'vence_pago', 'atraso_dias', 'version', 'huella'];
 $$;
