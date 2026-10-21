@@ -86,12 +86,12 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | T-14 | Mensaje de WhatsApp para la cotización aceptada | PRO-012 | 1 | No | Sí | — | Hecha · falta pantalla (`b93abb0`) |
 | T-15 | Checklist de migración a producción y `CHANGELOG.md` | DEV-006, PM-003 | 1 | No | No | — | Hecha (`7907066`) |
 | T-16 | `robots.txt` deja leer el `noindex` de `/d/` y `/login` | SEO-005 | 1 | No | No | — | Hecha (`0e80323`) |
-| T-17 | Topes de `crear_lead` reordenados; tope global al respaldo | SEC-003 | 2 | **Sí** | No | — | Pendiente |
-| T-18 | `ws_trabajos`, `ws_trabajo` y `ws_comentarios` comprueban el módulo | ARQ-006 | 2 | **Sí** | No | A-10 | Pendiente |
-| T-19 | La empresa es la única que puede cambiar el texto de sus comentarios | SEC-006 | 2 | **Sí** | No | A-10 | Pendiente |
-| T-20 | Test de inventario para las vistas de `public` | SEC-007 (D11) | 2 | No | No | — | Pendiente |
-| T-21 | Marcar invitaciones aceptadas con una cuenta previa | SEC-002 (D10) | 2 | **Sí** | Sí | — | Pendiente |
-| T-22 | Retirar del árbol de migraciones la limpieza del sistema heredado | DEV-006, ARQ-004 | 2 | No (solo mover) | No | — | Pendiente |
+| T-17 | Topes de `crear_lead` reordenados; tope global al respaldo | SEC-003 | 2 | **Sí** | No | — | Hecha en staging (`d48176b`) · falta producción (A-12) |
+| T-18 | `ws_trabajos`, `ws_trabajo` y `ws_comentarios` comprueban el módulo | ARQ-006 | 2 | **Sí** | No | A-10 | Hecha en staging (`fca5d6d`) · falta producción (A-12) |
+| T-19 | La empresa es la única que puede cambiar el texto de sus comentarios | SEC-006 | 2 | **Sí** | No | A-10 | Hecha en staging (`d59c4d4`) · falta producción (A-12) |
+| T-20 | Test de inventario para las vistas de `public` | SEC-007 (D11) | 2 | No | No | — | Hecha (`8d1f452`) |
+| T-21 | Marcar invitaciones aceptadas con una cuenta previa | SEC-002 (D10) | 2 | **Sí** | Sí | — | Hecha en staging · falta pantalla y producción (`3e849ca`) |
+| T-22 | Retirar del árbol de migraciones la limpieza del sistema heredado | DEV-006, ARQ-004 | 2 | No (solo mover) | No | — | Hecha (`d0ff4ba`) |
 | T-23 | Suite de pruebas de las funciones SQL críticas contra staging | QA-001 | 3 | No | No | A-10 | Pendiente |
 | T-24 | e2e de navegador en CI con `next start`; guard `.test` en todos los specs | QA-002, DEV-004 | 3 | No | No | A-02 | Pendiente |
 | T-25 | Fixtures con limpieza, `retries: 1`, artefactos en CI | QA-003, QA-006 | 3 | No | No | T-24 | Pendiente |
@@ -334,6 +334,22 @@ El agente las aplica en staging y Alejandro en producción (A-12).
   - añadir al inicio del archivo un comentario que explique que es una limpieza única del sistema SGTD y no hace nada en una base nueva (todo es `if exists`);
   - en `README.md`, anotar que una base nueva desde cero ejecuta esos `DROP ... IF EXISTS` sin efecto.
 - Hecho cuando: el comentario y la nota existen. Es la única tarea de este sprint sin cambio de esquema.
+
+### Notas del sprint 2 (21/10/2026)
+
+Las migraciones se aplicaron **solo en staging**; producción espera a A-12. Las pruebas API (`seguridad.spec.ts` y `equipo.spec.ts`) pasan contra staging: 29 casos.
+
+**Hallazgo al probar T-17 (cambió lo planeado).** InsForge entrega con su mensaje únicamente los errores `P0001`, `P0002`, de la clase `22` y `42501`; cualquier otro código (la clase `53`, otros `P0xxx`) llega como el texto "Something went wrong", sin código ni mensaje. El tope por IP de `crear_lead` usaba `53400`, así que **nunca rechazaba**: la app lo trataba como falla de la base y mandaba el mensaje por el respaldo de correo. La decisión D1 se mantiene (sin clave de servicio, tope por IP primero, tope global al respaldo), pero los dos topes ahora son `P0001` y se distinguen por `hint` (`tope_ip`, `tope_global`). Por haberlo descubierto con las dos primeras versiones ya aplicadas en staging, quedaron **tres migraciones** (`lead-topes`, `lead-topes-codigos`, `lead-topes-hint`); la última es la definitiva y producción recibirá las tres en orden. La regla quedó en `CLAUDE.md` y en el README.
+
+- **T-18:** `ws_comentarios` también exige el módulo de la entidad. Test con la empresa B: comenta con el módulo activo, lo desactiva, y lista, detalle y comentarios quedan vacíos.
+- **T-19:** el trigger bloquea cualquier cambio salvo `leido` en comentarios de la empresa. El código publicado solo cambia `leido` y borra comentarios (el trigger no bloquea borrados), así que es compatible.
+- **T-20:** el test lee las vistas vigentes de `migrations/`. `security_invoker` queda descartado (D11).
+- **T-21:** el aviso sale en la ficha de la empresa y en la tarjeta del colaborador. Las invitaciones ya aceptadas quedan en `false` (no hay forma fiable de reconstruirlo). El test usa una cuenta de prueba fija anterior a la invitación y otra nueva por corrida: **las cuentas de Auth no se pueden borrar por la API**, así que cada corrida deja una cuenta `e2e-nueva-…` en staging.
+- **T-22:** no se editó la migración heredada (ya aplicada); solo se documentó. Todos sus `DROP` llevan `IF EXISTS`.
+
+**Orden en producción (A-12).** El código nuevo ya depende de la migración `invitacion-cuenta-previa`: la ficha de la empresa consulta `invitaciones.cuenta_previa`, y sin la columna fallaría. Por eso el checklist del README va en este orden: migrar producción primero, desplegar después. Las otras cinco son compatibles con el código publicado.
+
+**Revisión en pantalla pendiente (A-11):** el aviso de cuenta previa en la ficha de una empresa con acceso y en Equipo (necesita una invitación aceptada con cuenta previa en staging).
 
 ### Sprint 3 · Red de pruebas
 
