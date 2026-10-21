@@ -23,7 +23,11 @@ Sprint 2 de la misma actualización. **Lleva 6 migraciones, aplicadas hasta ahor
 - `invitacion-cuenta-previa`: las invitaciones marcan si la cuenta ya existía antes (T-21).
 - Sin migración: inventario de vistas (T-20) y nota sobre la limpieza heredada y los errores SQL (T-22).
 
-Sprint 3 (en curso), sin migraciones: pruebas de la lógica crítica en SQL (`tests/e2e/db.spec.ts`, T-23) y casos de totales compartidos entre TypeScript y la base (T-26). La vista previa de una cotización ya no se desvía un céntimo de lo que guarda la base con cantidades de tres decimales.
+Sprint 3, sin migraciones: pruebas de la lógica crítica en SQL (`tests/e2e/db.spec.ts`, T-23) y casos de totales compartidos entre TypeScript y la base (T-26). La vista previa de una cotización ya no se desvía un céntimo de lo que guarda la base con cantidades de tres decimales.
+
+- Pruebas de navegador contra un build de producción, con un job `e2e` en CI y ejecución nocturna (T-24, T-25).
+- **Arreglo:** los enlaces del panel ya no precargan; con precarga, el clic que abre una ficha en el panel lateral a veces no respondía en producción (componente `Enlace`).
+- Rama `next-16` (aparte): Next 16.4.2, `npm audit` de producción en 0 vulnerabilidades (T-27).
 
 ## v0.14.5 · 20/10/2026
 
