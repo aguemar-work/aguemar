@@ -456,3 +456,42 @@ test("con el módulo Proyectos desactivado, la base no entrega trabajos ni sus c
     await duenio.database.from("comentarios").delete().eq("texto", marca);
   }
 });
+
+test("el propietario no reescribe lo que escribió la empresa, pero sí lo marca leído y edita lo suyo (SEC-006)", async () => {
+  const { c: duenio, uid } = await sesion(PROPIETARIO);
+  const b = await duenio.database.from("clientes").select("id").eq("slug", "empresa-b").single();
+  const trabajoB = await duenio.database.from("trabajos").select("id").eq("cliente_id", b.data!.id).eq("visible_empresa", true).limit(1).single();
+  expect(trabajoB.error, "staging necesita un trabajo visible de la empresa B (npm run staging:cuentas)").toBeNull();
+  const id = trabajoB.data!.id as string;
+  const marca = `E2E autor ${Date.now()}`;
+  const { c: sesionB } = await sesion(EMPRESA_B);
+
+  try {
+    expect((await sesionB.database.rpc("ws_comentar", { p_entidad: "trabajo", p_id: id, p_texto: marca })).error).toBeNull();
+    const ajeno = (await duenio.database.from("comentarios").select("id, texto, leido").eq("texto", marca).single()).data as { id: string; leido: boolean };
+    expect(ajeno.leido).toBe(false);
+
+    // Reescribir el texto, o cambiar de quién es, queda bloqueado.
+    expect(bloqueado(await duenio.database.from("comentarios").update({ texto: "otra cosa" }).eq("id", ajeno.id).select("id"))).toBe(true);
+    expect(bloqueado(await duenio.database.from("comentarios").update({ es_propietario: true }).eq("id", ajeno.id).select("id"))).toBe(true);
+    expect((await duenio.database.from("comentarios").select("texto, es_propietario").eq("id", ajeno.id).single()).data).toEqual({ texto: marca, es_propietario: false });
+
+    // Marcarlo como leído sí (es lo que hace la Bandeja).
+    const leido = await duenio.database.from("comentarios").update({ leido: true }).eq("id", ajeno.id).select("id, leido");
+    expect(leido.error).toBeNull();
+    expect(leido.data).toEqual([{ id: ajeno.id, leido: true }]);
+
+    // Lo que escribió el propietario sí lo puede editar.
+    const propio = await duenio.database
+      .from("comentarios")
+      .insert([{ owner_id: uid, cliente_id: b.data!.id, entidad: "trabajo", entidad_id: id, autor_uid: uid, es_propietario: true, texto: `${marca} respuesta`, leido: true }])
+      .select("id")
+      .single();
+    expect(propio.error).toBeNull();
+    const editado = await duenio.database.from("comentarios").update({ texto: `${marca} corregida` }).eq("id", propio.data!.id).select("texto");
+    expect(editado.error).toBeNull();
+    expect(editado.data).toEqual([{ texto: `${marca} corregida` }]);
+  } finally {
+    await duenio.database.from("comentarios").delete().like("texto", `${marca}%`);
+  }
+});
