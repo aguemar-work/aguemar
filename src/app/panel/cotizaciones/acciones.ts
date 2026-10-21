@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
+import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { aCentimos, hoyLima } from "@/lib/format";
 import { porcentajeABasis } from "@/lib/validators/marca";
@@ -31,7 +31,7 @@ export async function guardarCotizacion(input: CotizacionInput, id?: string): Pr
   const { items, igv_porcentaje, ...resto } = parsed.data;
   const datos = { ...resto, igv_pct: porcentajeABasis(igv_porcentaje) };
 
-  try {
+  return accion("cotizaciones.guardarCotizacion", async () => {
     await exigirPropietario();
     const { db, usuario } = await conSesion();
     let cotId = id;
@@ -42,33 +42,31 @@ export async function guardarCotizacion(input: CotizacionInput, id?: string): Pr
       if (!estado) return fallo("No encontramos la cotización.");
       if (estado === "aceptada") return fallo("Una cotización aceptada no se edita: duplícala para hacer otra versión.");
       const { error } = await db.from("cotizaciones").update(datos).eq("id", id);
-      if (error) return fallo(traducirError(error).mensaje);
+      if (error) throw error;
       const borrado = await db.from("cotizacion_items").delete().eq("cotizacion_id", id);
-      if (borrado.error) return fallo(traducirError(borrado.error).mensaje);
+      if (borrado.error) throw borrado.error;
     } else {
       const { data, error } = await db
         .from("cotizaciones")
         .insert([{ ...datos, owner_id: usuario.id, estado: "borrador" }])
         .select("id")
         .single();
-      if (error) return fallo(traducirError(error).mensaje);
+      if (error) throw error;
       cotId = (data as { id: string }).id;
     }
 
     const filas = items.map((l, i) => ({ ...lineaABase(l, i + 1), cotizacion_id: cotId, owner_id: usuario.id }));
     const { error: errItems } = await db.from("cotizacion_items").insert(filas);
-    if (errItems) return fallo(traducirError(errItems).mensaje);
+    if (errItems) throw errItems;
 
     revalidar();
     return exito({ id: cotId! });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /** Pasa a "enviada": la empresa la ve en su workspace. Si estaba vencida, se renueva con fecha de hoy. */
 export async function enviarCotizacion(id: string): Promise<Resultado<{ token: string | null }>> {
-  try {
+  return accion("cotizaciones.enviarCotizacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const actual = await db.from("cotizaciones").select("estado, total").eq("id", id).maybeSingle();
@@ -79,37 +77,33 @@ export async function enviarCotizacion(id: string): Promise<Resultado<{ token: s
     const cambios: Record<string, unknown> = { estado: "enviada", enviada_en: new Date().toISOString(), rechazada_en: null, motivo_rechazo: null };
     if (c.estado === "vencida" || c.estado === "rechazada") cambios.fecha = hoyLima();
     const { error } = await db.from("cotizaciones").update(cambios).eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     // Enlace del portal: para quien no tiene workspace (ve, descarga y acepta sin entrar).
     const enlace = await db.rpc("obtener_enlace", { p_tipo: "cotizacion", p_id: id, p_renovar: false });
     await avisarDocumentoEmpresa("cotizacion", id);
     revalidar();
     return exito({ token: enlace.error ? null : (enlace.data as string) });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /** Marca aceptada desde el panel (DNI opcional) y crea el trabajo. */
 export async function aceptarCotizacion(id: string, input: { nombre: string; dni?: string }): Promise<Resultado<{ trabajoId: string | null }>> {
   const parsed = aceptacionSchema.safeParse(input);
   if (!parsed.success) return primerError(parsed.error.issues);
-  try {
+  return accion("cotizaciones.aceptarCotizacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.rpc("cotizacion_aceptar_panel", { p_cot: id, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni || null });
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     // Constancia a la empresa: quién aceptó y cómo, con el código de versión del PDF (D5).
     await avisarCopiaAceptacion(id);
     revalidar();
     return exito({ trabajoId: (data as { trabajo_id?: string } | null)?.trabajo_id ?? null });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 export async function rechazarCotizacion(id: string, motivo: string): Promise<Resultado<void>> {
-  try {
+  return accion("cotizaciones.rechazarCotizacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db
@@ -117,17 +111,15 @@ export async function rechazarCotizacion(id: string, motivo: string): Promise<Re
       .update({ estado: "rechazada", rechazada_en: new Date().toISOString(), motivo_rechazo: motivo.trim() || null })
       .eq("id", id)
       .neq("estado", "aceptada");
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /** Copia como borrador nuevo (número nuevo, fecha de hoy). */
 export async function duplicarCotizacion(id: string): Promise<Resultado<{ id: string }>> {
-  try {
+  return accion("cotizaciones.duplicarCotizacion", async () => {
     await exigirPropietario();
     const { db, usuario } = await conSesion();
     const { data, error } = await db.from("cotizaciones").select("*, cotizacion_items(*)").eq("id", id).maybeSingle();
@@ -153,7 +145,7 @@ export async function duplicarCotizacion(id: string): Promise<Resultado<{ id: st
       ])
       .select("id")
       .single();
-    if (nueva.error) return fallo(traducirError(nueva.error).mensaje);
+    if (nueva.error) throw nueva.error;
     const nuevaId = (nueva.data as { id: string }).id;
     if (o.cotizacion_items.length) {
       const items = o.cotizacion_items.map((i) => ({
@@ -168,17 +160,15 @@ export async function duplicarCotizacion(id: string): Promise<Resultado<{ id: st
         orden: i.orden,
       }));
       const r = await db.from("cotizacion_items").insert(items);
-      if (r.error) return fallo(traducirError(r.error).mensaje);
+      if (r.error) throw r.error;
     }
     revalidar();
     return exito({ id: nuevaId });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 export async function eliminarCotizacion(id: string): Promise<Resultado<void>> {
-  try {
+  return accion("cotizaciones.eliminarCotizacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const actual = await db.from("cotizaciones").select("estado").eq("id", id).maybeSingle();
@@ -186,12 +176,10 @@ export async function eliminarCotizacion(id: string): Promise<Resultado<void>> {
       return fallo("Una cotización aceptada no se elimina: tiene un trabajo y quizá cobros asociados.");
     }
     const { error } = await db.from("cotizaciones").delete().eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -201,7 +189,7 @@ export async function registrarCobro(input: CobroInput): Promise<Resultado<{ id:
   const parsed = cobroSchema.safeParse(input);
   if (!parsed.success) return primerError(parsed.error.issues);
   const { monto, ...resto } = parsed.data;
-  try {
+  return accion("cotizaciones.registrarCobro", async () => {
     await exigirPropietario();
     const { db, usuario } = await conSesion();
     const { data, error } = await db
@@ -209,45 +197,39 @@ export async function registrarCobro(input: CobroInput): Promise<Resultado<{ id:
       .insert([{ ...resto, monto: aCentimos(monto), owner_id: usuario.id }])
       .select("id")
       .single();
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito({ id: (data as { id: string }).id });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /** Un cobro no se borra: se anula con motivo y deja de contar (la base impide cambiarlo o eliminarlo después). */
 export async function anularCobro(id: string, motivo: string): Promise<Resultado<void>> {
   const texto = motivo.trim();
   if (texto.length < 3) return fallo("Escribe el motivo de la anulación.", "motivo");
-  try {
+  return accion("cotizaciones.anularCobro", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.from("cobros").update({ anulado_en: new Date().toISOString(), anulado_motivo: texto }).eq("id", id).is("anulado_en", null).select("id");
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     if (!data || data.length === 0) return fallo("No encontramos el cobro, o ya estaba anulado.");
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /** Anula una cotización aceptada: sale de las deudas y de los recordatorios, y la aceptación queda intacta. */
 export async function anularCotizacion(id: string, motivo: string): Promise<Resultado<void>> {
   const texto = motivo.trim();
   if (texto.length < 3) return fallo("Escribe el motivo de la anulación.", "motivo");
-  try {
+  return accion("cotizaciones.anularCotizacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.rpc("cotizacion_anular", { p_id: id, p_motivo: texto });
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -256,16 +238,14 @@ export async function anularCotizacion(id: string, motivo: string): Promise<Resu
 export async function actualizarPagoCotizacion(id: string, input: PagoCotizacionInput): Promise<Resultado<void>> {
   const parsed = pagoCotizacionSchema.safeParse(input);
   if (!parsed.success) return primerError(parsed.error.issues);
-  try {
+  return accion("cotizaciones.actualizarPagoCotizacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.from("cotizaciones").update(parsed.data).eq("id", id).select("id");
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     // Sin filas: no es suya o no tiene permiso (la RLS no da error, solo no actualiza).
     if (!data?.length) return fallo("No pudimos actualizar esta cotización.");
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
