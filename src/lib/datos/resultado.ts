@@ -27,6 +27,15 @@ export async function accion<T>(nombre: string, fn: () => Promise<Resultado<T>>)
   }
 }
 
+/**
+ * Fallo para un error que la base devolvió sin lanzarlo (`{ error }` de una consulta o un RPC), en
+ * acciones que no pueden ir dentro de `accion()` (por ejemplo, las que terminan en `redirect()`).
+ * Traduce igual y, si es inesperado, lo reporta a Sentry con la acción.
+ */
+export function falloDe<T = never>(error: unknown, nombreAccion: string): Resultado<T> {
+  return fallo(traducirError(error, nombreAccion).mensaje);
+}
+
 export class SinSesionError extends Error {
   constructor() {
     super("No hay sesión activa.");

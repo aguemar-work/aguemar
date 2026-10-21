@@ -3,8 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { clienteAnonimo } from "@/lib/datos/landing";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
-import { traducirError } from "@/lib/insforge/errores";
+import { exito, fallo, type Resultado, falloDe } from "@/lib/datos/resultado";
 import { MENSAJES_LEAD, SIN_CANAL, crearLeadSchema, mensajeLead, origenLeadSchema, type LeadInput } from "@/lib/validators/lead";
 import type { Idioma } from "@/lib/landing-textos";
 import { avisarLead } from "@/lib/correo/avisos";
@@ -88,7 +87,7 @@ ${mensajeLead(d)}` : mensajeLead(d);
         return fallo(en ? "I received several messages from your connection. Try again in an hour or message me on WhatsApp." : "Recibí varios mensajes desde tu conexión. Intenta en una hora o escríbeme por WhatsApp.");
       }
       // Datos que la base rechaza: los corrige quien escribe.
-      if (/requerido|demasiado largo/i.test(texto)) return fallo(traducirError(error).mensaje);
+      if (/requerido|demasiado largo/i.test(texto)) return falloDe(error, "landing.enviarContacto");
       return respaldo(`crear_lead: ${texto || "sin detalle"}`);
     }
     revalidatePath("/panel", "layout");

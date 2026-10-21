@@ -5,7 +5,7 @@ vi.mock("@sentry/nextjs", () => ({
   captureException: (error: unknown, opciones?: { tags?: Record<string, string> }) => capturas.push({ error, tags: opciones?.tags ?? {} }),
 }));
 
-import { accion, exito, fallo, SinPermisoError } from "@/lib/datos/resultado";
+import { accion, exito, fallo, falloDe, SinPermisoError } from "@/lib/datos/resultado";
 
 beforeEach(() => {
   capturas.length = 0;
@@ -45,5 +45,15 @@ describe("accion()", () => {
     expect(capturas[0].tags.accion).toBe("cotizaciones.guardarCotizacion");
     // La referencia que ve la persona es la misma que queda en Sentry.
     expect(mensaje).toContain(capturas[0].tags.ref);
+  });
+});
+
+describe("falloDe()", () => {
+  it("traduce el error que devolvió la base y etiqueta la acción si es inesperado", () => {
+    expect(falloDe({ code: "23505", message: "duplicate key", details: "clientes_owner_doc_idx" }, "prueba.a")).toEqual({ ok: false, error: "Ya existe un cliente con ese número de documento.", campo: undefined });
+    expect(capturas).toHaveLength(0);
+    const r = falloDe({ code: "XX000", message: "boom" }, "portal.aceptarCotizacionPortal");
+    expect(r.ok).toBe(false);
+    expect(capturas[0].tags.accion).toBe("portal.aceptarCotizacionPortal");
   });
 });

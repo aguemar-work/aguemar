@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { crearClienteServidor } from "@/lib/insforge/server";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
-import { traducirError } from "@/lib/insforge/errores";
+import { exito, fallo, type Resultado, falloDe } from "@/lib/datos/resultado";
 import type { EntidadComentario } from "@/types/database";
 import { ws } from "@/lib/datos/workspace";
 import { avisarAceptacion, avisarComentarioEmpresa, avisarSolicitud, avisosActivos } from "@/lib/correo/avisos";
@@ -33,7 +32,7 @@ export async function comentarEmpresa(slug: string, entidad: EntidadComentario, 
   const insforge = await crearClienteServidor();
   if (!insforge) return fallo("Sin sesión.");
   const { data, error } = await insforge.database.rpc("ws_comentar", { p_entidad: entidad, p_id: entidadId, p_texto: parsed.data });
-  if (error) return fallo(traducirError(error).mensaje);
+  if (error) return falloDe(error, "workspace.comentarEmpresa");
   if (entidad === "trabajo") revalidatePath(`/w/${slug}/proyectos/${entidadId}`);
   if (entidad === "actividad") revalidatePath(`/w/${slug}/calendario/${entidadId}`);
   if (entidad === "informe") revalidatePath(`/w/${slug}/informes/${entidadId}`);
@@ -58,7 +57,7 @@ export async function aceptarCotizacionEmpresa(slug: string, id: string, input: 
   const insforge = await crearClienteServidor();
   if (!insforge) return fallo("Sin sesión.");
   const { data, error } = await insforge.database.rpc("ws_aceptar_cotizacion", { p_id: id, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni });
-  if (error) return fallo(traducirError(error).mensaje);
+  if (error) return falloDe(error, "workspace.aceptarCotizacionEmpresa");
   revalidatePath(`/w/${slug}`, "layout");
   revalidatePath("/panel", "layout");
   const r = data as { ya_aceptada?: boolean; numero?: string } | null;
@@ -76,7 +75,7 @@ export async function aceptarActaEmpresa(slug: string, id: string, input: { nomb
   const insforge = await crearClienteServidor();
   if (!insforge) return fallo("Sin sesión.");
   const { data, error } = await insforge.database.rpc("ws_aceptar_acta", { p_id: id, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni });
-  if (error) return fallo(traducirError(error).mensaje);
+  if (error) return falloDe(error, "workspace.aceptarActaEmpresa");
   revalidatePath(`/w/${slug}`, "layout");
   revalidatePath("/panel", "layout");
   const r = data as { ya_aceptada?: boolean; numero?: string } | null;
@@ -109,7 +108,7 @@ export async function solicitarEmpresa(slug: string, input: z.input<typeof solic
     p_prioridad: d.prioridad,
     p_fecha_deseada: d.fecha_deseada || null,
   });
-  if (error) return fallo(traducirError(error).mensaje);
+  if (error) return falloDe(error, "workspace.solicitarEmpresa");
   revalidatePath(`/w/${slug}`, "layout");
   revalidatePath("/panel", "layout");
   if (avisosActivos()) avisarSolicitud({ empresa: nombreEmpresa(), titulo: d.titulo, descripcion: d.descripcion, prioridad: d.prioridad, fecha_deseada: d.fecha_deseada || null });

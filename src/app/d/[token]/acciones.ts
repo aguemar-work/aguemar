@@ -4,8 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { crearClienteServidor } from "@/lib/insforge/server";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
-import { traducirError } from "@/lib/insforge/errores";
+import { exito, fallo, type Resultado, falloDe } from "@/lib/datos/resultado";
 import { avisarAceptacion } from "@/lib/correo/avisos";
 import { ipDe } from "@/lib/ip";
 
@@ -31,7 +30,7 @@ export async function aceptarCotizacionPortal(token: string, input: { nombre: st
     p_ip: ipDe(h),
     p_user_agent: h.get("user-agent")?.slice(0, 300) ?? null,
   });
-  if (error) return fallo(traducirError(error).mensaje);
+  if (error) return falloDe(error, "portal.aceptarCotizacionPortal");
   revalidatePath(`/d/${token}`);
   revalidatePath("/panel", "layout");
   const r = data as { ya_aceptada?: boolean; numero?: string } | null;
@@ -49,7 +48,7 @@ export async function aceptarActaPortal(token: string, input: { nombre: string; 
   const insforge = await crearClienteServidor();
   if (!insforge) return fallo("El servicio no está disponible. Inténtalo más tarde.");
   const { data, error } = await insforge.database.rpc("aceptar_acta", { p_token: token, p_nombre: parsed.data.nombre, p_dni: parsed.data.dni });
-  if (error) return fallo(traducirError(error).mensaje);
+  if (error) return falloDe(error, "portal.aceptarActaPortal");
   revalidatePath(`/d/${token}`);
   revalidatePath("/panel", "layout");
   const r = data as { ya_aceptada?: boolean; numero?: string } | null;

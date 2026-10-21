@@ -6,8 +6,7 @@ import { crearAccionesAuth, crearClienteServidor } from "@/lib/insforge/server";
 import { clienteAnonimo } from "@/lib/datos/landing";
 import { crearUsuarioInsforge } from "@/lib/insforge/admin";
 import { envPublico } from "@/lib/env";
-import { fallo, type Resultado } from "@/lib/datos/resultado";
-import { traducirError } from "@/lib/insforge/errores";
+import { fallo, type Resultado, falloDe } from "@/lib/datos/resultado";
 import { TOKEN_INVITACION } from "@/lib/invitaciones";
 import { aceptarInvitacionSchema, type AceptarInvitacionInput } from "@/lib/validators/empresa";
 
@@ -63,7 +62,7 @@ export async function crearCuentaYAceptar(token: string, input: AceptarInvitacio
   const entrada = await sesion.auth.signInWithPassword({ email: inv.correo, password: parsed.data.contrasena });
   if (entrada.error) return fallo("Tu cuenta se creó, pero no pudimos iniciar sesión. Entra desde /login.");
   const aceptada = await sesion.database.rpc("invitacion_aceptar", { p_token: token });
-  if (aceptada.error) return fallo(traducirError(aceptada.error).mensaje);
+  if (aceptada.error) return falloDe(aceptada.error, "invitacion.crearCuentaYAceptar");
 
   // Y deja la sesión abierta en el navegador.
   const auth = await crearAccionesAuth();
@@ -77,7 +76,7 @@ export async function aceptarConSesion(token: string): Promise<Resultado<void>> 
   const insforge = await crearClienteServidor();
   if (!insforge) return fallo("El servicio no está disponible.");
   const { data, error } = await insforge.database.rpc("invitacion_aceptar", { p_token: token });
-  if (error) return fallo(traducirError(error).mensaje);
+  if (error) return falloDe(error, "invitacion.aceptarConSesion");
   redirect(destino(data as { tipo?: string; slug?: string | null } | null));
 }
 
