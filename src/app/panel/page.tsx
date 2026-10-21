@@ -9,6 +9,9 @@ import { conSesionOpcional } from "@/lib/datos/base";
 import { obtenerRol } from "@/lib/insforge/server";
 import { InicioEquipo } from "./inicio-equipo";
 import { resumenInicio, type ResumenInicio } from "@/lib/datos/inicio";
+import { obtenerPerfilMarca } from "@/lib/datos/marca";
+import { marcaIncompleta } from "@/lib/documentos";
+import type { PerfilMarcaRow } from "@/types/database";
 import { AREAS } from "@/lib/areas";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 import { diasHasta, textoVencimiento } from "@/lib/trabajos-util";
@@ -34,7 +37,9 @@ export default async function InicioPanel() {
   // El colaborador tiene su propio inicio: sus empresas, sin dinero ni leads.
   if ((await obtenerRol()).tipo === "colaborador") return <InicioEquipo />;
   const sesion = await conSesionOpcional();
-  const r: ResumenInicio | null = sesion ? await resumenInicio() : null;
+  // Resumen y marca en paralelo: una sola espera (InsForge está en us-east).
+  const [r, marca]: [ResumenInicio | null, PerfilMarcaRow | null] = sesion ? await Promise.all([resumenInicio(), obtenerPerfilMarca()]) : [null, null];
+  const faltanEnMarca = marcaIncompleta(marca);
   const hoy = r?.hoy ?? hoyLima();
   const activos = r ? r.por_estado.propuesta + r.por_estado.en_curso + r.por_estado.en_revision : 0;
 
@@ -86,6 +91,16 @@ export default async function InicioPanel() {
           </>
         }
       />
+
+      {sesion && faltanEnMarca.length ? (
+        <p role="status" className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-warn-soft px-4 py-3 text-sm text-warn dark:bg-warning-bg dark:text-warning-foreground">
+          <AlarmClock className="size-4 shrink-0" aria-hidden />
+          Completa Mi marca: a tus documentos les falta {faltanEnMarca.join(", ")}.
+          <Link href="/panel/configuracion" className="font-medium underline underline-offset-4">
+            Ir a Mi marca
+          </Link>
+        </p>
+      ) : null}
 
       <section aria-label="Lo que pide atención" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {alertas.map((a) => (

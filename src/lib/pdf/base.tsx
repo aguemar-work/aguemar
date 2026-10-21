@@ -182,10 +182,10 @@ export function Firmas({ firmas, contacto, nota, lateral, espacio = 30 }: { firm
             </View>
           ))}
         </View>
-        <Text style={[s.mono, { fontSize: 7.5, color: C.muted, marginTop: 10 }]}>
-          {contacto.length ? contacto.join("  ·  ") : "[PENDIENTE: contacto en Mi marca]"}
-          {nota ? `  ·  ${nota}` : ""}
-        </Text>
+        {/* Sin contacto en Mi marca la línea se omite: un documento nunca lleva marcadores. */}
+        {contacto.length || nota ? (
+          <Text style={[s.mono, { fontSize: 7.5, color: C.muted, marginTop: 10 }]}>{[...contacto, ...(nota ? [nota] : [])].join("  ·  ")}</Text>
+        ) : null}
       </View>
       {lateral}
     </View>

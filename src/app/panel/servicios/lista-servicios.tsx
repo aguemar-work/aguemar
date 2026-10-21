@@ -101,7 +101,7 @@ export function ListaServicios({ servicios }: Props) {
                   {s.descripcion ? <p className="line-clamp-1 max-w-md text-xs text-muted-foreground">{s.descripcion}</p> : null}
                 </TableCell>
                 <TableCell className="text-right font-mono tabular">
-                  {s.precio_base === null ? <span className="text-xs text-muted-foreground">[PENDIENTE]</span> : formatearMonto(s.precio_base)}
+                  {s.precio_base === null ? <span className="text-xs text-muted-foreground">A cotizar</span> : formatearMonto(s.precio_base)}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   <Badge variant="outline">{s.unidad}</Badge>

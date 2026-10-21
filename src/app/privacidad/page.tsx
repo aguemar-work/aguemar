@@ -29,12 +29,16 @@ function Seccion({ numero, titulo, children }: { numero: string; titulo: string;
   );
 }
 
+/** Buzón del dominio (reenvío): se usa solo si Mi marca no tiene correo. */
+const CORREO_CONTACTO = "hola@aguemar.com";
+
 export default async function PrivacidadPage() {
   const { marca } = await datosLanding();
-  const responsable = marca?.responsable ?? "[PENDIENTE: nombre del responsable]";
-  const ruc = marca?.ruc ?? "[PENDIENTE: RUC]";
-  const correo = marca?.correo ?? "[PENDIENTE: correo de contacto]";
-  const direccion = marca?.direccion ?? "[PENDIENTE: dirección]";
+  // Si a Mi marca le falta un dato, la línea se omite: una página pública nunca muestra marcadores.
+  const responsable = marca?.responsable || marca?.nombre_comercial || "aguemar";
+  const ruc = marca?.ruc || null;
+  const correo = marca?.correo || CORREO_CONTACTO;
+  const direccion = marca?.direccion || null;
 
   return (
     <div className="bg-background text-foreground">
@@ -63,7 +67,13 @@ export default async function PrivacidadPage() {
 
         <Seccion numero="01" titulo="Quién trata tus datos">
           <p>
-            <strong>{responsable}</strong> (aguemar), con RUC <span className="font-mono">{ruc}</span>, domicilio en {direccion}. Para cualquier consulta sobre
+            <strong>{responsable}</strong> (aguemar)
+            {ruc ? (
+              <>
+                , con RUC <span className="font-mono">{ruc}</span>
+              </>
+            ) : null}
+            {direccion ? `, domicilio en ${direccion}` : ""}. Para cualquier consulta sobre
             tus datos escribe a <a href={`mailto:${correo}`} className="underline underline-offset-2">{correo}</a>.
           </p>
         </Seccion>

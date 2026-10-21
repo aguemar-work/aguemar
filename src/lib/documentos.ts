@@ -191,3 +191,18 @@ export function lineas(texto: string | null | undefined): string[] {
 
 /** Nombre corto del tipo de documento para la UI. */
 export const NOMBRE_DOCUMENTO = { ficha: "Ficha técnica", brief: "Brief", acta: "Acta de entrega", cotizacion: "Cotización", informe: "Informe de avance" } as const;
+
+/**
+ * Qué le falta a Mi marca para que los documentos y /privacidad salgan completos (sin la línea
+ * de contacto, sin responsable en la firma o sin RUC). Vacío si está todo.
+ */
+export function marcaIncompleta(
+  marca: { responsable?: string | null; telefono?: string | null; correo?: string | null; ruc?: string | null } | null,
+): string[] {
+  if (!marca) return ["los datos de Mi marca"];
+  const faltan: string[] = [];
+  if (!marca.responsable?.trim()) faltan.push("el responsable");
+  if (!marca.telefono?.trim() && !marca.correo?.trim()) faltan.push("un teléfono o correo de contacto");
+  if (!marca.ruc?.trim()) faltan.push("el RUC");
+  return faltan;
+}

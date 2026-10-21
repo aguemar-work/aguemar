@@ -15,11 +15,11 @@ export const marcaSchema = z.object({
   responsable: z.string().trim().min(2, "Escribe el nombre del responsable.").max(120),
   cargo: z.string().trim().min(2, "Escribe el cargo.").max(80),
   ruc: texto(20).refine(
-    (v) => !v || v.startsWith("[PENDIENTE") || esRucValido(v),
+    (v) => !v || esRucValido(v),
     "El RUC debe tener 11 dígitos válidos.",
   ),
   telefono: texto(40),
-  correo: texto(120).refine((v) => !v || v.startsWith("[PENDIENTE") || z.string().email().safeParse(v).success, "Escribe un correo válido."),
+  correo: texto(120).refine((v) => !v || z.string().email().safeParse(v).success, "Escribe un correo válido."),
   web: texto(200),
   direccion: texto(300),
   /** IGV en porcentaje con hasta 2 decimales, p. ej. 18 o 18.00 */
