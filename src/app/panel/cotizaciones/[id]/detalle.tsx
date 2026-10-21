@@ -62,6 +62,7 @@ export async function DetalleCotizacion({ id }: { id: string }) {
             vence={formatearFecha(vence)}
             empresa={{ nombre: empresa?.nombre ?? "la empresa", contacto: empresa?.contacto ?? null, telefono: empresa?.telefono ?? null, slug: empresa?.slug ?? null, conWorkspace }}
             token={enlace && !enlace.revocado ? enlace.token : null}
+            aceptadaEn={estado === "aceptada" ? (aceptacion?.aceptado_en ?? c.aceptada_en ?? null) : null}
           />
         }
       />

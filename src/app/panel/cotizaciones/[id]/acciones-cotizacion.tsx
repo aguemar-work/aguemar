@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Campo } from "@/components/formulario/campo";
-import { formatearMonto, type Moneda } from "@/lib/format";
+import { formatearFecha, formatearMonto, hoyLima, type Moneda } from "@/lib/format";
+import { mensajeWhatsAppCotizacion } from "@/lib/cotizacion";
 import type { EstadoCotizacion } from "@/types/database";
 import { aceptarCotizacion, duplicarCotizacion, enviarCotizacion, rechazarCotizacion } from "../acciones";
 
@@ -27,10 +28,12 @@ interface Props {
   empresa: { nombre: string; contacto: string | null; telefono: string | null; slug: string | null; conWorkspace: boolean };
   /** Token del portal (/d/…) si la cotización ya tiene enlace. */
   token: string | null;
+  /** Fecha de aceptación (ISO) si está aceptada. */
+  aceptadaEn: string | null;
 }
 
 /** Acciones de una cotización según su estado: editar, enviar, aceptar, rechazar, duplicar, PDF y WhatsApp. */
-export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, vence, empresa, token: tokenInicial }: Props) {
+export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, vence, empresa, token: tokenInicial, aceptadaEn }: Props) {
   const router = useRouter();
   const [pendiente, iniciar] = useTransition();
   const [token, setToken] = useState(tokenInicial);
@@ -90,7 +93,7 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
               </DropdownMenuItem>
             ) : null}
             <DropdownMenuItem onSelect={() => setDialogo("mensaje")}>
-              <MessageCircle /> Mensaje para WhatsApp
+              <MessageCircle /> {estado === "aceptada" ? "Confirmar por WhatsApp" : "Mensaje para WhatsApp"}
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <a href={`/panel/cotizaciones/${id}/pdf?descargar=1`}>
@@ -109,7 +112,14 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
         </DropdownMenu>
       </div>
 
-      <DialogoAceptar abierto={dialogo === "aceptar"} onCerrar={() => setDialogo(null)} id={id} contacto={empresa.contacto} total={formatearMonto(total, moneda)} />
+      <DialogoAceptar
+        abierto={dialogo === "aceptar"}
+        onCerrar={() => setDialogo(null)}
+        onAceptada={() => setDialogo("mensaje")}
+        id={id}
+        contacto={empresa.contacto}
+        total={formatearMonto(total, moneda)}
+      />
       <DialogoRechazar abierto={dialogo === "rechazar"} onCerrar={() => setDialogo(null)} id={id} />
       <DialogoMensaje
         abierto={dialogo === "mensaje"}
@@ -121,12 +131,28 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
         vence={vence}
         empresa={empresa}
         token={token}
+        // Recién aceptada, la fecha del servidor puede no haber llegado aún: es hoy.
+        aceptadaEl={estado === "aceptada" || aceptadaEn ? formatearFecha(aceptadaEn ? aceptadaEn.slice(0, 10) : hoyLima()) : null}
       />
     </>
   );
 }
 
-function DialogoAceptar({ abierto, onCerrar, id, contacto, total }: { abierto: boolean; onCerrar: () => void; id: string; contacto: string | null; total: string }) {
+function DialogoAceptar({
+  abierto,
+  onCerrar,
+  onAceptada,
+  id,
+  contacto,
+  total,
+}: {
+  abierto: boolean;
+  onCerrar: () => void;
+  onAceptada: () => void;
+  id: string;
+  contacto: string | null;
+  total: string;
+}) {
   const router = useRouter();
   const [nombre, setNombre] = useState(contacto ?? "");
   const [dni, setDni] = useState("");
@@ -139,6 +165,8 @@ function DialogoAceptar({ abierto, onCerrar, id, contacto, total }: { abierto: b
       const r = await aceptarCotizacion(id, { nombre, dni });
       if (!r.ok) return setError(r.error);
       onCerrar();
+      // Último paso del flujo: mandar al contacto la cotización aceptada por WhatsApp.
+      onAceptada();
       toast.success("Aceptada. El trabajo ya está creado y en curso.", {
         action: r.data.trabajoId ? { label: "Ver trabajo", onClick: () => router.push(`/panel/trabajos/${r.data.trabajoId}`) } : undefined,
       });
@@ -222,8 +250,10 @@ function DialogoMensaje({
   vence,
   empresa,
   token,
+  aceptadaEl,
 }: {
   token: string | null;
+  aceptadaEl: string | null;
   abierto: boolean;
   onCerrar: () => void;
   id: string;
@@ -234,12 +264,12 @@ function DialogoMensaje({
   empresa: Props["empresa"];
 }) {
   const origen = typeof window === "undefined" ? "" : window.location.origin;
-  const saludo = empresa.contacto ? `Hola ${empresa.contacto.split(" ")[0]}` : "Hola";
-  const texto = empresa.conWorkspace
-    ? `${saludo}, te envío la cotización ${numero} (${asunto}) por ${total}, válida hasta el ${vence}. Puedes revisarla, descargar el PDF y aceptarla en tu espacio: ${origen}/w/${empresa.slug}/cotizaciones/${id}`
+  const enlace = empresa.conWorkspace
+    ? { url: `${origen}/w/${empresa.slug}/cotizaciones/${id}`, via: "workspace" as const }
     : token
-      ? `${saludo}, te envío la cotización ${numero} (${asunto}) por ${total}, válida hasta el ${vence}. Aquí puedes verla, descargar el PDF y aceptarla: ${origen}/d/${token}`
-      : `${saludo}, te envío la cotización ${numero} (${asunto}) por ${total}, válida hasta el ${vence}. Te adjunto el PDF; cualquier duda me escribes.`;
+      ? { url: `${origen}/d/${token}`, via: "portal" as const }
+      : null;
+  const texto = mensajeWhatsAppCotizacion({ numero, asunto, total, vence, contacto: empresa.contacto, enlace, aceptadaEl });
   const telefono = (empresa.telefono ?? "").replace(/\D/g, "");
   const wa = telefono ? `https://wa.me/${telefono.length === 9 ? `51${telefono}` : telefono}?text=${encodeURIComponent(texto)}` : null;
 
@@ -247,9 +277,11 @@ function DialogoMensaje({
     <Dialog open={abierto} onOpenChange={(o) => (o ? null : onCerrar())}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Mensaje para {empresa.nombre}</DialogTitle>
+          <DialogTitle>{aceptadaEl ? `Confirmar a ${empresa.nombre}` : `Mensaje para ${empresa.nombre}`}</DialogTitle>
           <DialogDescription>
-            {empresa.conWorkspace
+            {aceptadaEl
+              ? "Envía al contacto la cotización aceptada con su PDF: es la confirmación final por WhatsApp."
+              : empresa.conWorkspace
               ? "La empresa tiene el módulo Cotizaciones: el enlace la lleva a su espacio."
               : token
                 ? "El enlace abre la cotización sin iniciar sesión; desde ahí la pueden aceptar con nombre y DNI."
@@ -258,13 +290,12 @@ function DialogoMensaje({
         </DialogHeader>
         <p className="whitespace-pre-line rounded-md bg-soft p-3 text-sm dark:bg-secondary/50">{texto}</p>
         <DialogFooter>
-          {!empresa.conWorkspace ? (
-            <Button asChild variant="outline">
-              <a href={`/panel/cotizaciones/${id}/pdf?descargar=1`}>
-                <FileDown /> Descargar PDF
-              </a>
-            </Button>
-          ) : null}
+          {/* Siempre: la cotización se manda en PDF por WhatsApp, tenga o no la empresa su espacio. */}
+          <Button asChild variant="outline">
+            <a href={`/panel/cotizaciones/${id}/pdf?descargar=1`}>
+              <FileDown /> {aceptadaEl ? "Descargar PDF aceptado" : "Descargar PDF"}
+            </a>
+          </Button>
           <Button
             variant="outline"
             onClick={async () => {

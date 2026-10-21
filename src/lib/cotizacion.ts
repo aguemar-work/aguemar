@@ -123,3 +123,37 @@ export const ETIQUETA_RECORDATORIO: Record<"previo" | "atraso_1" | "atraso_7", s
   atraso_1: "Al vencer",
   atraso_7: "7 días de atraso",
 };
+
+/** Datos del mensaje de WhatsApp de una cotización (ya formateados para mostrar). */
+export interface DatosMensajeCotizacion {
+  numero: string | null;
+  asunto: string;
+  total: string;
+  vence: string;
+  contacto: string | null;
+  /** Enlace completo y por dónde lleva: el espacio de la empresa o el portal público. */
+  enlace: { url: string; via: "workspace" | "portal" } | null;
+  /** Si ya está aceptada: la fecha (dd/mm/aaaa). Cambia el mensaje a la confirmación final. */
+  aceptadaEl: string | null;
+}
+
+/**
+ * Texto para WhatsApp. La cotización siempre se manda y se confirma por WhatsApp (respuesta del
+ * 21/10): al enviarla invita a revisarla y aceptarla; ya aceptada, confirma lo aceptado y acompaña
+ * el PDF congelado.
+ */
+export function mensajeWhatsAppCotizacion(d: DatosMensajeCotizacion): string {
+  const saludo = d.contacto ? `Hola ${d.contacto.split(" ")[0]}` : "Hola";
+  const cot = d.numero ? `la cotización ${d.numero} (${d.asunto}) por ${d.total}` : `la cotización (${d.asunto}) por ${d.total}`;
+  if (d.aceptadaEl) {
+    const ver = d.enlace ? ` También la puedes ver aquí: ${d.enlace.url}` : "";
+    return `${saludo}, te confirmo ${cot}, aceptada el ${d.aceptadaEl}. Te adjunto el PDF de lo aceptado.${ver}`;
+  }
+  if (d.enlace?.via === "workspace") {
+    return `${saludo}, te envío ${cot}, válida hasta el ${d.vence}. Puedes revisarla, descargar el PDF y aceptarla en tu espacio: ${d.enlace.url}`;
+  }
+  if (d.enlace) {
+    return `${saludo}, te envío ${cot}, válida hasta el ${d.vence}. Aquí puedes verla, descargar el PDF y aceptarla: ${d.enlace.url}`;
+  }
+  return `${saludo}, te envío ${cot}, válida hasta el ${d.vence}. Te adjunto el PDF; cualquier duda me escribes.`;
+}

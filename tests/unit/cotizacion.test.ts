@@ -71,3 +71,24 @@ describe("estado del pago", () => {
     expect(pagoCotizacionSchema.safeParse({}).success).toBe(false);
   });
 });
+
+describe("mensaje de WhatsApp de la cotización", async () => {
+  const { mensajeWhatsAppCotizacion } = await import("@/lib/cotizacion");
+  const base = { numero: "COT-2026-007", asunto: "Web corporativa", total: "S/ 1 234,50", vence: "05/11/2026", contacto: "Ana María Pérez", enlace: null, aceptadaEl: null };
+
+  it("al enviar: invita a revisar y aceptar según por dónde va el enlace", () => {
+    expect(mensajeWhatsAppCotizacion({ ...base, enlace: { url: "https://aguemar.com/w/sgc/cotizaciones/1", via: "workspace" } })).toBe(
+      "Hola Ana, te envío la cotización COT-2026-007 (Web corporativa) por S/ 1 234,50, válida hasta el 05/11/2026. Puedes revisarla, descargar el PDF y aceptarla en tu espacio: https://aguemar.com/w/sgc/cotizaciones/1",
+    );
+    expect(mensajeWhatsAppCotizacion({ ...base, enlace: { url: "https://aguemar.com/d/tok", via: "portal" } })).toContain("Aquí puedes verla, descargar el PDF y aceptarla: https://aguemar.com/d/tok");
+    expect(mensajeWhatsAppCotizacion({ ...base, contacto: null })).toBe(
+      "Hola, te envío la cotización COT-2026-007 (Web corporativa) por S/ 1 234,50, válida hasta el 05/11/2026. Te adjunto el PDF; cualquier duda me escribes.",
+    );
+  });
+
+  it("ya aceptada: confirma lo aceptado y no vuelve a pedir que la acepte", () => {
+    const m = mensajeWhatsAppCotizacion({ ...base, aceptadaEl: "21/10/2026", enlace: { url: "https://aguemar.com/d/tok", via: "portal" } });
+    expect(m).toBe("Hola Ana, te confirmo la cotización COT-2026-007 (Web corporativa) por S/ 1 234,50, aceptada el 21/10/2026. Te adjunto el PDF de lo aceptado. También la puedes ver aquí: https://aguemar.com/d/tok");
+    expect(m).not.toMatch(/aceptarla|válida hasta/);
+  });
+});
