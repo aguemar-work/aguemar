@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
-import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
+import { accion, exito, fallo, type Resultado, falloDe } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { EQUIPO_NUEVO, fichaSchema, type FichaInput } from "@/lib/validators/ficha";
 import type { TipoDocumento } from "@/types/database";
@@ -33,7 +33,7 @@ async function resolverEquipo(db: Db, ownerId: string, clienteId: string, datos:
     const id = (existente.data as { id: string } | null)?.id;
     if (id) {
       const { error } = await db.from("equipos").update(equipo).eq("id", id);
-      if (error) return fallo(traducirError(error).mensaje);
+      if (error) return falloDe(error, "fichas.resolverEquipo");
       return exito(id);
     }
     const { data, error } = await db
@@ -53,7 +53,7 @@ async function resolverEquipo(db: Db, ownerId: string, clienteId: string, datos:
     void _serie;
     if (Object.keys(sinSerie).length) {
       const { error } = await db.from("equipos").update(sinSerie).eq("id", datos.equipo_id);
-      if (error) return fallo(traducirError(error).mensaje);
+      if (error) return falloDe(error, "fichas.resolverEquipo");
     }
   }
   return exito(datos.equipo_id);

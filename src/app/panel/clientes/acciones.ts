@@ -101,11 +101,11 @@ export async function actualizarModulosEmpresa(clienteId: string, modulos: Clave
 export async function invitarEmpresa(clienteId: string, input: InvitarEmpresaInput): Promise<Resultado<{ enlace: string }>> {
   const parsed = invitarEmpresaSchema.safeParse(input);
   if (!parsed.success) return fallo(parsed.error.issues[0]?.message ?? "Revisa el correo.", "correo");
-  try {
+  return accion("clientes.invitarEmpresa", async () => {
     await exigirPropietario();
     const { db, usuario } = await conSesion();
     const empresa = await db.from("clientes").select("id, nombre, contacto, usuario_id").eq("id", clienteId).maybeSingle();
-    if (empresa.error) return fallo(traducirError(empresa.error).mensaje);
+    if (empresa.error) throw empresa.error;
     const e = empresa.data as { id: string; nombre: string; contacto: string | null; usuario_id: string | null } | null;
     if (!e) return fallo("No encontramos la empresa.");
     if (e.usuario_id) return fallo("Esta empresa ya tiene un acceso. Quítalo primero si quieres cambiar el correo.");
@@ -117,43 +117,37 @@ export async function invitarEmpresa(clienteId: string, input: InvitarEmpresaInp
       .insert([{ owner_id: usuario.id, tipo: "empresa", correo: parsed.data.correo, nombre: e.contacto, cliente_id: clienteId }])
       .select("token")
       .single();
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     const enlace = enlaceInvitacion((data as { token: string }).token);
     avisarInvitacion({ correo: parsed.data.correo, enlace, tipo: "empresa", empresa: e.nombre, nombre: e.contacto });
     revalidatePath(`/panel/clientes/${clienteId}`);
     return exito({ enlace });
-  } catch (err) {
-    return fallo(traducirError(err).mensaje);
-  }
+  });
 }
 
 /** Nuevo enlace (y 7 días más) para una invitación pendiente; el anterior deja de servir. */
 export async function renovarInvitacion(invitacionId: string, ruta: string): Promise<Resultado<{ enlace: string }>> {
-  try {
+  return accion("clientes.renovarInvitacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.rpc("invitacion_renovar", { p_id: invitacionId });
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     if (!data) return fallo("La invitación ya no está pendiente.");
     revalidatePath(ruta);
     return exito({ enlace: enlaceInvitacion(data as string) });
-  } catch (err) {
-    return fallo(traducirError(err).mensaje);
-  }
+  });
 }
 
 /** Anula una invitación pendiente: su enlace deja de funcionar. */
 export async function revocarInvitacion(invitacionId: string, ruta: string): Promise<Resultado<void>> {
-  try {
+  return accion("clientes.revocarInvitacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("invitaciones").update({ revocada: true }).eq("id", invitacionId).is("usada_en", null);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidatePath(ruta);
     return exito(undefined);
-  } catch (err) {
-    return fallo(traducirError(err).mensaje);
-  }
+  });
 }
 
 /**
@@ -161,16 +155,14 @@ export async function revocarInvitacion(invitacionId: string, ruta: string): Pro
  * cada consulta del workspace revisa ese vínculo (aunque su sesión siga abierta).
  */
 export async function quitarAccesoEmpresa(clienteId: string): Promise<Resultado<void>> {
-  try {
+  return accion("clientes.quitarAccesoEmpresa", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("clientes").update({ usuario_id: null }).eq("id", clienteId);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidatePath(`/panel/clientes/${clienteId}`);
     return exito(undefined);
-  } catch (err) {
-    return fallo(traducirError(err).mensaje);
-  }
+  });
 }
 
 /**
@@ -178,7 +170,7 @@ export async function quitarAccesoEmpresa(clienteId: string): Promise<Resultado<
  * nueva en /login/recuperar. Reemplaza a "restablecer contraseña" desde el panel.
  */
 export async function enviarRecuperacionEmpresa(clienteId: string): Promise<Resultado<{ correo: string }>> {
-  try {
+  return accion("clientes.enviarRecuperacionEmpresa", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const empresa = await db.from("clientes").select("usuario_id").eq("id", clienteId).maybeSingle();
@@ -197,9 +189,7 @@ export async function enviarRecuperacionEmpresa(clienteId: string): Promise<Resu
       return fallo(`No se pudo enviar el código: ${error.message}`);
     }
     return exito({ correo });
-  } catch (err) {
-    return fallo(traducirError(err).mensaje);
-  }
+  });
 }
 
 /** Activa o desactiva los avisos por correo a la empresa. */

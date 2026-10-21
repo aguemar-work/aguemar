@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
 import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
-import { traducirError } from "@/lib/insforge/errores";
 import { actaSchema, briefSchema, type ActaInput, type BriefInput } from "@/lib/validators/brief-acta";
 import { aceptacionSchema } from "@/lib/validators/cotizacion";
 import { avisarDocumentoEmpresa } from "@/lib/correo/avisos";
@@ -20,11 +19,11 @@ function primerError(issues: { message: string; path: PropertyKey[] }[]) {
 }
 
 async function guardar(tabla: "briefs" | "actas_entrega", datos: Record<string, unknown>, id?: string): Promise<Resultado<{ id: string }>> {
-  try {
+  return accion("documentos.guardar", async () => {
     const { db, usuario } = await conSesion();
     if (id) {
       const { error } = await db.from(tabla).update(datos).eq("id", id);
-      if (error) return fallo(traducirError(error).mensaje);
+      if (error) throw error;
       revalidar();
       return exito({ id });
     }
@@ -33,12 +32,10 @@ async function guardar(tabla: "briefs" | "actas_entrega", datos: Record<string, 
       .insert([{ ...datos, owner_id: usuario.id }])
       .select("id")
       .single();
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito({ id: (data as { id: string }).id });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 // ---------------------------------------------------------------------------
