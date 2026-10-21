@@ -46,3 +46,33 @@ describe("formulario de contacto", () => {
     expect(bot.error?.issues[0].path).toEqual(["sitio_web"]);
   });
 });
+
+describe("metadatos y datos estructurados de la landing", () => {
+  it("las dos versiones llevan imagen para compartir", async () => {
+    const { metadataLanding } = await import("@/lib/landing-meta");
+    for (const idioma of ["es", "en"] as const) {
+      const m = metadataLanding(idioma);
+      expect(m.openGraph?.images).toBeTruthy();
+      expect(m.twitter?.images).toBeTruthy();
+    }
+  });
+
+  it("el JSON-LD no publica datos personales del responsable", async () => {
+    const { jsonLdLanding } = await import("@/lib/landing-meta");
+    const marca = {
+      nombre_comercial: "aguemar", responsable: "Nombre Completo Del Responsable", cargo: "Gerente",
+      ruc: null, telefono: "924262338", correo: "persona@gmail.com", web: null, direccion: null,
+    };
+    const ld = jsonLdLanding({ idioma: "en", sitio: "https://aguemar.com", marca, servicios: [], telefono: marca.telefono });
+    const texto = JSON.stringify(ld);
+    expect(texto).not.toContain("Nombre Completo Del Responsable");
+    expect(texto).not.toContain("gmail.com");
+    expect(ld).not.toHaveProperty("inLanguage");
+    expect(ld).not.toHaveProperty("founder");
+    expect(ld.url).toBe("https://aguemar.com/en");
+    expect(ld.telephone).toBe("+51924262338");
+    const conDominio = jsonLdLanding({ idioma: "es", sitio: "https://aguemar.com", marca: { ...marca, correo: "hola@aguemar.com" }, servicios: [], telefono: null });
+    expect(conDominio.email).toBe("hola@aguemar.com");
+    expect(conDominio.url).toBe("https://aguemar.com");
+  });
+});

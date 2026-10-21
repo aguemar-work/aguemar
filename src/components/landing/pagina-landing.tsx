@@ -15,9 +15,10 @@ import { Fila, ListaFilas } from "@/components/landing/fila";
 import { Servicios } from "@/components/landing/servicios";
 import { Proyectos } from "@/components/landing/proyectos";
 import { datosLanding } from "@/lib/datos/landing";
-import { enlaceWhatsApp, numeroWhatsApp, telefonoLegible } from "@/lib/landing";
+import { enlaceWhatsApp, telefonoLegible } from "@/lib/landing";
 import { contenidoLanding } from "@/lib/landing-contenido";
 import { RUTA_IDIOMA, TEXTOS, type Idioma } from "@/lib/landing-textos";
+import { jsonLdLanding } from "@/lib/landing-meta";
 import { envPublico } from "@/lib/env";
 
 // El formulario (React Hook Form + Zod) se carga aparte: la landing es casi estática y así pesa menos al entrar.
@@ -45,24 +46,7 @@ export async function PaginaLanding({ idioma }: { idioma: Idioma }) {
     </Link>
   );
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    name: nombre,
-    description: t.meta.descripcion,
-    url: `${envPublico.NEXT_PUBLIC_SITE_URL}${RUTA_IDIOMA[idioma] === "/" ? "" : RUTA_IDIOMA[idioma]}`,
-    inLanguage: t.codigo,
-    logo: `${envPublico.NEXT_PUBLIC_SITE_URL}/logo.svg`,
-    areaServed: { "@type": "Country", name: idioma === "es" ? "Perú" : "Peru" },
-    ...(marca?.responsable ? { founder: { "@type": "Person", name: marca.responsable } } : {}),
-    ...(numeroWhatsApp(telefono) ? { telephone: `+${numeroWhatsApp(telefono)}` } : {}),
-    ...(marca?.correo ? { email: marca.correo } : {}),
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: t.meta.catalogo,
-      itemListElement: servicios.map((s) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: s.nombre, description: s.descripcion ?? undefined } })),
-    },
-  };
+  const jsonLd = jsonLdLanding({ idioma, sitio: envPublico.NEXT_PUBLIC_SITE_URL, marca, servicios, telefono });
 
   return (
     // La landing es siempre oscura. En escritorio: columna izquierda fija y contenido a la derecha.
