@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
-import { traducirError } from "@/lib/insforge/errores";
+import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { enlaceInvitacion } from "@/lib/invitaciones";
 import { avisarInvitacion } from "@/lib/correo/avisos";
 import {
@@ -22,7 +21,7 @@ export async function invitarColaborador(input: InvitarColaboradorInput): Promis
     const issue = parsed.error.issues[0];
     return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
   }
-  try {
+  return accion("equipo.invitarColaborador", async () => {
     await exigirPropietario();
     const { db, usuario } = await conSesion();
     // Una invitación pendiente por correo: la anterior se anula.
@@ -32,28 +31,24 @@ export async function invitarColaborador(input: InvitarColaboradorInput): Promis
       .insert([{ owner_id: usuario.id, tipo: "colaborador", correo: parsed.data.correo, nombre: parsed.data.nombre, empresas: parsed.data.empresas }])
       .select("token")
       .single();
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     const enlace = enlaceInvitacion((data as { token: string }).token);
     avisarInvitacion({ correo: parsed.data.correo, enlace, tipo: "colaborador", nombre: parsed.data.nombre });
     revalidatePath(RUTA);
     return exito({ enlace });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /** Cambia las empresas asignadas o desactiva al colaborador (desactivado, no ve nada al instante). */
 export async function actualizarColaborador(usuarioId: string, input: ActualizarColaboradorInput): Promise<Resultado<void>> {
   const parsed = actualizarColaboradorSchema.safeParse(input);
   if (!parsed.success) return fallo(parsed.error.issues[0]?.message ?? "Revisa los datos.");
-  try {
+  return accion("equipo.actualizarColaborador", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.rpc("equipo_actualizar", { p_usuario: usuarioId, p_activo: parsed.data.activo, p_empresas: parsed.data.empresas });
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidatePath(RUTA);
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
