@@ -109,6 +109,10 @@
   * {
     @apply border-border;
   }
+  /* El foco nunca queda bajo la topbar fija de 64 px (WCAG 2.4.11). */
+  html {
+    scroll-padding-top: 4.5rem;
+  }
   html {
     color-scheme: light;
   }

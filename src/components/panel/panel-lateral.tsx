@@ -55,7 +55,7 @@ export function PanelLateral({ etiqueta, ancho = "md", children }: Props) {
         <SheetContent
           side="right"
           aria-describedby={undefined}
-          className={cn("w-full overflow-y-auto p-0 data-[state=open]:duration-300", ancho === "xl" ? "sm:max-w-5xl" : "sm:max-w-2xl")}
+          className={cn("w-full scroll-pb-24 overflow-y-auto p-0 data-[state=open]:duration-300", ancho === "xl" ? "sm:max-w-5xl" : "sm:max-w-2xl")}
         >
           <SheetTitle className="sr-only">{etiqueta}</SheetTitle>
           <div className="px-4 pb-6 pt-12 sm:px-8">{children}</div>

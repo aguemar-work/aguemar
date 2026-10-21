@@ -58,7 +58,7 @@ export function VistaMes({
   const dias = porDia(items);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border" role="grid" aria-label="Calendario del mes">
+    <div className="overflow-hidden rounded-lg border border-border" role="table" aria-label="Calendario del mes">
       <div className="grid grid-cols-7 border-b border-border bg-soft/70 text-center text-xs font-medium text-muted-foreground dark:bg-secondary/40" role="row">
         {DIAS_SEMANA.map((d) => (
           <div key={d} className="py-2" role="columnheader">
@@ -75,7 +75,7 @@ export function VistaMes({
             return (
               <div
                 key={d.fecha}
-                role="gridcell"
+                role="cell"
                 aria-label={`${fechaLarga(d.fecha)}: ${del.length} ${del.length === 1 ? "evento" : "eventos"}`}
                 className={cn("group relative min-h-24 border-r border-border p-1 last:border-r-0", !d.delMes && "bg-soft/40 dark:bg-secondary/20")}
               >
@@ -83,7 +83,7 @@ export function VistaMes({
                   <span
                     className={cn(
                       "flex size-6 items-center justify-center rounded-full font-mono text-xs",
-                      esHoy ? "bg-mint-ink font-semibold text-white dark:bg-mint dark:text-ink" : d.delMes ? "text-foreground" : "text-muted-foreground/60",
+                      esHoy ? "bg-mint-ink font-semibold text-white dark:bg-mint dark:text-ink" : d.delMes ? "text-foreground" : "text-muted-foreground/80",
                     )}
                   >
                     {d.dia}
