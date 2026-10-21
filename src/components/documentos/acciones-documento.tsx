@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { avisoError } from "@/lib/avisos";
@@ -115,9 +115,12 @@ export function AccionesDocumento({ tipo, id, numero, titular, publicada, token:
 }
 
 function useOrigen() {
-  const [origen, setOrigen] = useState("");
-  useEffect(() => setOrigen(window.location.origin), []);
-  return origen;
+  // "" en el servidor y en la hidratación; el origen real ya en el navegador.
+  return useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => "",
+  );
 }
 
 function DialogoEnlace({
@@ -138,13 +141,22 @@ function DialogoEnlace({
   onToken: (t: string | null) => void;
 }) {
   const origen = useOrigen();
-  const [qr, setQr] = useState<string>();
+  // El QR se guarda junto a la URL para la que se generó: si la URL cambia, el anterior ya no vale.
+  const [qrGenerado, setQrGenerado] = useState<{ url: string; imagen: string }>();
   const [pendiente, iniciar] = useTransition();
   const url = token && origen ? urlPortal(origen, token) : "";
+  const qr = qrGenerado && qrGenerado.url === url ? qrGenerado.imagen : undefined;
 
   useEffect(() => {
-    if (!url) return setQr(undefined);
-    QRCode.toDataURL(url, { margin: 1, width: 220, color: { dark: "#0A0F1A", light: "#FFFFFF" } }).then(setQr, () => setQr(undefined));
+    if (!url) return;
+    let vigente = true;
+    QRCode.toDataURL(url, { margin: 1, width: 220, color: { dark: "#0A0F1A", light: "#FFFFFF" } }).then(
+      (imagen) => vigente && setQrGenerado({ url, imagen }),
+      () => vigente && setQrGenerado(undefined),
+    );
+    return () => {
+      vigente = false;
+    };
   }, [url]);
 
   const renovar = () =>

@@ -42,10 +42,10 @@ jobs:
       - name: Tests unitarios
         run: npm test
 
-      # Informativo hasta resolver SEG-10 (avisos de postcss dentro de next y de la cadena de eslint-config-next).
+      # Falla con cualquier vulnerabilidad alta de producción. Con Next 16 quedó en 0; lo que sigue marcando
+      # `npm audit` sin --omit=dev es solo de herramientas de desarrollo (braces vía eslint-config-next).
       - name: Auditoría de dependencias de producción
         run: npm audit --omit=dev --audit-level=high
-        continue-on-error: true
 
       # Caché de compilación de Next: el build tarda ~1 min; con la caché, bastante menos.
       - uses: actions/cache@v4

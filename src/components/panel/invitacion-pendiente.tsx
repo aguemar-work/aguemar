@@ -25,7 +25,9 @@ export function InvitacionPendiente({ id, token, correo, expiraEn, tipo, ruta }:
   const [enlace, setEnlace] = useState(() => enlaceInvitacion(token));
   const [copiado, setCopiado] = useState(false);
   const [pendiente, iniciar] = useTransition();
-  const vencida = new Date(expiraEn).getTime() < Date.now();
+  // La hora se fija al montar: leerla en cada render no es puro (y el estado de "vencida" no necesita más).
+  const [ahora] = useState(() => Date.now());
+  const vencida = new Date(expiraEn).getTime() < ahora;
 
   const copiar = async () => {
     try {

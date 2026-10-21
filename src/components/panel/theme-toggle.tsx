@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { Moon, Sun, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,12 @@ import {
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const [montado, setMontado] = useState(false);
-  useEffect(() => setMontado(true), []);
+  // false en el servidor y en la hidratación, true ya en el navegador (el tema solo se conoce allí).
+  const montado = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   return (
     <DropdownMenu>
