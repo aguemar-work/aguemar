@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
+import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { segundosDeEspera, traducirError } from "@/lib/insforge/errores";
 import { clienteSchema, type ClienteInput } from "@/lib/validators/cliente";
 import { invitarEmpresaSchema, modulosSchema, type InvitarEmpresaInput } from "@/lib/validators/empresa";
@@ -19,7 +19,7 @@ export async function guardarCliente(input: ClienteInput, id?: string): Promise<
     return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
   }
 
-  try {
+  return accion("clientes.guardarCliente", async () => {
     await exigirPropietario();
     const { db, usuario } = await conSesion();
     const datos = parsed.data;
@@ -54,13 +54,11 @@ export async function guardarCliente(input: ClienteInput, id?: string): Promise<
     revalidatePath("/panel/clientes");
     revalidatePath("/panel");
     return exito({ id: (data as { id: string }).id });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 export async function eliminarCliente(id: string): Promise<Resultado<void>> {
-  try {
+  return accion("clientes.eliminarCliente", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const [cot, fichas] = await Promise.all([
@@ -71,14 +69,12 @@ export async function eliminarCliente(id: string): Promise<Resultado<void>> {
       return fallo("Este cliente tiene cotizaciones o fichas. No se puede eliminar; puedes editarlo o dejarlo como está.");
     }
     const { error } = await db.from("clientes").delete().eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidatePath("/panel/clientes");
     revalidatePath("/panel/equipos");
     revalidatePath("/panel");
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -87,16 +83,14 @@ export async function eliminarCliente(id: string): Promise<Resultado<void>> {
 export async function actualizarModulosEmpresa(clienteId: string, modulos: ClaveModulo[]): Promise<Resultado<void>> {
   const parsed = modulosSchema.safeParse(modulos);
   if (!parsed.success) return fallo("Módulo desconocido.");
-  try {
+  return accion("clientes.actualizarModulosEmpresa", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("clientes").update({ modulos: parsed.data }).eq("id", clienteId);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidatePath(`/panel/clientes/${clienteId}`);
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /**
@@ -210,14 +204,12 @@ export async function enviarRecuperacionEmpresa(clienteId: string): Promise<Resu
 
 /** Activa o desactiva los avisos por correo a la empresa. */
 export async function cambiarAvisosEmpresa(clienteId: string, avisos: boolean): Promise<Resultado<void>> {
-  try {
+  return accion("clientes.cambiarAvisosEmpresa", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("clientes").update({ avisos_correo: avisos }).eq("id", clienteId);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidatePath(`/panel/clientes/${clienteId}`);
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
