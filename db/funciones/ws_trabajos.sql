@@ -1,4 +1,4 @@
--- Vigente según migrations/20261014152859_empresas-workspaces.sql.
+-- Vigente según migrations/20261021161042_ws-modulos.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.ws_trabajos()
@@ -21,5 +21,6 @@ as $$
       'comentarios', (select count(*) from public.comentarios k where k.entidad = 'trabajo' and k.entidad_id = t.id)
     ) as fila
   ) f
-  where t.cliente_id = public.ws_empresa_id() and t.visible_empresa and t.estado <> 'cancelado';
+  where t.cliente_id = public.ws_empresa_id() and t.visible_empresa and t.estado <> 'cancelado'
+    and public.ws_modulo_activo('proyectos');
 $$;

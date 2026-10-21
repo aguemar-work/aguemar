@@ -425,3 +425,34 @@ test("crear_lead: el tope por IP va antes que el global y el global se distingue
     await limpiar();
   }
 });
+
+test("con el módulo Proyectos desactivado, la base no entrega trabajos ni sus comentarios (ARQ-006)", async () => {
+  const { c: duenio } = await sesion(PROPIETARIO);
+  const b = await duenio.database.from("clientes").select("id, modulos").eq("slug", "empresa-b").single();
+  expect(b.error).toBeNull();
+  const modulos = b.data!.modulos as string[];
+  const trabajoB = await duenio.database.from("trabajos").select("id").eq("cliente_id", b.data!.id).eq("visible_empresa", true).limit(1).single();
+  expect(trabajoB.error, "staging necesita un trabajo visible de la empresa B (npm run staging:cuentas)").toBeNull();
+  const id = trabajoB.data!.id as string;
+  const marca = `E2E modulo ${Date.now()}`;
+  const { c: sesionB } = await sesion(EMPRESA_B);
+
+  try {
+    // Con el módulo activo: ve el trabajo y puede comentar.
+    await duenio.database.from("clientes").update({ modulos: Array.from(new Set([...modulos, "proyectos"])) }).eq("id", b.data!.id);
+    expect(((await sesionB.database.rpc("ws_trabajos")).data as { id: string }[]).map((t) => t.id)).toContain(id);
+    expect((await sesionB.database.rpc("ws_trabajo", { p_id: id })).data).not.toBeNull();
+    expect((await sesionB.database.rpc("ws_comentar", { p_entidad: "trabajo", p_id: id, p_texto: marca })).error).toBeNull();
+    expect(((await sesionB.database.rpc("ws_comentarios", { p_entidad: "trabajo", p_id: id })).data as { texto: string }[]).map((k) => k.texto)).toContain(marca);
+
+    // Sin el módulo: la lista, el detalle y los comentarios del trabajo quedan vacíos.
+    await duenio.database.from("clientes").update({ modulos: modulos.filter((m) => m !== "proyectos") }).eq("id", b.data!.id);
+    expect((await sesionB.database.rpc("ws_trabajos")).data).toEqual([]);
+    const detalle = await sesionB.database.rpc("ws_trabajo", { p_id: id });
+    expect(detalle.error !== null || detalle.data === null).toBe(true);
+    expect((await sesionB.database.rpc("ws_comentarios", { p_entidad: "trabajo", p_id: id })).data).toEqual([]);
+  } finally {
+    await duenio.database.from("clientes").update({ modulos }).eq("id", b.data!.id);
+    await duenio.database.from("comentarios").delete().eq("texto", marca);
+  }
+});

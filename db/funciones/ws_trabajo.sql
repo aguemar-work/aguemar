@@ -1,4 +1,4 @@
--- Vigente según migrations/20261014152859_empresas-workspaces.sql.
+-- Vigente según migrations/20261021161042_ws-modulos.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.ws_trabajo(p_id uuid)
@@ -19,5 +19,6 @@ as $$
                     from public.trabajo_entregables d where d.trabajo_id = t.id)
   )
   from public.trabajos t
-  where t.id = p_id and t.cliente_id = public.ws_empresa_id() and t.visible_empresa and t.estado <> 'cancelado';
+  where t.id = p_id and t.cliente_id = public.ws_empresa_id() and t.visible_empresa and t.estado <> 'cancelado'
+    and public.ws_modulo_activo('proyectos');
 $$;
