@@ -76,3 +76,14 @@ describe("metadatos y datos estructurados de la landing", () => {
     expect(conDominio.url).toBe("https://aguemar.com");
   });
 });
+
+describe("robots.txt", () => {
+  it("bloquea lo privado y deja rastrear /d/ y /login para que Google lea su noindex", async () => {
+    const { default: robots } = await import("@/app/robots");
+    const reglas = robots().rules;
+    const disallow = (Array.isArray(reglas) ? reglas[0] : reglas).disallow;
+    expect(disallow).toEqual(expect.arrayContaining(["/panel", "/w/", "/api/"]));
+    expect(disallow).not.toContain("/d/");
+    expect(disallow).not.toContain("/login");
+  });
+});

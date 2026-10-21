@@ -22,7 +22,14 @@ const cabecerasSeguridad = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: cabecerasSeguridad }];
+    const sinIndexar = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+    return [
+      { source: "/:path*", headers: cabecerasSeguridad },
+      // Rastreables (ver src/app/robots.ts) pero nunca indexables.
+      { source: "/d/:path*", headers: sinIndexar },
+      { source: "/login/:path*", headers: sinIndexar },
+      { source: "/login", headers: sinIndexar },
+    ];
   },
   // Permite compilar en otra carpeta (NEXT_DIST_DIR=.next-verify) sin pisar el .next del servidor de desarrollo.
   distDir: process.env.NEXT_DIST_DIR || ".next",
