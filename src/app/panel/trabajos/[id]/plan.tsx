@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useOptimistic, useState, useTransition, type FormEvent } from "react";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { ArrowDown, ArrowUp, Check, ListChecks, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,13 +56,13 @@ export function Plan({ trabajoId, etapas: etapasServidor, tareas: tareasServidor
       iniciarMarca(async () => {
         marcarTareaOptimista({ id, hecha });
         const r = await marcarTarea(id, trabajoId, hecha);
-        if (!r.ok) toast.error(r.error ?? "No se pudo marcar la tarea.");
+        if (!r.ok) avisoError(r.error ?? "No se pudo marcar la tarea.");
       }),
     etapa: (id: string, hecha: boolean) =>
       iniciarMarca(async () => {
         marcarEtapaOptimista({ id, hecha });
         const r = await marcarEtapa(id, trabajoId, hecha);
-        if (!r.ok) toast.error(r.error ?? "No se pudo marcar la etapa.");
+        if (!r.ok) avisoError(r.error ?? "No se pudo marcar la etapa.");
       }),
     gestionaEtapas,
   };
@@ -69,7 +70,7 @@ export function Plan({ trabajoId, etapas: etapasServidor, tareas: tareasServidor
   const ejecutar = (fn: () => Promise<{ ok: boolean; error?: string }>, exitoMsg?: string) =>
     iniciar(async () => {
       const r = await fn();
-      if (!r.ok) toast.error(r.error ?? "No se pudo completar.");
+      if (!r.ok) avisoError(r.error ?? "No se pudo completar.");
       else if (exitoMsg) toast.success(exitoMsg);
     });
 

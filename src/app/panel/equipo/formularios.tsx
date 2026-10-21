@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Loader2, Save, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,7 +105,7 @@ export function TarjetaColaborador({ colaborador: c, empresas }: { colaborador: 
   const guardar = (activo: boolean, ids: string[], mensaje: string) =>
     iniciar(async () => {
       const r = await actualizarColaborador(c.user_id, { activo, empresas: ids });
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success(mensaje);
       setEditando(false);
     });

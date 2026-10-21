@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Building2, Check, Loader2, Mail, MessageCircle, Trash2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,12 +32,12 @@ export function TarjetaLead({ l, responsable }: { l: LeadFila; responsable: stri
   const estado = (nuevo: "nuevo" | "contactado") =>
     iniciar(async () => {
       const r = await cambiarEstadoLead(l.id, nuevo);
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
     });
   const convertir = () =>
     iniciar(async () => {
       const r = await convertirLeadEnEmpresa(l.id);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success("Empresa creada. Completa su RUC y datos.");
       router.push(`/panel/clientes/${r.data.clienteId}/editar`);
     });
@@ -44,7 +45,7 @@ export function TarjetaLead({ l, responsable }: { l: LeadFila; responsable: stri
     iniciar(async () => {
       if (!window.confirm(`¿Eliminar el mensaje de ${l.nombre}?`)) return;
       const r = await eliminarLead(l.id);
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
       else toast.success("Mensaje eliminado.");
     });
 

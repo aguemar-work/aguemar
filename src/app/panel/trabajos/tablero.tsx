@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +23,7 @@ export function Tablero({ trabajos, hoy, soloLectura = false }: { trabajos: Trab
   const mover = (id: string, estado: EstadoTrabajo) =>
     iniciar(async () => {
       const r = await cambiarEstadoTrabajo(id, estado);
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
     });
 
   return (

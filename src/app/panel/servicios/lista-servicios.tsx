@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { ArrowDown, ArrowUp, Loader2, Pencil, Plus, Trash2, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,14 +39,14 @@ export function ListaServicios({ servicios }: Props) {
     [ids[indice], ids[destino]] = [ids[destino], ids[indice]];
     iniciar(async () => {
       const r = await reordenarServicios(ids);
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
     });
   };
 
   const alternarVisible = (s: ServicioRow) =>
     iniciar(async () => {
       const r = await cambiarVisibilidadServicio(s.id, !s.visible_landing);
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
       else toast.success(!s.visible_landing ? "Visible en la landing." : "Oculto en la landing.");
     });
 

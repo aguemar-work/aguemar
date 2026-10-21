@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Link2, ListRestart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -376,7 +377,7 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
               size="sm"
               onClick={() => {
                 const items = trabajosDePlantilla(plantillas, tipoServicio ?? "");
-                if (!items.length) return void toast.error(`No hay plantilla para "${tipoServicio}". Créala en Ajustes › Plantillas.`);
+                if (!items.length) return void avisoError(`No hay plantilla para "${tipoServicio}". Créala en Ajustes › Plantillas.`);
                 if (trabajosRealizados.fields.length && !window.confirm("¿Reemplazar los trabajos actuales por la plantilla?")) return;
                 setValue("trabajos", items, opts);
               }}

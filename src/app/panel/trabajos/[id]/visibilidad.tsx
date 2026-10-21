@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Eye, EyeOff } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { cambiarVisibilidadTrabajo } from "../acciones";
@@ -20,7 +21,7 @@ export function VisibilidadTrabajo({ id, visible, tieneEmpresa }: { id: string; 
         onCheckedChange={(v) =>
           iniciar(async () => {
             const r = await cambiarVisibilidadTrabajo(id, v);
-            if (!r.ok) toast.error(r.error);
+            if (!r.ok) avisoError(r.error);
             else toast.success(v ? "La empresa ya puede ver este trabajo." : "Oculto para la empresa.");
           })
         }

@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition } from "react";
 import { Mail } from "lucide-react";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,14 +21,14 @@ export function ModulosEmpresa({ clienteId, modulos, avisos }: { clienteId: stri
     iniciar(async () => {
       setAvisosVista(valor);
       const r = await cambiarAvisosEmpresa(clienteId, valor);
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
     });
 
   const alternar = (clave: ClaveModulo, activo: boolean) =>
     iniciar(async () => {
       const nuevos = activo ? [...modulos.filter((m) => m !== clave), clave] : modulos.filter((m) => m !== clave);
       const r = await actualizarModulosEmpresa(clienteId, nuevos as ClaveModulo[]);
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
     });
 
   const perfil = perfilDeModulos(modulos);
@@ -36,7 +37,7 @@ export function ModulosEmpresa({ clienteId, modulos, avisos }: { clienteId: stri
       const p = PERFILES_ACCESO.find((x) => x.clave === clave);
       if (!p) return;
       const r = await actualizarModulosEmpresa(clienteId, p.modulos);
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
       else toast.success(`Perfil ${p.etiqueta} aplicado.`);
     });
 

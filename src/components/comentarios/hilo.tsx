@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Loader2, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,7 +40,7 @@ export function Hilo({ comentarios, vista, nombrePropietario, nombreEmpresa, env
     iniciar(async () => {
       const r = await enviar(t);
       if (!r.ok) {
-        toast.error(r.error);
+        avisoError(r.error);
         return;
       }
       setTexto("");

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Check, Copy, FileDown, Loader2, MessageCircle, MoreHorizontal, Pencil, Send, X, CopyPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +39,7 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
   const enviar = () =>
     iniciar(async () => {
       const r = await enviarCotizacion(id);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       if (r.data.token) setToken(r.data.token);
       toast.success(empresa.conWorkspace ? "Enviada: ya aparece en el workspace de la empresa." : "Marcada como enviada.");
       setDialogo("mensaje");
@@ -47,7 +48,7 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
   const duplicar = () =>
     iniciar(async () => {
       const r = await duplicarCotizacion(id);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success("Copia creada como borrador.");
       router.push(`/panel/cotizaciones/${r.data.id}`);
     });
@@ -184,7 +185,7 @@ function DialogoRechazar({ abierto, onCerrar, id }: { abierto: boolean; onCerrar
   const rechazar = () =>
     iniciar(async () => {
       const r = await rechazarCotizacion(id, motivo);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success("Marcada como rechazada.");
       onCerrar();
     });
@@ -271,7 +272,7 @@ function DialogoMensaje({
                 await navigator.clipboard.writeText(texto);
                 toast.success("Mensaje copiado.");
               } catch {
-                toast.error("No se pudo copiar; selecciónalo a mano.");
+                avisoError("No se pudo copiar; selecciónalo a mano.");
               }
             }}
           >

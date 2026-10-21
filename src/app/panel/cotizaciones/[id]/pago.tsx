@@ -3,6 +3,7 @@
 import { useOptimistic, useState, useTransition } from "react";
 import { BellRing, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,7 +48,7 @@ export function PagoCotizacion({ id, aceptada, plazo, recordar, moneda, hoy, deu
     iniciar(async () => {
       setRecordarVista(valor);
       const r = await actualizarPagoCotizacion(id, { recordar_pago: valor });
-      if (!r.ok) toast.error(r.error);
+      if (!r.ok) avisoError(r.error);
       else toast.success(valor ? "Recordatorios activados." : "Recordatorios pausados.");
     });
 

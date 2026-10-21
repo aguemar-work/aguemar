@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import QRCode from "qrcode";
 import { Copy, ExternalLink, FileDown, Link2, Loader2, MessageCircle, MoreHorizontal, Pencil, RefreshCw, Send, ShieldOff, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,7 @@ export function AccionesDocumento({ tipo, id, numero, titular, publicada, token:
   const publicar = (valor: boolean) =>
     iniciar(async () => {
       const r = await accionPublicar(valor);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       if (r.data.token) setToken(r.data.token);
       toast.success(valor ? "Publicado: la empresa lo ve y el enlace está activo." : "Volvió a borrador: el enlace deja de mostrarlo.");
       if (valor) setDialogo("mensaje");
@@ -150,7 +151,7 @@ function DialogoEnlace({
     iniciar(async () => {
       if (!window.confirm("El enlace actual y el QR de los PDF ya descargados dejarán de funcionar. ¿Generar uno nuevo?")) return;
       const r = await enlaceDocumento(tipo, id, true);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       onToken(r.data.token);
       toast.success("Enlace nuevo generado. Descarga el PDF otra vez para que lleve el QR nuevo.");
     });
@@ -158,7 +159,7 @@ function DialogoEnlace({
     iniciar(async () => {
       if (!window.confirm("Nadie podrá abrir el documento con este enlace. ¿Revocar?")) return;
       const r = await revocarEnlace(tipo, id);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       onToken(null);
       toast.success("Enlace revocado.");
       onCerrar();
@@ -166,7 +167,7 @@ function DialogoEnlace({
   const activar = () =>
     iniciar(async () => {
       const r = await enlaceDocumento(tipo, id, false);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       onToken(r.data.token);
     });
 
@@ -197,7 +198,7 @@ function DialogoEnlace({
                   onClick={async () => {
                     await navigator.clipboard.writeText(url).then(
                       () => toast.success("Enlace copiado."),
-                      () => toast.error("No se pudo copiar."),
+                      () => avisoError("No se pudo copiar."),
                     );
                   }}
                 >
@@ -289,7 +290,7 @@ function DialogoMensaje({
             onClick={() =>
               navigator.clipboard.writeText(texto).then(
                 () => toast.success("Mensaje copiado."),
-                () => toast.error("No se pudo copiar."),
+                () => avisoError("No se pudo copiar."),
               )
             }
           >

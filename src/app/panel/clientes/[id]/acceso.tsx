@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { ExternalLink, KeyRound, Loader2, Send, UserX } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -111,7 +112,7 @@ function AccesoActivo({ clienteId, correo }: { clienteId: string; correo: string
   const recuperar = () =>
     iniciar(async () => {
       const r = await enviarRecuperacionEmpresa(clienteId);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success(`Código enviado a ${r.data.correo}. Que entre a /login/recuperar, escriba su correo y elija «Ya tengo un código».`);
     });
 

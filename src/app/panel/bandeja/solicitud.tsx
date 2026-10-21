@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { FileText, KanbanSquare, Loader2, MessageSquareReply, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,14 +33,14 @@ export function TarjetaSolicitud({ s }: { s: SolicitudFila }) {
   const aTrabajo = () =>
     iniciar(async () => {
       const r = await convertirEnTrabajo(s.id);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success("Trabajo creado en propuesta; la empresa ya lo ve en sus proyectos.");
       router.push(`/panel/trabajos/${r.data.trabajoId}`);
     });
   const aCotizacion = () =>
     iniciar(async () => {
       const r = await convertirEnCotizacion(s.id);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success("Cotización en borrador creada: agrégale líneas y envíala.");
       router.push(`/panel/cotizaciones/${r.data.cotizacionId}/editar`);
     });
@@ -98,7 +99,7 @@ export function TarjetaSolicitud({ s }: { s: SolicitudFila }) {
             if (!window.confirm("¿Eliminar esta solicitud? La empresa dejará de verla.")) return;
             iniciar(async () => {
               const r = await eliminarSolicitud(s.id);
-              if (!r.ok) toast.error(r.error);
+              if (!r.ok) avisoError(r.error);
             });
           }}
         >
@@ -146,7 +147,7 @@ function Responder({ s }: { s: SolicitudFila }) {
             onClick={() =>
               iniciar(async () => {
                 const r = await responderSolicitud(s.id, { estado, respuesta });
-                if (!r.ok) return void toast.error(r.error);
+                if (!r.ok) return void avisoError(r.error);
                 toast.success("Respuesta enviada.");
                 setAbierto(false);
               })

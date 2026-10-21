@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Loader2, Plus, Trash2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +50,7 @@ export function RegistrarCobro({ clienteId, cotizacion, opciones, textoBoton = "
   const onSubmit = handleSubmit((datos) =>
     iniciar(async () => {
       const r = await registrarCobro(datos);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success("Cobro registrado.");
       setAbierto(false);
       reset();
@@ -150,7 +151,7 @@ export function ListaCobros({
               if (!window.confirm("¿Eliminar este cobro?")) return;
               iniciar(async () => {
                 const r = await eliminarCobro(k.id);
-                if (!r.ok) toast.error(r.error);
+                if (!r.ok) avisoError(r.error);
                 else toast.success("Cobro eliminado.");
               });
             }}

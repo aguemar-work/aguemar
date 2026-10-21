@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { ArrowDown, ArrowUp, Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,7 +85,7 @@ export function FormularioInforme({ informe, clientes, trabajos, inicial }: Prop
       const conTexto = v.secciones.some((s) => s.texto.trim()) || v.indicadores.length > 0 || (v.resumen ?? "").trim();
       if (conTexto && !window.confirm("Se reemplazan el resumen, los indicadores y las secciones por lo hecho en el periodo. ¿Continuar?")) return;
       const r = await armarInforme({ cliente_id: v.cliente_id, desde: v.periodo_inicio, hasta: v.periodo_fin, trabajo_id: v.trabajo_id || null });
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       setValue("resumen", r.data.resumen, { shouldDirty: true });
       indicadores.replace(r.data.indicadores.map((i) => ({ valor: i.valor, etiqueta: i.etiqueta, nota: "" })));
       secciones.replace(r.data.secciones);

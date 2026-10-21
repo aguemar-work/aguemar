@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Loader2 } from "lucide-react";
 import { Select } from "@/components/ui/select";
 import { ESTADOS_TRABAJO } from "@/lib/areas";
@@ -24,7 +25,7 @@ export function CambiarEstado({ id, estado }: { id: string; estado: EstadoTrabaj
         onChange={(e) =>
           iniciar(async () => {
             const r = await cambiarEstadoTrabajo(id, e.target.value as EstadoTrabajo);
-            if (!r.ok) toast.error(r.error);
+            if (!r.ok) avisoError(r.error);
             else toast.success("Estado actualizado.");
           })
         }

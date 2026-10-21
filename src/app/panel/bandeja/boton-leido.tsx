@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Check, Loader2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { marcarComentarioLeido } from "./acciones";
@@ -16,7 +16,7 @@ export function BotonLeido({ id, leido }: { id: string; leido: boolean }) {
       onClick={() =>
         iniciar(async () => {
           const r = await marcarComentarioLeido(id, !leido);
-          if (!r.ok) toast.error(r.error);
+          if (!r.ok) avisoError(r.error);
         })
       }
     >

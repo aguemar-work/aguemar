@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,11 @@ interface CampoProps {
  * `aria-describedby={`${id}-error`}` (usa `propsCampo`).
  */
 export function Campo({ id, etiqueta, error, ayuda, requerido, className, children }: CampoProps) {
+  // El * va oculto para lectores de pantalla: el control anuncia "obligatorio" con aria-required.
+  const control =
+    requerido && isValidElement(children)
+      ? cloneElement(children as ReactElement<{ "aria-required"?: boolean }>, { "aria-required": true })
+      : children;
   return (
     <div className={cn("space-y-1.5", className)}>
       <Label htmlFor={id}>
@@ -28,7 +33,7 @@ export function Campo({ id, etiqueta, error, ayuda, requerido, className, childr
           </span>
         ) : null}
       </Label>
-      {children}
+      {control}
       {error ? (
         <p id={`${id}-error`} role="alert" className="text-xs text-danger">
           {error}

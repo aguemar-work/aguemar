@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { ExternalLink, Loader2, Package, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +66,7 @@ export function Entregables({ trabajoId, entregables }: { trabajoId: string; ent
                   onClick={() =>
                     iniciar(async () => {
                       const r = await eliminarEntregable(e.id, trabajoId);
-                      if (!r.ok) toast.error(r.error);
+                      if (!r.ok) avisoError(r.error);
                     })
                   }
                 >

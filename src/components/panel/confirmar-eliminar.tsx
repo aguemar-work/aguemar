@@ -3,6 +3,7 @@
 import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +48,7 @@ export function ConfirmarEliminar({
     iniciar(async () => {
       const r = await accion();
       if (!r.ok) {
-        toast.error(r.error);
+        avisoError(r.error);
         return;
       }
       toast.success(textoExito);

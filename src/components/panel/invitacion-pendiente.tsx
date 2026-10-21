@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { avisoError } from "@/lib/avisos";
 import { Ban, Check, Copy, Loader2, MessageCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,14 +34,14 @@ export function InvitacionPendiente({ id, token, correo, expiraEn, tipo, ruta }:
       toast.success("Enlace copiado.");
       setTimeout(() => setCopiado(false), 2000);
     } catch {
-      toast.error("No se pudo copiar. Selecciona el enlace y cópialo a mano.");
+      avisoError("No se pudo copiar. Selecciona el enlace y cópialo a mano.");
     }
   };
 
   const renovar = () =>
     iniciar(async () => {
       const r = await renovarInvitacion(id, ruta);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       setEnlace(r.data.enlace);
       toast.success("Enlace nuevo listo. El anterior ya no sirve.");
     });
@@ -48,7 +49,7 @@ export function InvitacionPendiente({ id, token, correo, expiraEn, tipo, ruta }:
   const revocar = () =>
     iniciar(async () => {
       const r = await revocarInvitacion(id, ruta);
-      if (!r.ok) return void toast.error(r.error);
+      if (!r.ok) return void avisoError(r.error);
       toast.success("Invitación anulada.");
     });
 

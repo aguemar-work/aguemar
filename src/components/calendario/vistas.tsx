@@ -22,7 +22,7 @@ function Pastilla({ it, compacta }: { it: ItemConEnlace; compacta?: boolean }) {
       <span className={cn("truncate", hecha && "line-through opacity-60")}>{it.titulo}</span>
     </>
   );
-  const clases = cn("flex items-center gap-1 rounded px-1 py-0.5 text-[11px] leading-tight", compacta ? "" : "hover:bg-soft dark:hover:bg-secondary/60");
+  const clases = cn("flex min-h-6 items-center gap-1 rounded px-1 py-1 text-[11px] leading-tight", compacta ? "" : "hover:bg-soft dark:hover:bg-secondary/60");
   return it.href ? (
     <Link href={it.href} className={clases} title={`${tipo.etiqueta}: ${it.titulo}`}>
       {contenido}
@@ -91,14 +91,14 @@ export function VistaMes({
                   {hrefNuevo ? (
                     <Link
                       href={hrefNuevo(d.fecha)}
-                      className="rounded p-0.5 text-muted-foreground opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
+                      className="rounded p-1.5 text-muted-foreground opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
                       aria-label={`Nueva actividad el ${fechaLarga(d.fecha)}`}
                     >
                       <Plus className="size-3.5" />
                     </Link>
                   ) : null}
                 </div>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {visibles.map((it) => (
                     <Pastilla key={`${it.origen}-${it.id}`} it={it} />
                   ))}
