@@ -19,7 +19,7 @@ import { leerOrigen } from "@/components/landing/medicion";
  * Campos del formulario sobre el fondo oscuro de la landing: sin tarjeta, borde fino translúcido,
  * etiquetas mono y foco mint, igual que el resto de la página.
  */
-const CAMPO = "h-11 border-white/15 bg-white/[0.04] text-white shadow-none placeholder:text-white/35 hover:border-white/30 focus-visible:border-mint";
+const CAMPO = "h-11 border-white/40 bg-white/[0.04] text-white shadow-none placeholder:text-white/55 hover:border-white/55 focus-visible:border-mint";
 
 /**
  * Formulario de contacto corto (nombre, WhatsApp o correo, mensaje): guarda un lead que llega al panel.
@@ -80,7 +80,7 @@ export function FormularioContacto({ whatsapp, idioma = "es" }: { whatsapp: stri
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-x-4 gap-y-5 sm:grid-cols-2 [&_label]:font-mono [&_label]:text-xs [&_label]:font-normal [&_label]:text-white/60 [&_p[id$=-ayuda]]:text-white/40">
+    <form onSubmit={onSubmit} noValidate className="grid gap-x-4 gap-y-5 sm:grid-cols-2 [&_label]:font-mono [&_label]:text-xs [&_label]:font-normal [&_label]:text-white/60 [&_p[id$=-ayuda]]:text-white/55">
       <Campo id="lead-nombre" etiqueta={t.nombre} requerido error={e.nombre?.message} className="sm:col-span-2">
         <Input {...register("nombre")} {...propsCampo("lead-nombre", e.nombre?.message)} autoComplete="name" className={CAMPO} />
       </Campo>
