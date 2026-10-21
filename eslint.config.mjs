@@ -16,6 +16,8 @@ const eslintConfig = [
       "node_modules/**",
       ".next/**",
       ".next-verify/**",
+      // Los worktrees de las sesiones de Claude viven aquí dentro: son copias del repo, no código propio.
+      ".claude/**",
       "out/**",
       "build/**",
       "next-env.d.ts",
