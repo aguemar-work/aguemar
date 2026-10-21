@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Campo, propsCampo } from "@/components/formulario/campo";
-import { MEDIOS_PAGO } from "@/lib/cotizacion";
-import { formatearCentimos, formatearFecha, formatearMonto, hoyLima, type Moneda } from "@/lib/format";
+import { MEDIOS_PAGO, excesoDeCobro } from "@/lib/cotizacion";
+import { aCentimos, formatearCentimos, formatearFecha, formatearMonto, hoyLima, type Moneda } from "@/lib/format";
 import { cobroSchema, type CobroDatos, type CobroInput } from "@/lib/validators/cotizacion";
 import type { MedioPago } from "@/types/database";
 import { eliminarCobro, registrarCobro } from "./acciones";
@@ -23,8 +23,8 @@ interface Props {
   clienteId: string;
   /** Cotización a la que se imputa el cobro (opcional en la ficha de empresa). */
   cotizacion?: { id: string; numero: string | null; moneda: Moneda; saldo: number };
-  /** Para elegir la cotización desde la ficha de empresa. */
-  opciones?: { id: string; numero: string | null; asunto: string }[];
+  /** Para elegir la cotización desde la ficha de empresa (con lo que falta por pagar de cada una). */
+  opciones?: { id: string; numero: string | null; asunto: string; moneda: Moneda; pendiente: number }[];
   textoBoton?: string;
 }
 
@@ -47,15 +47,21 @@ export function RegistrarCobro({ clienteId, cotizacion, opciones, textoBoton = "
   const { register, handleSubmit, formState, reset } = form;
   const e = formState.errors;
 
-  const onSubmit = handleSubmit((datos) =>
+  const onSubmit = handleSubmit((datos) => {
+    // Si el cobro está ligado a una cotización y se pasa de lo que falta, se pide confirmación (D2).
+    const destino = cotizacion?.id === datos.cotizacion_id ? { numero: cotizacion.numero, moneda: cotizacion.moneda, pendiente: cotizacion.saldo } : opciones?.find((o) => o.id === datos.cotizacion_id);
+    if (destino && destino.moneda === datos.moneda) {
+      const exceso = excesoDeCobro(aCentimos(datos.monto), destino.pendiente);
+      if (exceso > 0 && !window.confirm(`Este cobro excede en ${formatearMonto(exceso, destino.moneda)} lo que falta de ${destino.numero ?? "la cotización"}. El exceso pagará otras deudas de la empresa. ¿Registrarlo de todos modos?`)) return;
+    }
     iniciar(async () => {
       const r = await registrarCobro(datos);
       if (!r.ok) return void avisoError(r.error);
       toast.success("Cobro registrado.");
       setAbierto(false);
       reset();
-    }),
-  );
+    });
+  });
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>

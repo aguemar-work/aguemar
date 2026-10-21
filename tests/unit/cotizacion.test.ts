@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
+import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, excesoDeCobro, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
 import { pagoCotizacionSchema } from "@/lib/validators/cotizacion";
 
 describe("importeLinea", () => {
@@ -107,4 +107,18 @@ describe("totales: casos compartidos con la base (tests/fixtures/cotizaciones.js
       expect({ subtotal, igv, total }).toEqual({ subtotal: caso.esperado.subtotal, igv: caso.esperado.igv, total: caso.esperado.total });
     });
   }
+});
+
+describe("excesoDeCobro", () => {
+  it("no hay exceso si el cobro iguala o no llega a lo pendiente", () => {
+    expect(excesoDeCobro(50000, 50000)).toBe(0);
+    expect(excesoDeCobro(20000, 50000)).toBe(0);
+  });
+  it("el exceso es lo que se pasa del pendiente", () => {
+    expect(excesoDeCobro(500000, 50000)).toBe(450000); // un cero de más
+    expect(excesoDeCobro(100, 0)).toBe(100); // ya pagada: todo es exceso
+  });
+  it("un pendiente negativo se trata como cero", () => {
+    expect(excesoDeCobro(100, -50)).toBe(100);
+  });
 });

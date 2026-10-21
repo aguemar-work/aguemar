@@ -26,9 +26,10 @@ export async function DetalleCotizacion({ id }: { id: string }) {
   const vence = fechaVence(c.fecha, c.validez_dias);
   const venc = textoVencimiento(vence, hoy);
   const cobrado = c.cobros.reduce((s, k) => s + k.monto, 0);
-  const pendiente = saldo(c.total, cobrado);
   // Pendiente y vencimiento: los mismos que ven la empresa y el portal (deudas_cotizacion).
   const deuda = doc?.vence_pago && doc.pendiente != null ? { pendiente: doc.pendiente, vence_pago: doc.vence_pago } : null;
+  const saldoLigado = saldo(c.total, cobrado);
+  const pendiente = deuda ? deuda.pendiente : saldoLigado;
   const aceptacion = c.aceptaciones[0];
   const empresa = c.clientes;
   const conWorkspace = Boolean(empresa?.usuario_id && empresa.slug && empresa.modulos?.includes("cotizaciones"));
@@ -238,7 +239,7 @@ export async function DetalleCotizacion({ id }: { id: string }) {
               moneda={c.moneda}
               hoy={hoy}
               deuda={deuda}
-              saldoLigado={pendiente}
+              saldoLigado={saldoLigado}
               recordatorios={c.recordatorios_cobro}
               sinAvisos={!empresa?.avisos_correo || !(empresa.correo || empresa.usuario_id)}
             />

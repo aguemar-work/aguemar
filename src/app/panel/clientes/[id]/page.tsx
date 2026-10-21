@@ -349,7 +349,7 @@ export default async function ClienteDetallePage({ params }: { params: Promise<{
               <h2 id="t-cobros" className="text-base font-semibold">
                 Cobros y saldo
               </h2>
-              <RegistrarCobro clienteId={cliente.id} opciones={aceptadas.map((c) => ({ id: c.id, numero: c.numero, asunto: c.asunto }))} />
+              <RegistrarCobro clienteId={cliente.id} opciones={aceptadas.map((c) => ({ id: c.id, numero: c.numero, asunto: c.asunto, moneda: c.moneda, pendiente: deudas.find((d) => d.cotizacion_id === c.id)?.pendiente ?? 0 }))} />
             </div>
             <div className="mb-3 grid grid-cols-3 gap-2 text-sm">
               <div className="rounded-md border border-border p-2">

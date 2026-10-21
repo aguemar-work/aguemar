@@ -71,6 +71,15 @@ export function saldo(total: number, cobrado: number): number {
   return Math.max(total - cobrado, 0);
 }
 
+/**
+ * Cuánto se pasa un cobro de lo que falta por pagar de su cotización (0 si no se pasa). Un cobro suelto
+ * que se pasa reparte el exceso entre las otras deudas de la empresa (FIFO), así que antes de
+ * registrarlo se avisa: un cero de más no se reparte en silencio.
+ */
+export function excesoDeCobro(monto: number, pendiente: number): number {
+  return Math.max(monto - Math.max(pendiente, 0), 0);
+}
+
 /** Nombre del PDF: COT-2026-001_SGC.pdf o FT-2026-001_SGC.pdf (sin caracteres raros). */
 export function nombreArchivo(numero: string | null, empresa: string): string {
   const limpio = empresa
