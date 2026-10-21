@@ -1,6 +1,7 @@
 import path from "node:path";
 import { ESPERA_LOGIN, abrir, listo } from "./esperas";
 import { test, expect, type Page } from "@playwright/test";
+import { limpiarSufijo } from "./limpieza";
 
 /**
  * Fase 7a: ficha técnica con diagnóstico importado → publicar → portal público con QR → eliminar.
@@ -13,6 +14,10 @@ const DIAGNOSTICO = path.join(__dirname, "..", "fixtures", "diagnostico-ejemplo.
 
 test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
+test.skip(!/\.test$/.test(EMAIL ?? ""), "Estos flujos solo corren con las cuentas de prueba de staging (correo .test), nunca con datos reales.");
+
+// Aunque un test intermedio falle (y la serie salte su "limpieza"), se borra lo que creó esta corrida.
+test.afterAll(() => limpiarSufijo(SUFIJO));
 
 async function iniciarSesion(page: Page) {
   await abrir(page, "/login");
@@ -28,7 +33,7 @@ let urlFicha = "";
 test("crea una ficha importando el diagnóstico del script", async ({ page }) => {
   await iniciarSesion(page);
   await abrir(page, "/panel/fichas/nueva");
-  await page.getByLabel("Empresa").selectOption({ index: 1 });
+  await page.getByLabel(/^empresa\s*\*?$/i).selectOption({ index: 1 });
   await page.getByRole("button", { name: /importar diagnóstico/i }).click();
   await page.locator('input[type="file"]').setInputFiles(DIAGNOSTICO);
   await expect(page.getByText("99,7 % de la capacidad de diseño · 392 ciclos")).toBeVisible();

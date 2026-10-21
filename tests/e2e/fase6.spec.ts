@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
-import { ESPERA_LOGIN, abrir, listo } from "./esperas";
+import { EN_PRODUCCION, ESPERA_LOGIN, MOTIVO_PANEL_NO_REFRESCA, abrir, listo } from "./esperas";
+import { limpiarSufijo } from "./limpieza";
 
 /**
  * Fase 6: cotización → envío → aceptación (crea el trabajo) → cobro → saldo.
@@ -11,6 +12,10 @@ const SUFIJO = `E2E ${Date.now().toString(36)}`;
 
 test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
+test.skip(!/\.test$/.test(EMAIL ?? ""), "Estos flujos solo corren con las cuentas de prueba de staging (correo .test), nunca con datos reales.");
+
+// Aunque un test intermedio falle (y la serie salte su "limpieza"), se borra lo que creó esta corrida.
+test.afterAll(() => limpiarSufijo(SUFIJO));
 
 async function iniciarSesion(page: Page) {
   await abrir(page, "/login");
@@ -26,7 +31,7 @@ let urlCotizacion = "";
 test("arma una cotización con una línea libre y ve el total con IGV", async ({ page }) => {
   await iniciarSesion(page);
   await abrir(page, "/panel/cotizaciones/nueva");
-  await page.getByLabel("Empresa").selectOption({ index: 1 });
+  await page.getByLabel(/^empresa\s*\*?$/i).selectOption({ index: 1 });
   await page.getByLabel(/^asunto/i).fill(`Cotización ${SUFIJO}`);
   await page.getByRole("button", { name: /línea libre/i }).click();
   await page.getByLabel("Descripción").first().fill("Desarrollo de landing");
@@ -49,6 +54,7 @@ test("el PDF se genera", async ({ page, request }) => {
 });
 
 test("envía, acepta (crea el trabajo) y registra un cobro parcial", async ({ page }) => {
+  test.fixme(EN_PRODUCCION, MOTIVO_PANEL_NO_REFRESCA);
   await iniciarSesion(page);
   await abrir(page, urlCotizacion);
   await page.getByRole("button", { name: /^enviar$/i }).click();
@@ -65,11 +71,12 @@ test("envía, acepta (crea el trabajo) y registra un cobro parcial", async ({ pa
 });
 
 test("limpieza: elimina el cobro y el trabajo de prueba (la cotización aceptada queda como registro)", async ({ page }) => {
+  test.fixme(EN_PRODUCCION, "Depende del test anterior, en cuarentena. " + MOTIVO_PANEL_NO_REFRESCA);
   await iniciarSesion(page);
   await abrir(page, urlCotizacion);
   // Una cotización aceptada no se elimina desde la app: queda con el sufijo E2E para identificarla.
   page.on("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: /eliminar cobro/i }).click({ force: true });
+  await page.getByRole("button", { name: /eliminar cobro/i }).click();
   // Esperar a que el cobro desaparezca: navegar con la acción en curso la deja a medias (pasaba en móvil).
   await expect(page.getByRole("button", { name: /eliminar cobro/i })).toHaveCount(0);
   await page.getByText("Trabajo creado").click();

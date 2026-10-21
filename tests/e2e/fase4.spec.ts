@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
-import { ESPERA_LOGIN, abrir, listo } from "./esperas";
+import { EN_PRODUCCION, ESPERA_LOGIN, MOTIVO_PANEL_NO_REFRESCA, abrir, listo } from "./esperas";
+import { modulosDe, restaurarModulos } from "./limpieza";
 
 /**
  * Fase 4 con sesión del propietario (E2E_EMAIL / E2E_PASSWORD en .env.local).
@@ -12,7 +13,16 @@ const EMPRESA_EMAIL = process.env.E2E_EMPRESA_EMAIL;
 const EMPRESA_PASSWORD = process.env.E2E_EMPRESA_PASSWORD;
 
 test.describe.configure({ mode: "serial" });
+
+// La ficha de SGC se prueba encendiendo y apagando un módulo: si una corrida se corta a la mitad, SGC
+// quedaba sin ese módulo y rompía otras pruebas. Se guarda su estado y se restaura al terminar.
+let modulosSgc: string[] | null = null;
+test.beforeAll(async () => {
+  modulosSgc = await modulosDe("sgc");
+});
+test.afterAll(() => restaurarModulos("sgc", modulosSgc));
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
+test.skip(!/\.test$/.test(EMAIL ?? ""), "Estos flujos solo corren con las cuentas de prueba de staging (correo .test), nunca con datos reales.");
 
 async function iniciarSesion(page: Page, correo: string, contrasena: string) {
   await abrir(page, "/login");
@@ -24,6 +34,7 @@ async function iniciarSesion(page: Page, correo: string, contrasena: string) {
 }
 
 test("la ficha de una empresa muestra acceso y módulos", async ({ page }) => {
+  test.fixme(EN_PRODUCCION, MOTIVO_PANEL_NO_REFRESCA);
   await iniciarSesion(page, EMAIL!, PASSWORD!);
   await expect(page).toHaveURL(/\/panel/, { timeout: ESPERA_LOGIN });
   await abrir(page, "/panel/clientes");

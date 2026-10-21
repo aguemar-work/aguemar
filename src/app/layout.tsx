@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sora, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
+import { Hidratacion } from "@/components/hidratacion";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="es-PE" suppressHydrationWarning>
       <body className={`${sora.variable} ${jetbrainsMono.variable} min-h-dvh`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Hidratacion />
           {children}
         </ThemeProvider>
       </body>

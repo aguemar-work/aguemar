@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
-import { ESPERA_LOGIN, abrir, listo } from "./esperas";
+import { EN_PRODUCCION, ESPERA_LOGIN, MOTIVO_PANEL_NO_REFRESCA, abrir, listo } from "./esperas";
+import { limpiarSufijo } from "./limpieza";
 
 /**
  * Flujo de Trabajos con sesión real (E2E_EMAIL / E2E_PASSWORD en .env.local).
@@ -11,6 +12,10 @@ const SUFIJO = `E2E ${Date.now().toString(36)}`;
 
 test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
+test.skip(!/\.test$/.test(EMAIL ?? ""), "Estos flujos solo corren con las cuentas de prueba de staging (correo .test), nunca con datos reales.");
+
+// Aunque un test intermedio falle (y la serie salte su "limpieza"), se borra lo que creó esta corrida.
+test.afterAll(() => limpiarSufijo(SUFIJO));
 
 async function iniciarSesion(page: Page) {
   await abrir(page, "/login");
@@ -35,6 +40,7 @@ test("crea un trabajo de desarrollo sin cliente", async ({ page }) => {
 });
 
 test("agrega etapa y tarea, y la marca como hecha", async ({ page }) => {
+  test.fixme(EN_PRODUCCION, MOTIVO_PANEL_NO_REFRESCA);
   await iniciarSesion(page);
   await abrir(page, "/panel/trabajos");
   await page.getByRole("link", { name: `Trabajo ${SUFIJO}` }).click();

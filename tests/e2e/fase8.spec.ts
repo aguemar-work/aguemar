@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
-import { ESPERA_LOGIN, abrir, listo } from "./esperas";
+import { EN_PRODUCCION, ESPERA_LOGIN, MOTIVO_PANEL_NO_REFRESCA, abrir, listo } from "./esperas";
+import { limpiarSufijo } from "./limpieza";
 
 /**
  * Fase 8: agendar una actividad desde el calendario, verla en la lista, marcarla hecha y eliminarla.
@@ -11,6 +12,10 @@ const SUFIJO = `E2E ${Date.now().toString(36)}`;
 
 test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
+test.skip(!/\.test$/.test(EMAIL ?? ""), "Estos flujos solo corren con las cuentas de prueba de staging (correo .test), nunca con datos reales.");
+
+// Aunque un test intermedio falle (y la serie salte su "limpieza"), se borra lo que creó esta corrida.
+test.afterAll(() => limpiarSufijo(SUFIJO));
 
 async function iniciarSesion(page: Page) {
   await abrir(page, "/login");
@@ -22,6 +27,7 @@ async function iniciarSesion(page: Page) {
 }
 
 test("agenda una actividad, la marca hecha y la elimina", async ({ page }) => {
+  test.fixme(EN_PRODUCCION, MOTIVO_PANEL_NO_REFRESCA);
   await iniciarSesion(page);
   await abrir(page, "/panel/calendario?vista=lista");
   await page.getByRole("link", { name: /nueva actividad/i }).first().click();

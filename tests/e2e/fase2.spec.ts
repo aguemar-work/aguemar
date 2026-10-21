@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ESPERA_LOGIN, abrir, listo } from "./esperas";
+import { limpiarSufijo } from "./limpieza";
 
 /**
  * Flujos de la Fase 2 con sesión real. Requiere en .env.local:
@@ -22,6 +23,10 @@ const RUC = rucAleatorio();
 
 test.describe.configure({ mode: "serial" });
 test.skip(!EMAIL || !PASSWORD, "Define E2E_EMAIL y E2E_PASSWORD en .env.local para correr estos flujos.");
+test.skip(!/\.test$/.test(EMAIL ?? ""), "Estos flujos solo corren con las cuentas de prueba de staging (correo .test), nunca con datos reales.");
+
+// Aunque un test intermedio falle (y la serie salte su "limpieza"), se borra lo que creó esta corrida.
+test.afterAll(() => limpiarSufijo(SUFIJO));
 
 async function iniciarSesion(page: Page) {
   await abrir(page, "/login");
