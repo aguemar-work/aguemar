@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { conSesion, exigirPropietario } from "@/lib/datos/base";
-import { exito, fallo, type Resultado } from "@/lib/datos/resultado";
-import { traducirError } from "@/lib/insforge/errores";
+import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import type { EstadoLead } from "@/types/database";
 import { guardarCliente } from "../clientes/acciones";
 
@@ -14,29 +13,25 @@ function revalidar() {
 
 export async function cambiarEstadoLead(id: string, estado: EstadoLead): Promise<Resultado<void>> {
   if (!["nuevo", "contactado", "convertido"].includes(estado)) return fallo("Estado no válido.");
-  try {
+  return accion("leads.cambiarEstadoLead", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("leads").update({ estado }).eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 export async function eliminarLead(id: string): Promise<Resultado<void>> {
-  try {
+  return accion("leads.eliminarLead", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { error } = await db.from("leads").delete().eq("id", id);
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     revalidar();
     return exito(undefined);
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
 
 /**
@@ -44,11 +39,11 @@ export async function eliminarLead(id: string): Promise<Resultado<void>> {
  * Si el mensaje trae "Empresa: …", ese es el nombre de la empresa y el lead queda como contacto.
  */
 export async function convertirLeadEnEmpresa(id: string): Promise<Resultado<{ clienteId: string }>> {
-  try {
+  return accion("leads.convertirLeadEnEmpresa", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
     const { data, error } = await db.from("leads").select("nombre, telefono, correo, servicio, mensaje, cliente_id").eq("id", id).maybeSingle();
-    if (error) return fallo(traducirError(error).mensaje);
+    if (error) throw error;
     const lead = data as { nombre: string; telefono: string | null; correo: string | null; servicio: string | null; mensaje: string | null; cliente_id: string | null } | null;
     if (!lead) return fallo("No encontramos ese mensaje.");
     if (lead.cliente_id) return exito({ clienteId: lead.cliente_id });
@@ -68,10 +63,8 @@ export async function convertirLeadEnEmpresa(id: string): Promise<Resultado<{ cl
     if (!r.ok) return fallo(r.error);
 
     const { error: e2 } = await db.from("leads").update({ estado: "convertido", cliente_id: r.data.id }).eq("id", id);
-    if (e2) return fallo(traducirError(e2).mensaje);
+    if (e2) throw e2;
     revalidar();
     return exito({ clienteId: r.data.id });
-  } catch (e) {
-    return fallo(traducirError(e).mensaje);
-  }
+  });
 }
