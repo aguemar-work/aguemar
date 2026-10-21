@@ -74,7 +74,18 @@ npm run staging:cuentas
 
    Entra en `/login` con `E2E_EMAIL` para ver el panel o con `E2E_EMPRESA_EMAIL` para el workspace. Para usar tu propio correo en staging: `/login/recuperar` y luego `npm run db:seed -- tu@correo.com`.
 
-5. **Producción**: solo migraciones ya probadas en staging, con el contexto en el proyecto principal y de vuelta a la rama al terminar:
+5. **Producción**: solo migraciones ya probadas en staging y compatibles con el código que sigue publicado. Copia esta lista en la nota del `CHANGELOG.md` y márcala paso a paso:
+
+   - [ ] La migración pasó en staging, `npm run db:funciones` no deja diff y CI está en verde.
+   - [ ] Respaldo de producción: `npx insforge branch switch --parent`, `npm run db:respaldo -- _respaldos` y respaldo manual de InsForge (ver *Respaldos*).
+   - [ ] Migrar, todavía con el contexto en producción: `npm run db:migrate`.
+   - [ ] `npm run db:status` muestra lo mismo que en staging.
+   - [ ] Volver a staging: `npx insforge branch switch staging`.
+   - [ ] Desplegar el código que usa la migración (push a `main`).
+   - [ ] Probar en producción `/`, `/login` y un `/d/<token>` de prueba.
+   - [ ] Nota en `CHANGELOG.md` con la migración, la fecha, el respaldo y el tag `vX.Y.Z`.
+
+   Si el código nuevo necesita la migración y el publicado no la soporta, se hace en dos pasos: primero una migración que acepte ambos, y la que retira lo viejo después del deploy (expand/contract).
 
 ```bash
 npx insforge branch switch --parent; npm run db:migrate; npx insforge branch switch staging
