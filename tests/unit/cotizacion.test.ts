@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, etiquetaVersion, excesoDeCobro, textoAceptacion, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
-import { pagoCotizacionSchema } from "@/lib/validators/cotizacion";
+import { NUEVA_EMPRESA, cotizacionSchema, pagoCotizacionSchema } from "@/lib/validators/cotizacion";
 
 describe("importeLinea", () => {
   it("multiplica, redondea a céntimos y resta el descuento", () => {
@@ -131,6 +131,49 @@ describe("etiquetaVersion", () => {
   it("sin huella: nada en la v1 y solo la versión desde la v2", () => {
     expect(etiquetaVersion(1, null)).toBeNull();
     expect(etiquetaVersion(2, undefined)).toBe("v2");
+  });
+});
+
+describe("cotizacionSchema: empresa existente o nueva", () => {
+  const base = {
+    area: "desarrollo",
+    asunto: "Web corporativa",
+    fecha: "2026-10-22",
+    validez_dias: 15,
+    moneda: "PEN",
+    igv_modo: "sumar",
+    igv_porcentaje: 18,
+    items: [{ descripcion: "Landing", unidad: "servicio", cantidad: "1", precio: "1000" }],
+  };
+  const nueva = { nombre: "Belmán Group S.A.C.", tipo_doc: "RUC", num_doc: "", contacto: "", telefono: "", correo: "ana@belman.pe" };
+
+  it("con una empresa existente exige un uuid y descarta los datos de la nueva (aunque estén vacíos)", () => {
+    const uuid = "b3b2e0d4-7a1e-4f8b-9c2d-1e5f6a7b8c9d";
+    const r = cotizacionSchema.safeParse({ ...base, cliente_id: uuid, empresa_nueva: nueva });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.empresa_nueva).toBeUndefined();
+    // El formulario siempre manda los campos de la empresa nueva, vacíos: no deben invalidar nada.
+    const vacios = cotizacionSchema.safeParse({ ...base, cliente_id: uuid, empresa_nueva: { nombre: "", tipo_doc: "RUC", num_doc: "", contacto: "", telefono: "", correo: "" } });
+    expect(vacios.success).toBe(true);
+    expect(cotizacionSchema.safeParse({ ...base, cliente_id: "" }).success).toBe(false);
+    expect(cotizacionSchema.safeParse({ ...base, cliente_id: "no-es-uuid" }).success).toBe(false);
+  });
+
+  it("con NUEVA_EMPRESA valida el nombre, el documento y el correo de la empresa", () => {
+    const ok = cotizacionSchema.safeParse({ ...base, cliente_id: NUEVA_EMPRESA, empresa_nueva: nueva });
+    expect(ok.success).toBe(true);
+    if (ok.success) expect(ok.data.empresa_nueva).toMatchObject({ nombre: "Belmán Group S.A.C.", num_doc: null, contacto: null, correo: "ana@belman.pe" });
+
+    const sinNombre = cotizacionSchema.safeParse({ ...base, cliente_id: NUEVA_EMPRESA, empresa_nueva: { ...nueva, nombre: "B" } });
+    expect(sinNombre.success).toBe(false);
+    if (!sinNombre.success) expect(sinNombre.error.issues[0]?.path).toEqual(["empresa_nueva", "nombre"]);
+
+    const rucMalo = cotizacionSchema.safeParse({ ...base, cliente_id: NUEVA_EMPRESA, empresa_nueva: { ...nueva, num_doc: "123" } });
+    expect(rucMalo.success).toBe(false);
+    if (!rucMalo.success) expect(rucMalo.error.issues[0]?.path).toEqual(["empresa_nueva", "num_doc"]);
+
+    expect(cotizacionSchema.safeParse({ ...base, cliente_id: NUEVA_EMPRESA, empresa_nueva: { ...nueva, correo: "no-es-correo" } }).success).toBe(false);
+    expect(cotizacionSchema.safeParse({ ...base, cliente_id: NUEVA_EMPRESA }).success).toBe(false);
   });
 });
 

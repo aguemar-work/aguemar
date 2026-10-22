@@ -9,7 +9,8 @@ import { invitarEmpresaSchema, modulosSchema, type InvitarEmpresaInput } from "@
 import { crearClienteServidor } from "@/lib/insforge/server";
 import { enlaceInvitacion } from "@/lib/invitaciones";
 import { avisarInvitacion } from "@/lib/correo/avisos";
-import { generarSlug } from "@/lib/slug";
+import { insertarCliente } from "@/lib/datos/clientes";
+import { crearInvitacionEmpresa } from "@/lib/datos/equipo";
 import type { ClaveModulo } from "@/lib/modulos";
 
 export async function guardarCliente(input: ClienteInput, id?: string): Promise<Resultado<{ id: string }>> {
@@ -35,25 +36,16 @@ export async function guardarCliente(input: ClienteInput, id?: string): Promise<
       return exito({ id: (data as { id: string }).id });
     }
 
-    // Slug único por propietario: base + sufijo si ya existe.
-    const base = generarSlug(datos.nombre) || "empresa";
-    const existentes = await db.from("clientes").select("slug").like("slug", `${base}%`);
-    const usados = new Set(((existentes.data ?? []) as { slug: string | null }[]).map((c) => c.slug));
-    let slug = base;
-    for (let i = 2; usados.has(slug); i += 1) slug = `${base}-${i}`;
-
-    const { data, error } = await db
-      .from("clientes")
-      .insert([{ ...datos, slug, owner_id: usuario.id }])
-      .select("id")
-      .single();
-    if (error) {
-      const t = traducirError(error);
+    let nuevoId: string;
+    try {
+      nuevoId = await insertarCliente(db, usuario.id, datos);
+    } catch (e) {
+      const t = traducirError(e);
       return fallo(t.mensaje, t.campo);
     }
     revalidatePath("/panel/clientes");
     revalidatePath("/panel");
-    return exito({ id: (data as { id: string }).id });
+    return exito({ id: nuevoId });
   });
 }
 
@@ -110,15 +102,7 @@ export async function invitarEmpresa(clienteId: string, input: InvitarEmpresaInp
     if (!e) return fallo("No encontramos la empresa.");
     if (e.usuario_id) return fallo("Esta empresa ya tiene un acceso. Quítalo primero si quieres cambiar el correo.");
 
-    // Una sola invitación pendiente por empresa: la anterior se revoca.
-    await db.from("invitaciones").update({ revocada: true }).eq("cliente_id", clienteId).eq("tipo", "empresa").is("usada_en", null);
-    const { data, error } = await db
-      .from("invitaciones")
-      .insert([{ owner_id: usuario.id, tipo: "empresa", correo: parsed.data.correo, nombre: e.contacto, cliente_id: clienteId }])
-      .select("token")
-      .single();
-    if (error) throw error;
-    const enlace = enlaceInvitacion((data as { token: string }).token);
+    const enlace = enlaceInvitacion(await crearInvitacionEmpresa(db, usuario.id, e, parsed.data.correo));
     avisarInvitacion({ correo: parsed.data.correo, enlace, tipo: "empresa", empresa: e.nombre, nombre: e.contacto });
     revalidatePath(`/panel/clientes/${clienteId}`);
     return exito({ enlace });

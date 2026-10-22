@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -13,6 +12,7 @@ import { Campo, propsCampo } from "@/components/formulario/campo";
 import { BarraAcciones } from "@/components/formulario/barra-acciones";
 import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
 import { usePanelLateral } from "@/components/panel/panel-lateral";
+import { abrirCreado } from "@/lib/navegacion";
 import { equipoSchema, type EquipoDatos, type EquipoInput } from "@/lib/validators/equipo";
 import type { EquipoRow } from "@/types/database";
 import { guardarEquipo } from "./acciones";
@@ -34,7 +34,6 @@ const CAMPOS_SPEC: { nombre: keyof EquipoInput; etiqueta: string; placeholder?: 
 ];
 
 export function FormularioEquipo({ equipo, clientes, clienteInicial }: Props) {
-  const router = useRouter();
   const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
@@ -72,8 +71,7 @@ export function FormularioEquipo({ equipo, clientes, clienteInicial }: Props) {
       toast.success(equipo ? "Equipo actualizado." : "Equipo registrado.");
       form.reset(datos as EquipoInput, { keepValues: true });
       if (panel && equipo) panel.cerrar(true);
-      else if (panel) router.replace(`/panel/equipos/${r.data.id}`);
-      else router.push(`/panel/equipos/${r.data.id}`);
+      else abrirCreado(`/panel/equipos/${r.data.id}`);
     }),
   );
 

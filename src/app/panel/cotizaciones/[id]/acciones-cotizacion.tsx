@@ -5,7 +5,7 @@ import Link from "@/components/panel/enlace";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { avisoError } from "@/lib/avisos";
-import { Ban, Check, Copy, FileDown, Loader2, MessageCircle, MoreHorizontal, Pencil, Send, X, CopyPlus } from "lucide-react";
+import { Ban, Check, Copy, FileDown, Link2, Loader2, Mail, MessageCircle, MoreHorizontal, Pencil, Send, UserPlus, X, CopyPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,8 +14,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Campo } from "@/components/formulario/campo";
 import { formatearFecha, formatearMonto, hoyLima, type Moneda } from "@/lib/format";
 import { mensajeWhatsAppCotizacion } from "@/lib/cotizacion";
+import { abrirCreado } from "@/lib/navegacion";
 import type { EstadoCotizacion } from "@/types/database";
-import { aceptarCotizacion, anularCotizacion, duplicarCotizacion, enviarCotizacion, rechazarCotizacion } from "../acciones";
+import { aceptarCotizacion, anularCotizacion, duplicarCotizacion, enviarCotizacion, invitarEmpresaDesdeCotizacion, rechazarCotizacion } from "../acciones";
 
 interface Props {
   id: string;
@@ -25,7 +26,7 @@ interface Props {
   moneda: Moneda;
   asunto: string;
   vence: string;
-  empresa: { nombre: string; contacto: string | null; telefono: string | null; slug: string | null; conWorkspace: boolean };
+  empresa: { nombre: string; contacto: string | null; telefono: string | null; correo: string | null; slug: string | null; conWorkspace: boolean; invitable: boolean };
   /** Token del portal (/d/…) si la cotización ya tiene enlace. */
   token: string | null;
   /** Fecha de aceptación (ISO) si está aceptada. */
@@ -36,17 +37,19 @@ interface Props {
 
 /** Acciones de una cotización según su estado: editar, enviar, aceptar, rechazar, duplicar, PDF y WhatsApp. */
 export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, vence, empresa, token: tokenInicial, aceptadaEn, cobrado }: Props) {
-  const router = useRouter();
   const [pendiente, iniciar] = useTransition();
   const [token, setToken] = useState(tokenInicial);
   const [dialogo, setDialogo] = useState<"aceptar" | "rechazar" | "anular" | "mensaje" | null>(null);
+  /** A qué correo salió el aviso al enviar (null: no salió); se muestra en el diálogo. */
+  const [correoAviso, setCorreoAviso] = useState<string | null | undefined>(undefined);
 
   const enviar = () =>
     iniciar(async () => {
       const r = await enviarCotizacion(id);
       if (!r.ok) return void avisoError(r.error);
       if (r.data.token) setToken(r.data.token);
-      toast.success(empresa.conWorkspace ? "Enviada: ya aparece en el workspace de la empresa." : "Marcada como enviada.");
+      setCorreoAviso(r.data.correoAviso);
+      toast.success(empresa.conWorkspace ? "Enviada: ya aparece en el espacio de la empresa." : r.data.correoAviso ? `Enviada por correo a ${r.data.correoAviso}.` : "Marcada como enviada.");
       setDialogo("mensaje");
     });
 
@@ -55,7 +58,7 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
       const r = await duplicarCotizacion(id);
       if (!r.ok) return void avisoError(r.error);
       toast.success("Copia creada como borrador.");
-      router.push(`/panel/cotizaciones/${r.data.id}`);
+      abrirCreado(`/panel/cotizaciones/${r.data.id}`);
     });
 
   const editable = estado !== "aceptada" && estado !== "anulada";
@@ -139,6 +142,7 @@ export function AccionesCotizacion({ id, numero, estado, total, moneda, asunto, 
         vence={vence}
         empresa={empresa}
         token={token}
+        correoAviso={correoAviso}
         // Recién aceptada, la fecha del servidor puede no haber llegado aún: es hoy.
         aceptadaEl={estado === "aceptada" || aceptadaEn ? formatearFecha(aceptadaEn ? aceptadaEn.slice(0, 10) : hoyLima()) : null}
       />
@@ -290,6 +294,19 @@ function DialogoAnular({ abierto, onCerrar, id, numero, cobrado }: { abierto: bo
   );
 }
 
+async function copiar(texto: string, aviso: string) {
+  try {
+    await navigator.clipboard.writeText(texto);
+    toast.success(aviso);
+  } catch {
+    avisoError("No se pudo copiar; selecciónalo a mano.");
+  }
+}
+
+/**
+ * Tras enviar o aceptar: las tres vías en un sitio (enlace, correo, PDF), el mensaje para WhatsApp
+ * y, si la empresa tiene correo y aún no tiene usuario, invitarla a su espacio desde aquí mismo.
+ */
 function DialogoMensaje({
   abierto,
   onCerrar,
@@ -300,9 +317,12 @@ function DialogoMensaje({
   vence,
   empresa,
   token,
+  correoAviso,
   aceptadaEl,
 }: {
   token: string | null;
+  /** undefined: no se acaba de enviar (no se sabe); null: no salió correo. */
+  correoAviso: string | null | undefined;
   aceptadaEl: string | null;
   abierto: boolean;
   onCerrar: () => void;
@@ -323,6 +343,16 @@ function DialogoMensaje({
   const telefono = (empresa.telefono ?? "").replace(/\D/g, "");
   const wa = telefono ? `https://wa.me/${telefono.length === 9 ? `51${telefono}` : telefono}?text=${encodeURIComponent(texto)}` : null;
 
+  const [invitando, iniciarInvitacion] = useTransition();
+  const [invitacion, setInvitacion] = useState<{ enlace: string; correo: string } | null>(null);
+  const invitar = () =>
+    iniciarInvitacion(async () => {
+      const r = await invitarEmpresaDesdeCotizacion(id);
+      if (!r.ok) return void avisoError(r.error);
+      setInvitacion(r.data);
+      toast.success(`Invitación enviada a ${r.data.correo}.`);
+    });
+
   return (
     <Dialog open={abierto} onOpenChange={(o) => (o ? null : onCerrar())}>
       <DialogContent>
@@ -338,7 +368,42 @@ function DialogoMensaje({
                 : "Envíala primero para generar el enlace, o adjunta el PDF."}
           </DialogDescription>
         </DialogHeader>
+        {correoAviso !== undefined ? (
+          <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Mail className="size-4 shrink-0" aria-hidden />
+            {correoAviso ? (
+              <span>
+                Correo enviado a <span className="font-mono text-foreground">{correoAviso}</span>.
+              </span>
+            ) : (
+              "No salió correo: la empresa no tiene correo, tiene los avisos apagados o Resend no está activo."
+            )}
+          </p>
+        ) : null}
         <p className="whitespace-pre-line rounded-md bg-soft p-3 text-sm dark:bg-secondary/50">{texto}</p>
+        {empresa.invitable ? (
+          <div className="rounded-md border border-dashed border-border p-3 text-sm">
+            {invitacion ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span>
+                  Invitación enviada a <span className="font-mono">{invitacion.correo}</span>; vence en 7 días.
+                </span>
+                <Button type="button" variant="outline" size="sm" onClick={() => copiar(invitacion.enlace, "Enlace de invitación copiado.")}>
+                  <Copy aria-hidden /> Copiar enlace de invitación
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-muted-foreground">
+                  {aceptadaEl ? "Para que siga el trabajo y sus cobros desde su espacio." : "Para que la vea y la acepte desde su espacio."}
+                </span>
+                <Button type="button" variant="outline" size="sm" onClick={invitar} disabled={invitando}>
+                  {invitando ? <Loader2 className="animate-spin" aria-hidden /> : <UserPlus aria-hidden />} Invitar a su espacio
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : null}
         <DialogFooter>
           {/* Siempre: la cotización se manda en PDF por WhatsApp, tenga o no la empresa su espacio. */}
           <Button asChild variant="outline">
@@ -346,18 +411,13 @@ function DialogoMensaje({
               <FileDown /> {aceptadaEl ? "Descargar PDF aceptado" : "Descargar PDF"}
             </a>
           </Button>
-          <Button
-            variant="outline"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(texto);
-                toast.success("Mensaje copiado.");
-              } catch {
-                avisoError("No se pudo copiar; selecciónalo a mano.");
-              }
-            }}
-          >
-            <Copy /> Copiar
+          {enlace ? (
+            <Button variant="outline" onClick={() => copiar(enlace.url, "Enlace copiado.")}>
+              <Link2 /> Copiar enlace
+            </Button>
+          ) : null}
+          <Button variant="outline" onClick={() => copiar(texto, "Mensaje copiado.")}>
+            <Copy /> Copiar mensaje
           </Button>
           {wa ? (
             <Button asChild variant="mint">

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -17,6 +16,7 @@ import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
 import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { AREAS } from "@/lib/areas";
 import { hoyLima } from "@/lib/format";
+import { abrirCreado } from "@/lib/navegacion";
 import { actaSchema, type ActaDatos, type ActaInput } from "@/lib/validators/brief-acta";
 import type { ActaFila } from "@/lib/datos/briefs-actas";
 import type { EntregableActa } from "@/lib/documentos";
@@ -31,7 +31,6 @@ interface Props {
 }
 
 export function FormularioActa({ acta, clientes, trabajos, inicial }: Props) {
-  const router = useRouter();
   const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
@@ -71,8 +70,7 @@ export function FormularioActa({ acta, clientes, trabajos, inicial }: Props) {
       toast.success(acta ? "Acta actualizada." : "Acta guardada como borrador.");
       form.reset(datos as ActaInput, { keepValues: true });
       if (panel && acta) panel.cerrar(true);
-      else if (panel) router.replace(`/panel/actas/${r.data.id}`);
-      else router.push(`/panel/actas/${r.data.id}`);
+      else abrirCreado(`/panel/actas/${r.data.id}`);
     }),
   );
 

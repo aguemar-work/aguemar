@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -18,8 +17,9 @@ import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { AREAS } from "@/lib/areas";
 import { aCentimos, formatearCentimos, formatearMonto, hoyLima } from "@/lib/format";
 import { aCantidad, calcularTotales, fechaVence, importeLinea } from "@/lib/cotizacion";
+import { abrirCreado } from "@/lib/navegacion";
 import { basisAPorcentaje } from "@/lib/validators/marca";
-import { cotizacionSchema, type CotizacionDatos, type CotizacionInput, type LineaInput } from "@/lib/validators/cotizacion";
+import { NUEVA_EMPRESA, cotizacionSchema, type CotizacionDatos, type CotizacionInput, type LineaInput } from "@/lib/validators/cotizacion";
 import type { CotizacionItemRow, CotizacionRow, PerfilMarcaRow, ServicioRow } from "@/types/database";
 import { guardarCotizacion } from "./acciones";
 import { SelectorServicios } from "./selector-servicios";
@@ -47,7 +47,6 @@ function centimosSeguro(texto: string | undefined): number {
 const lineaVacia: LineaInput = { servicio_id: "", descripcion: "", unidad: "servicio", cantidad: "1", precio: "", descuento: "" };
 
 export function FormularioCotizacion({ cotizacion, clientes, servicios, marca, clienteInicial }: Props) {
-  const router = useRouter();
   const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
@@ -55,7 +54,9 @@ export function FormularioCotizacion({ cotizacion, clientes, servicios, marca, c
   const form = useForm<CotizacionInput, unknown, CotizacionDatos>({
     resolver: zodResolver(cotizacionSchema),
     defaultValues: {
-      cliente_id: cotizacion?.cliente_id ?? clienteInicial ?? "",
+      // Sin empresas todavía, el formulario arranca creando una.
+      cliente_id: cotizacion?.cliente_id ?? clienteInicial ?? (clientes.length ? "" : NUEVA_EMPRESA),
+      empresa_nueva: { nombre: "", tipo_doc: "RUC", num_doc: "", contacto: "", telefono: "", correo: "" },
       area: cotizacion?.area ?? "desarrollo",
       asunto: cotizacion?.asunto ?? "",
       fecha: cotizacion?.fecha ?? hoyLima(),
@@ -87,6 +88,9 @@ export function FormularioCotizacion({ cotizacion, clientes, servicios, marca, c
   const igvPct = Math.round((Number(valores.igv_porcentaje) || 0) * 100);
   const totales = calcularTotales(importes, igvPct, valores.igv_modo ?? "sumar");
   const moneda = valores.moneda ?? "PEN";
+  const empresaNueva = valores.cliente_id === NUEVA_EMPRESA;
+  const tipoDoc = valores.empresa_nueva?.tipo_doc ?? "RUC";
+  const eNueva = errores.empresa_nueva;
 
   const agregarServicio = (s: ServicioRow) => {
     append({
@@ -113,11 +117,18 @@ export function FormularioCotizacion({ cotizacion, clientes, servicios, marca, c
         setErrorGeneral(r.error);
         return;
       }
-      toast.success(cotizacion ? (cotizacion.estado === "enviada" ? `Guardada como borrador v${cotizacion.version + 1}: reenvíala para que la empresa vea los cambios.` : "Cotización actualizada.") : "Cotización guardada como borrador.");
-      form.reset(datos as CotizacionInput, { keepValues: true });
+      toast.success(
+        cotizacion
+          ? cotizacion.estado === "enviada"
+            ? `Guardada como borrador v${cotizacion.version + 1}: reenvíala para que la empresa vea los cambios.`
+            : "Cotización actualizada."
+          : datos.cliente_id === NUEVA_EMPRESA
+            ? "Empresa creada y cotización guardada como borrador."
+            : "Cotización guardada como borrador.",
+      );
+      form.reset(form.getValues(), { keepValues: true });
       if (panel && cotizacion) panel.cerrar(true);
-      else if (panel) router.replace(`/panel/cotizaciones/${r.data.id}`);
-      else router.push(`/panel/cotizaciones/${r.data.id}`);
+      else abrirCreado(`/panel/cotizaciones/${r.data.id}`);
     });
   });
 
@@ -133,13 +144,14 @@ export function FormularioCotizacion({ cotizacion, clientes, servicios, marca, c
             <span className="font-mono">
               {valores.fecha && valores.validez_dias ? fechaVence(valores.fecha, Number(valores.validez_dias)).split("-").reverse().join("/") : "—"}
             </span>
-            . Al aceptarse se crea el trabajo con este asunto y área.
+            . Al aceptarse se crea el trabajo con este asunto y área. Si la empresa no está, créala aquí con lo mínimo.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Campo id="cliente_id" etiqueta="Empresa" requerido error={errores.cliente_id?.message} className="sm:col-span-2">
             <Select {...register("cliente_id")} {...propsCampo("cliente_id", errores.cliente_id?.message)}>
               <option value="">Elige la empresa</option>
+              <option value={NUEVA_EMPRESA}>+ Nueva empresa…</option>
               {clientes.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nombre}
@@ -147,6 +159,32 @@ export function FormularioCotizacion({ cotizacion, clientes, servicios, marca, c
               ))}
             </Select>
           </Campo>
+          {empresaNueva ? (
+            <fieldset className="grid gap-4 rounded-md border border-dashed border-border p-4 sm:col-span-2 sm:grid-cols-2 lg:col-span-4 lg:grid-cols-4">
+              <legend className="px-1 text-sm font-medium">Empresa nueva</legend>
+              <Campo id="en-nombre" etiqueta="Razón social o nombre" requerido error={eNueva?.nombre?.message} className="sm:col-span-2">
+                <Input {...register("empresa_nueva.nombre")} {...propsCampo("en-nombre", eNueva?.nombre?.message)} autoFocus autoComplete="organization" />
+              </Campo>
+              <Campo id="en-tipo_doc" etiqueta="Documento" error={eNueva?.tipo_doc?.message}>
+                <Select {...register("empresa_nueva.tipo_doc")} {...propsCampo("en-tipo_doc", eNueva?.tipo_doc?.message)}>
+                  <option value="RUC">RUC</option>
+                  <option value="DNI">DNI</option>
+                </Select>
+              </Campo>
+              <Campo id="en-num_doc" etiqueta={tipoDoc === "RUC" ? "Número de RUC" : "Número de DNI"} ayuda="Opcional" error={eNueva?.num_doc?.message}>
+                <Input {...register("empresa_nueva.num_doc")} {...propsCampo("en-num_doc", eNueva?.num_doc?.message, "si")} inputMode="numeric" maxLength={tipoDoc === "RUC" ? 11 : 8} className="font-mono" />
+              </Campo>
+              <Campo id="en-contacto" etiqueta="Persona de contacto" error={eNueva?.contacto?.message} className="sm:col-span-2">
+                <Input {...register("empresa_nueva.contacto")} {...propsCampo("en-contacto", eNueva?.contacto?.message)} autoComplete="name" />
+              </Campo>
+              <Campo id="en-telefono" etiqueta="WhatsApp" error={eNueva?.telefono?.message}>
+                <Input {...register("empresa_nueva.telefono")} {...propsCampo("en-telefono", eNueva?.telefono?.message)} inputMode="tel" autoComplete="tel" />
+              </Campo>
+              <Campo id="en-correo" etiqueta="Correo" error={eNueva?.correo?.message} ayuda="Para enviarle la cotización y, si quieres, invitarla a su espacio.">
+                <Input {...register("empresa_nueva.correo")} {...propsCampo("en-correo", eNueva?.correo?.message, "si")} type="email" inputMode="email" autoComplete="email" />
+              </Campo>
+            </fieldset>
+          ) : null}
           <Campo id="area" etiqueta="Área" requerido error={errores.area?.message}>
             <Select {...register("area")} {...propsCampo("area", errores.area?.message)}>
               {AREAS.map((a) => (

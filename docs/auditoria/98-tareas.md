@@ -69,6 +69,7 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | A-14 | Abrir el PR de `actualizacion-post-auditoria` (enlace: https://github.com/aguemar-work/aguemar/pull/new/actualizacion-post-auditoria) y comprobar que pasan los tres jobs (`verificar`, `seguridad`, `e2e`). **Antes de fusionar, aplicar las 11 migraciones en producción (A-12)**: 6 del sprint 2 y 5 del sprint 4, en orden: el código nuevo consulta una columna que solo existe en staging. Después fusionar y abrir el PR de `next-16`. Cuando `e2e` lleve unas corridas estables, añadirlo a los checks requeridos de `main` | GitHub | Los tres checks en verde; `main` con las migraciones y el código | T-24, T-27 |
 | A-15 | Probar a mano en producción el hallazgo abierto B-01 (abajo): abrir un trabajo en el panel lateral, añadir una etapa y ver si aparece sin recargar; abrir una empresa y encender o apagar un módulo; marcar una cotización como aceptada y ver si aparece «Registrar cobro». Si en producción real todo se actualiza, B-01 es solo de las pruebas; si no, es un defecto de la aplicación | aguemar.com (panel) | Resultado anotado aquí | B-01 |
 | A-16 | Con tu `npm run dev` corriendo, probar a mano el sprint 4 y correr `npx playwright test tests/e2e/fase6.spec.ts` (esa prueba está en cuarentena contra `next start` por B-01 y no pude correrla): crear una cotización, enviarla, editarla (el aviso de «pasará a borrador v2»), reenviarla, aceptarla desde el panel (debe llegar la constancia por correo si Resend está activo), registrar un cobro de más (debe pedir confirmación), anular el cobro y anular la cotización | `npm run dev` + pantalla | Cada paso hace lo que dice la nota del sprint 4; fase6 en verde | T-28 … T-32 |
+| A-17 | Probar en pantalla el flujo de la cotización del sprint 5 (con `npm run dev` contra staging, o en producción tras desplegar): crear una cotización eligiendo «+ Nueva empresa…» (debe abrirse el detalle con la empresa en la cabecera), enviarla (el diálogo dice a qué correo salió el aviso y tiene «Copiar enlace»), pulsar «Invitar a su espacio» (llega el correo de invitación y la empresa queda con el módulo Cotizaciones) y, tras «Marcar aceptada», ver que el mismo botón también activa Proyectos. Repetir A-15 (crear un trabajo) en producción | pantalla | Cada paso hace lo que dice la nota del sprint 5 · flujo; crear un trabajo ya no se queda en «Guardando…» | T-36 … T-39 |
 
 ## 3. Resumen de tareas del agente
 
@@ -109,6 +110,10 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | T-33 | Envoltorio `accion()` que traduce y reporta | COD-001 | 4 | No | No | T-04 | Hecha (`1d69c43` … `f02816a`, un commit por módulo) |
 | T-34 | "Mi cuenta" en el workspace | PRO-008 | 5 | No | Sí | — | Pendiente |
 | T-35 | "Tengo dudas" en la cotización y respuesta en línea en la bandeja | UX-005, PRO-008 | 5 | **Sí** | Sí | T-18, T-29 | Pendiente |
+| T-36 | Crear con carga normal de página (`abrirCreado`) en los formularios de crear | B-01 | 5 · flujo | No | Sí | A-15 | Hecha (ver notas del sprint 5 · flujo) |
+| T-37 | Empresa nueva desde la cotización | PRO-009 (D13) | 5 · flujo | No | Sí | T-36 | Hecha |
+| T-38 | Diálogo de envío con enlace, correo y PDF a la vista | UX-005 (D13) | 5 · flujo | No | Sí | — | Hecha |
+| T-39 | Invitar a la empresa a su espacio desde la cotización (al enviar o al aceptar) | PRO-008 (D13) | 5 · flujo | No | Sí | T-38 | Hecha |
 
 **Sprint 1** son quick wins de código, sin migraciones, en ≈ 2–3 días de agente más una sesión de pantalla. **Sprint 2** son migraciones pequeñas. **Sprint 3** es la red de pruebas. **Sprint 4** son las cifras y la cotización. **Sprint 5** deja el workspace listo para invitar a los dos clientes actuales. Lo que sigue después está en §5.
 
@@ -374,7 +379,7 @@ Las migraciones se aplicaron **solo en staging**; producción espera a A-12. Las
   - **Funcionan, sin un solo fallo:** encender y apagar un módulo (8 de 8, el interruptor vuelve a habilitarse en 0,3–1,2 s), añadir etapas (6 de 6, aparecen en 0,4–1,3 s), añadir tareas (6 de 6), marcar tareas (lo marcado quedó guardado tras recargar) y agendar una actividad (2 s, la pantalla avanza).
   - **Falla, 2 de 2:** **crear un trabajo** desde `/panel/trabajos/nuevo`. El trabajo se crea en la base, pero el botón se queda en «Guardando…» más de 17 s y no navega al detalle (hasta recargar). Es el mismo síntoma de B-01, así que **el defecto existe en producción real**, aunque no en todos los flujos. La diferencia con los que funcionan: aquí la acción termina con `router.push` a una página grande (el detalle del trabajo); la actividad, que también navega, va a una página más ligera.
   - **No probado:** aceptar una cotización (una aceptada no se puede borrar y todavía no hay anulación en producción). Un intento intermedio de crear el trabajo quedó inválido (la página saltó a la portada por sí sola) y no cuenta.
-  - **Consecuencia:** B-01 no es solo de las pruebas. Decisión pendiente de Alejandro: tratar «crear con redirección» (trabajo, y por semejanza empresa, cotización, ficha, informe) para que la acción devuelva el id y la navegación no dependa de la respuesta grande.
+  - **Consecuencia:** B-01 no es solo de las pruebas. Decisión pendiente de Alejandro: tratar «crear con redirección» (trabajo, y por semejanza empresa, cotización, ficha, informe) para que la acción devuelva el id y la navegación no dependa de la respuesta grande. **Decidido el 22/10 (T-36):** al crear, el detalle se abre con una carga normal de página (`abrirCreado`).
 - **T-25.** Hecho: barrido de restos al empezar (`globalSetup`) y borrado por sufijo al terminar cada archivo (`afterAll`, corre aunque falle un test intermedio), guard de cuentas `.test` en fase2 a fase9, restauración de los módulos de SGC, `retries: 1` y un worker en CI, informe HTML y espera de hidratación (marca `data-hidratado` más `networkidle`; una sola señal no basta). Corregidos dos selectores que ya no eran únicos (`getByLabel("Empresa")` coincidía con la lista del menú) y el clic forzado de `fase6`. Resultado local, dos corridas seguidas: 33 pasan y 7 en cuarentena u omitidas, ~2,4 min. Falta el fixture con aislamiento por prueba y cuentas separadas por archivo: sigue habiendo una cuenta del propietario compartida y SGC.
 - **T-27.** Next 16.4.2 con Turbopack: build en 19 s (antes 66 s), mismo resultado en las pruebas de navegador y los PDF se generan. `npm audit --omit=dev`: de 2 vulnerabilidades a **0**; la auditoría del CI ya no es informativa. `middleware.ts` pasó a `proxy.ts`; `eslint-config-next` 16 trajo reglas nuevas de React que señalaron 4 errores reales en código existente (se corrigieron) y 10 avisos de `react-hook-form` (se apagan, no usamos el compilador de React). Quedan 5 avisos de `npm audit` solo de herramientas de desarrollo (`braces`), sin arreglo disponible.
 - **CI.** Job `e2e` nuevo (build con staging, `next start`, Chromium, un worker; sube informe y trazas si falla), ejecución nocturna a las 02:00 de Lima, caché de compilación y `permissions: contents: read`. Hasta que exista el PR (A-14) no se ha visto correr en GitHub: se probó el mismo flujo en local.
@@ -481,6 +486,33 @@ Las migraciones se aplicaron **solo en staging**; producción espera a A-12. Las
 - `src/lib/datos/resultado.ts`: `accion(nombre, fn)` hace `try/catch`, aplica `traducirError` y llama `Sentry.captureException(e, { tags: { accion: nombre } })` cuando el error no es de la lista conocida.
 - Migrar los 164 `catch (e) { return fallo(traducirError(e).mensaje) }`, un módulo por commit.
 - Hecho cuando: `rg -c "return fallo\(traducirError" src/app` → 0 y hay un test del envoltorio.
+
+### Sprint 5 · Flujo de la cotización (decidido el 22/10/2026, D13)
+
+Decisión D13 (22/10): el sistema no se amplía, se le quitan pasos. La cotización es la puerta de entrada: «crear cotización → enviar → la empresa acepta → el sistema hace el resto». Fuera por ahora: aviso previo al vencimiento, rechazo y comentarios desde el portal (T-35), fecha de entrega en la cotización, descuento global, plan de pagos con hitos, responsable por trabajo, cobro ligado al trabajo, documento unificado con versiones. Sin migraciones.
+
+**T-36 · Crear con carga normal** (B-01)
+- `src/lib/navegacion.ts`: `abrirCreado(href)` = `window.location.assign`. Los ocho formularios de crear (trabajo, empresa, cotización, ficha, informe, equipo, brief, acta), «Duplicar» de la cotización y «Convertir en trabajo» de la bandeja terminan ahí en vez de `router.push` / `router.replace` al detalle. Editar sigue cerrando el panel (`panel.cerrar(true)`), que funciona en producción.
+- Por qué: en producción la navegación del cliente a la página grande del elemento nuevo no se pinta (A-15: 3 de 3 al crear un trabajo), y una carga completa nunca falló. Cuesta una recarga y el aviso verde desaparece. La actividad va a la lista del calendario (ligera) y no cambia.
+- Hecho cuando: `fase3 · crea un trabajo` y `fase6 · arma una cotización` pasan contra `next start`, y A-15 se repite en producción tras desplegar.
+
+**T-37 · Empresa nueva desde la cotización** (D13)
+- `cotizacionSchema`: `cliente_id` admite `NUEVA_EMPRESA` con `empresa_nueva` (nombre, RUC/DNI opcional, contacto, WhatsApp, correo); `insertarCliente()` en `src/lib/datos/clientes.ts` comparte el slug único con `guardarCliente`. El formulario muestra los campos al elegir «+ Nueva empresa…» y arranca ahí cuando no hay empresas; desaparece el aviso «Primero necesitas una empresa».
+- Hecho cuando: unit del schema y `fase6 · crea la empresa desde la misma cotización`.
+
+**T-38 · Envío claro** (D13)
+- `enviarCotizacion` devuelve también `correoAviso` (`correoAvisoEmpresa()` en `avisos.ts`: null sin Resend, sin correo o con avisos apagados). El diálogo tras enviar dice a qué correo salió el aviso o por qué no salió, y suma «Copiar enlace» junto a «Copiar mensaje», el PDF y WhatsApp.
+- Hecho cuando: revisado en pantalla (A-17).
+
+**T-39 · Invitar desde la cotización** (D13)
+- `invitarEmpresaDesdeCotizacion(id)`: si la empresa tiene correo y no tiene usuario, crea la invitación con `crearInvitacionEmpresa()` (`src/lib/datos/equipo.ts`, compartida con `invitarEmpresa`), la manda por correo y activa el módulo `cotizaciones` (y `proyectos` si la cotización ya está aceptada). Botón «Invitar a su espacio» en el diálogo que sigue a enviar y a «Marcar aceptada»; nada automático: si no se pulsa, nada cambia.
+- Hecho cuando: revisado en pantalla con una empresa de prueba de staging (A-17).
+
+### Notas del sprint 5 · flujo (22/10/2026)
+
+- **Decisión del flujo.** Tras ver el sistema construido, Alejandro lo fijó en tres puntos: (1) crear cotización crea o vincula la empresa, con acceso opcional; (2) se envía por enlace, correo o PDF; (3) la empresa acepta por chat (y tú la marcas) o desde el sistema, con acceso opcional. Lo que ya existía quedó como estaba: aceptar crea el trabajo, la etapa «Alcance» y una tarea por línea; publicar avisa; el cobro vencido recuerda. No se duplican como filas nuevas ni el cobro pendiente (sale de `deudas_cotizacion()`, T-28) ni la entrega en el calendario (sale de `fecha_compromiso`).
+- **T-36.** Un detalle: `cotizacionSchema` validaba siempre los campos de la empresa nueva (el formulario los manda vacíos) y el borrador no se guardaba con una empresa existente; el schema los valida solo con `NUEVA_EMPRESA` y los descarta en los demás casos (unit cubre ambos). `fase5 · nuevo trabajo` cambió: antes esperaba el detalle dentro del panel lateral; ahora comprueba la página completa y que ver uno existente siga abriéndose en el panel.
+- **Verificación.** Unit 206 pasan (2 nuevos del schema). Contra un build de producción (`next start`, un worker): fase2, fase3, fase4, fase5, fase6 (incluido `crea la empresa desde la misma cotización`), fase7, fase8 y fase9 en verde, con las mismas 9 pruebas en cuarentena de B-01 (refresco del panel tras una acción, que A-15 mostró que sí funciona en producción real). **No revisado en pantalla:** el diálogo de envío con el correo y «Copiar enlace», y el botón «Invitar a su espacio» (A-17).
 
 ### Sprint 5 · Workspace listo para los clientes
 

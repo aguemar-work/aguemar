@@ -3,6 +3,23 @@ import type { Area, EstadoTrabajo } from "@/types/database";
 import type { TipoActividad } from "@/lib/calendario";
 import { conSesion } from "./base";
 
+type Db = Awaited<ReturnType<typeof conSesion>>["db"];
+
+/**
+ * Invitación de empresa a su workspace (un solo uso, 7 días): la pendiente anterior se revoca.
+ * Devuelve el token; el enlace y el correo los arma quien llama. Lanza el error de la base.
+ */
+export async function crearInvitacionEmpresa(db: Db, ownerId: string, empresa: { id: string; contacto: string | null }, correo: string): Promise<string> {
+  await db.from("invitaciones").update({ revocada: true }).eq("cliente_id", empresa.id).eq("tipo", "empresa").is("usada_en", null);
+  const { data, error } = await db
+    .from("invitaciones")
+    .insert([{ owner_id: ownerId, tipo: "empresa", correo, nombre: empresa.contacto, cliente_id: empresa.id }])
+    .select("token")
+    .single();
+  if (error) throw error;
+  return (data as { token: string }).token;
+}
+
 /** Inicio del colaborador (equipo_resumen): solo sus empresas asignadas, sin dinero. */
 export interface ResumenEquipo {
   empresas: { id: string; nombre: string; slug: string | null }[];

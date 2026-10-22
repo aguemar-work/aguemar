@@ -6,9 +6,12 @@ import { accion, exito, fallo, type Resultado } from "@/lib/datos/resultado";
 import { traducirError } from "@/lib/insforge/errores";
 import { aCentimos, hoyLima } from "@/lib/format";
 import { porcentajeABasis } from "@/lib/validators/marca";
-import { aceptacionSchema, cobroSchema, cotizacionSchema, lineaABase, pagoCotizacionSchema, type CobroInput, type CotizacionInput, type PagoCotizacionInput } from "@/lib/validators/cotizacion";
+import { NUEVA_EMPRESA, aceptacionSchema, cobroSchema, cotizacionSchema, lineaABase, pagoCotizacionSchema, type CobroInput, type CotizacionInput, type PagoCotizacionInput } from "@/lib/validators/cotizacion";
+import { insertarCliente } from "@/lib/datos/clientes";
+import { crearInvitacionEmpresa } from "@/lib/datos/equipo";
+import { enlaceInvitacion } from "@/lib/invitaciones";
 import type { CotizacionRow } from "@/types/database";
-import { avisarCopiaAceptacion, avisarDocumentoEmpresa } from "@/lib/correo/avisos";
+import { avisarCopiaAceptacion, avisarDocumentoEmpresa, avisarInvitacion, correoAvisoEmpresa } from "@/lib/correo/avisos";
 
 /** Cotizaciones, trabajos, empresas, inicio y workspaces: todo lo que muestra montos o estados. */
 function revalidar() {
@@ -28,13 +31,23 @@ function primerError(issues: { message: string; path: PropertyKey[] }[]) {
 export async function guardarCotizacion(input: CotizacionInput, id?: string): Promise<Resultado<{ id: string }>> {
   const parsed = cotizacionSchema.safeParse(input);
   if (!parsed.success) return primerError(parsed.error.issues);
-  const { items, igv_porcentaje, ...resto } = parsed.data;
+  const { items, igv_porcentaje, empresa_nueva, ...resto } = parsed.data;
   const datos = { ...resto, igv_pct: porcentajeABasis(igv_porcentaje) };
 
   return accion("cotizaciones.guardarCotizacion", async () => {
     await exigirPropietario();
     const { db, usuario } = await conSesion();
     let cotId = id;
+
+    // Empresa nueva desde la misma cotización: con lo mínimo; el resto se completa en su ficha.
+    if (datos.cliente_id === NUEVA_EMPRESA && empresa_nueva) {
+      try {
+        datos.cliente_id = await insertarCliente(db, usuario.id, empresa_nueva);
+      } catch (e) {
+        const t = traducirError(e);
+        return fallo(t.mensaje, `empresa_nueva.${t.campo ?? "nombre"}`);
+      }
+    }
 
     if (id) {
       const actual = await db.from("cotizaciones").select("estado").eq("id", id).maybeSingle();
@@ -64,13 +77,17 @@ export async function guardarCotizacion(input: CotizacionInput, id?: string): Pr
   });
 }
 
-/** Pasa a "enviada": la empresa la ve en su workspace. Si estaba vencida, se renueva con fecha de hoy. */
-export async function enviarCotizacion(id: string): Promise<Resultado<{ token: string | null }>> {
+/**
+ * Pasa a "enviada" en un solo paso: la empresa la ve en su workspace, se genera el enlace del
+ * portal y sale el aviso por correo (si hay a quién). Si estaba vencida, se renueva con fecha de hoy.
+ * Devuelve el token y el correo al que se avisó, para que el diálogo lo diga.
+ */
+export async function enviarCotizacion(id: string): Promise<Resultado<{ token: string | null; correoAviso: string | null }>> {
   return accion("cotizaciones.enviarCotizacion", async () => {
     await exigirPropietario();
     const { db } = await conSesion();
-    const actual = await db.from("cotizaciones").select("estado, total").eq("id", id).maybeSingle();
-    const c = actual.data as Pick<CotizacionRow, "estado" | "total"> | null;
+    const actual = await db.from("cotizaciones").select("estado, total, cliente_id").eq("id", id).maybeSingle();
+    const c = actual.data as Pick<CotizacionRow, "estado" | "total" | "cliente_id"> | null;
     if (!c) return fallo("No encontramos la cotización.");
     if (c.estado === "aceptada") return fallo("Esta cotización ya fue aceptada.");
     if (c.total <= 0) return fallo("Agrega al menos una línea con importe antes de enviarla.");
@@ -79,10 +96,41 @@ export async function enviarCotizacion(id: string): Promise<Resultado<{ token: s
     const { error } = await db.from("cotizaciones").update(cambios).eq("id", id);
     if (error) throw error;
     // Enlace del portal: para quien no tiene workspace (ve, descarga y acepta sin entrar).
-    const enlace = await db.rpc("obtener_enlace", { p_tipo: "cotizacion", p_id: id, p_renovar: false });
+    const [enlace, correoAviso] = await Promise.all([db.rpc("obtener_enlace", { p_tipo: "cotizacion", p_id: id, p_renovar: false }), correoAvisoEmpresa(db, c.cliente_id)]);
     await avisarDocumentoEmpresa("cotizacion", id);
     revalidar();
-    return exito({ token: enlace.error ? null : (enlace.data as string) });
+    return exito({ token: enlace.error ? null : (enlace.data as string), correoAviso });
+  });
+}
+
+/**
+ * Invita a la empresa a su espacio desde la cotización, sin pasar por su ficha: crea la invitación
+ * al correo de la empresa, se la manda y activa el módulo que va a necesitar (Cotizaciones; y
+ * Proyectos si la cotización ya está aceptada, porque ya tiene un trabajo que seguir).
+ */
+export async function invitarEmpresaDesdeCotizacion(id: string): Promise<Resultado<{ enlace: string; correo: string }>> {
+  return accion("cotizaciones.invitarEmpresaDesdeCotizacion", async () => {
+    await exigirPropietario();
+    const { db, usuario } = await conSesion();
+    const { data, error } = await db.from("cotizaciones").select("estado, clientes(id, nombre, contacto, correo, usuario_id, modulos)").eq("id", id).maybeSingle();
+    if (error) throw error;
+    const c = data as { estado: CotizacionRow["estado"]; clientes: { id: string; nombre: string; contacto: string | null; correo: string | null; usuario_id: string | null; modulos: string[] } | null } | null;
+    const e = c?.clientes;
+    if (!c || !e) return fallo("No encontramos la cotización.");
+    if (e.usuario_id) return fallo("Esta empresa ya tiene acceso a su espacio.");
+    if (!e.correo) return fallo("La empresa no tiene correo: agrégalo en su ficha e invítala desde ahí.");
+
+    const modulos = new Set(e.modulos ?? []);
+    modulos.add("cotizaciones");
+    if (c.estado === "aceptada") modulos.add("proyectos");
+    if (modulos.size !== (e.modulos ?? []).length) {
+      const m = await db.from("clientes").update({ modulos: [...modulos] }).eq("id", e.id);
+      if (m.error) throw m.error;
+    }
+    const enlace = enlaceInvitacion(await crearInvitacionEmpresa(db, usuario.id, e, e.correo));
+    avisarInvitacion({ correo: e.correo, enlace, tipo: "empresa", empresa: e.nombre, nombre: e.contacto });
+    revalidar();
+    return exito({ enlace, correo: e.correo });
   });
 }
 

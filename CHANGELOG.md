@@ -37,6 +37,11 @@ Sprint 4 de la misma actualización. **Lleva 5 migraciones más, solo en staging
 - **Aceptación:** todas las pantallas y el PDF dicen quién aceptó y cómo; al registrarla desde el panel, la empresa recibe una constancia por correo (T-31).
 - **Errores:** envoltorio `accion()` en las Server Actions; los errores inesperados llegan a Sentry con la acción que falló (T-33).
 
+Sprint 5 · flujo de la cotización, sin migraciones (decisión D13 del 22/10: quitar pasos, no sumar módulos).
+
+- **Arreglo de B-01 al crear:** tras crear un trabajo, empresa, cotización, ficha, informe, equipo, brief o acta (y al duplicar una cotización o convertir una solicitud en trabajo), la página del elemento nuevo se abre con una carga normal; en producción el salto sin recarga se quedaba en «Guardando…» (T-36).
+- **Cotización:** la empresa se puede crear desde el mismo formulario con nombre, documento, contacto, WhatsApp y correo (T-37). Al enviar, el diálogo dice a qué correo salió el aviso y permite copiar el enlace, descargar el PDF o abrir WhatsApp (T-38). Desde ese diálogo, y desde el de «Marcar aceptada», se invita a la empresa a su espacio en un clic si tiene correo y aún no tiene usuario; se le activa el módulo Cotizaciones, y Proyectos si ya aceptó (T-39).
+
 ## v0.14.5 · 20/10/2026
 
 Fase 14.5 y Sprint 2 en producción: migraciones `inmutabilidad-aceptados` y `sprint2-medicion`, con respaldo previo del 20/10. Sin tag en su momento: se registra aquí como punto de partida.

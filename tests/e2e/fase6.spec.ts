@@ -31,7 +31,8 @@ let urlCotizacion = "";
 test("arma una cotización con una línea libre y ve el total con IGV", async ({ page }) => {
   await iniciarSesion(page);
   await abrir(page, "/panel/cotizaciones/nueva");
-  await page.getByLabel(/^empresa\s*\*?$/i).selectOption({ index: 1 });
+  // La opción 1 es «+ Nueva empresa…»; la 2 es la primera empresa existente.
+  await page.getByLabel(/^empresa\s*\*?$/i).selectOption({ index: 2 });
   await page.getByLabel(/^asunto/i).fill(`Cotización ${SUFIJO}`);
   await page.getByRole("button", { name: /línea libre/i }).click();
   await page.getByLabel("Descripción").first().fill("Desarrollo de landing");
@@ -42,6 +43,25 @@ test("arma una cotización con una línea libre y ve el total con IGV", async ({
   await expect(page).toHaveURL(/\/panel\/cotizaciones\/[0-9a-f-]{36}$/);
   urlCotizacion = page.url();
   await expect(page.getByRole("heading", { name: `Cotización ${SUFIJO}` })).toBeVisible();
+});
+
+test("crea la empresa desde la misma cotización, con lo mínimo", async ({ page }) => {
+  await iniciarSesion(page);
+  await abrir(page, "/panel/cotizaciones/nueva");
+  await page.getByLabel(/^empresa\s*\*?$/i).selectOption({ label: "+ Nueva empresa…" });
+  await page.getByLabel(/razón social o nombre/i).fill(`Cliente ${SUFIJO}`);
+  await page.getByLabel(/^correo/i).fill("contacto@empresa.test");
+  await page.getByLabel(/^asunto/i).fill(`Cotización ${SUFIJO} nueva`);
+  await page.getByRole("button", { name: /línea libre/i }).click();
+  await page.getByLabel("Descripción").first().fill("Diagnóstico de equipo");
+  await page.getByLabel("Precio unit.").first().fill("200");
+  await page.getByRole("button", { name: /guardar borrador/i }).click();
+  await expect(page).toHaveURL(/\/panel\/cotizaciones\/[0-9a-f-]{36}$/);
+  // La empresa nueva aparece en la cabecera, enlazada a su ficha.
+  await expect(page.getByRole("link", { name: `Cliente ${SUFIJO}` })).toBeVisible();
+  // Y en la lista de empresas, con su slug generado.
+  await abrir(page, "/panel/clientes");
+  await expect(page.getByText(`Cliente ${SUFIJO}`)).toBeVisible();
 });
 
 test("el PDF se genera", async ({ page, request }) => {

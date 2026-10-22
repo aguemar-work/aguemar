@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -19,6 +18,7 @@ import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { AREAS } from "@/lib/areas";
 import { hoyLima } from "@/lib/format";
 import { MAX_INDICADORES, MAX_SECCIONES, periodoMes, textoPeriodo, tituloSugerido } from "@/lib/informe";
+import { abrirCreado } from "@/lib/navegacion";
 import { informeSchema, type InformeDatos, type InformeInput } from "@/lib/validators/informe";
 import type { InformeFila } from "@/lib/datos/informes";
 import type { Area } from "@/types/database";
@@ -37,7 +37,6 @@ const SECCIONES_BASE = [
 ];
 
 export function FormularioInforme({ informe, clientes, trabajos, inicial }: Props) {
-  const router = useRouter();
   const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [armando, iniciarArmado] = useTransition();
@@ -105,8 +104,7 @@ export function FormularioInforme({ informe, clientes, trabajos, inicial }: Prop
       toast.success(informe ? "Informe actualizado." : "Informe guardado como borrador.");
       form.reset(getValues(), { keepValues: true });
       if (panel && informe) panel.cerrar(true);
-      else if (panel) router.replace(`/panel/informes/${r.data.id}`);
-      else router.push(`/panel/informes/${r.data.id}`);
+      else abrirCreado(`/panel/informes/${r.data.id}`);
     }),
   );
 

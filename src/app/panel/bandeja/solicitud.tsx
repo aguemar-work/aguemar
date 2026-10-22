@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Campo } from "@/components/formulario/campo";
 import { EtiquetaArea } from "@/components/panel/etiqueta-area";
 import { formatearFecha, formatearFechaHora } from "@/lib/format";
+import { abrirCreado } from "@/lib/navegacion";
 import type { SolicitudFila } from "@/lib/datos/calendario";
 import { convertirEnCotizacion, convertirEnTrabajo, eliminarSolicitud, responderSolicitud } from "@/app/panel/calendario/acciones";
 
@@ -35,7 +36,7 @@ export function TarjetaSolicitud({ s }: { s: SolicitudFila }) {
       const r = await convertirEnTrabajo(s.id);
       if (!r.ok) return void avisoError(r.error);
       toast.success("Trabajo creado en propuesta; la empresa ya lo ve en sus proyectos.");
-      router.push(`/panel/trabajos/${r.data.trabajoId}`);
+      abrirCreado(`/panel/trabajos/${r.data.trabajoId}`);
     });
   const aCotizacion = () =>
     iniciar(async () => {

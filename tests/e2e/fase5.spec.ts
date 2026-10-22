@@ -26,7 +26,7 @@ async function iniciarSesion(page: Page) {
   await listo(page);
 }
 
-test("nuevo trabajo se abre en el panel lateral y queda abierto en su detalle", async ({ page }) => {
+test("nuevo trabajo se crea en el panel lateral y se abre su detalle con una carga normal", async ({ page }) => {
   await iniciarSesion(page);
   await abrir(page, "/panel/trabajos");
   await page.getByRole("link", { name: /nuevo trabajo/i }).first().click();
@@ -35,11 +35,17 @@ test("nuevo trabajo se abre en el panel lateral y queda abierto en su detalle", 
   await expect(page).toHaveURL(/\/panel\/trabajos\/nuevo$/);
   await panel.getByLabel(/^título/i).fill(`Trabajo ${SUFIJO}`);
   await panel.getByRole("button", { name: /crear trabajo/i }).click();
+  // Al crear, el detalle se abre como página completa (T-36, B-01): ya no hay panel lateral.
   await expect(page).toHaveURL(/\/panel\/trabajos\/[0-9a-f-]{36}$/);
+  await listo(page);
+  await expect(page.getByRole("heading", { name: `Trabajo ${SUFIJO}` })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  // Ver uno existente sí sigue abriéndose en el panel lateral sobre la lista.
+  await abrir(page, "/panel/trabajos");
+  await page.getByRole("link", { name: `Trabajo ${SUFIJO}` }).first().click();
   await expect(panel.getByRole("heading", { name: `Trabajo ${SUFIJO}` })).toBeVisible();
   await panel.getByRole("button", { name: /^cerrar$/i }).click();
   await expect(page).toHaveURL(/\/panel\/trabajos\/?$/);
-  await expect(page.getByRole("link", { name: `Trabajo ${SUFIJO}` }).first()).toBeVisible();
 });
 
 test("marcar una tarea se refleja al instante", async ({ page }) => {

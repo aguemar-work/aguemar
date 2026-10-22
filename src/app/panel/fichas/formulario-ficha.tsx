@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -18,6 +17,7 @@ import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
 import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { ESTADOS_DIAGNOSTICO, ESTADOS_FINALES, ESTADOS_INCIDENCIA, MODALIDADES, TIPOS_SERVICIO_FICHA, nombreEquipo, proximoMantenimientoSugerido } from "@/lib/documentos";
 import { hoyLima } from "@/lib/format";
+import { abrirCreado } from "@/lib/navegacion";
 import { EQUIPO_NUEVO, fichaSchema, type FichaDatos, type FichaInput } from "@/lib/validators/ficha";
 import type { PlantillaChecklistRow } from "@/types/database";
 import type { FichaEdicion } from "@/lib/datos/fichas";
@@ -65,7 +65,6 @@ function trabajosDePlantilla(plantillas: PlantillaChecklistRow[], tipo: string) 
 }
 
 export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas, inicial }: Props) {
-  const router = useRouter();
   const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
@@ -129,8 +128,7 @@ export function FormularioFicha({ ficha, clientes, equipos, trabajos, plantillas
       toast.success(ficha ? "Ficha actualizada." : "Ficha guardada como borrador.");
       form.reset(datos as FichaInput, { keepValues: true });
       if (panel && ficha) panel.cerrar(true);
-      else if (panel) router.replace(`/panel/fichas/${r.data.id}`);
-      else router.push(`/panel/fichas/${r.data.id}`);
+      else abrirCreado(`/panel/fichas/${r.data.id}`);
     }),
   );
 

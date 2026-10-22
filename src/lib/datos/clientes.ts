@@ -1,7 +1,33 @@
 import { cache } from "react";
 import type { ClienteRow, EquipoRow, FichaRow, CotizacionRow, TrabajoRow, CobroRow } from "@/types/database";
+import { generarSlug } from "@/lib/slug";
 import { conSesion, conSesionPanel } from "./base";
 import { filtroOr } from "./busqueda";
+
+type Db = Awaited<ReturnType<typeof conSesion>>["db"];
+
+/** Datos mínimos de una empresa nueva (los demás campos de `clientes` quedan vacíos). */
+export type ClienteNuevo = Pick<ClienteRow, "nombre" | "tipo_doc"> & Partial<Pick<ClienteRow, "num_doc" | "contacto" | "telefono" | "correo" | "direccion" | "notas">>;
+
+/**
+ * Crea la empresa con un slug único por propietario (base + sufijo si ya existe). Lanza el error
+ * de la base tal cual: lo traduce quien llama (`guardarCliente` o la cotización que la crea).
+ */
+export async function insertarCliente(db: Db, ownerId: string, datos: ClienteNuevo): Promise<string> {
+  const base = generarSlug(datos.nombre) || "empresa";
+  const existentes = await db.from("clientes").select("slug").like("slug", `${base}%`);
+  const usados = new Set(((existentes.data ?? []) as { slug: string | null }[]).map((c) => c.slug));
+  let slug = base;
+  for (let i = 2; usados.has(slug); i += 1) slug = `${base}-${i}`;
+
+  const { data, error } = await db
+    .from("clientes")
+    .insert([{ ...datos, slug, owner_id: ownerId }])
+    .select("id")
+    .single();
+  if (error) throw error;
+  return (data as { id: string }).id;
+}
 
 export interface ClienteResumen extends ClienteRow {
   equipos: { count: number }[];

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -15,6 +14,7 @@ import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
 import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { AREAS } from "@/lib/areas";
 import { hoyLima } from "@/lib/format";
+import { abrirCreado } from "@/lib/navegacion";
 import { briefSchema, type BriefDatos, type BriefInput } from "@/lib/validators/brief-acta";
 import type { BriefFila } from "@/lib/datos/briefs-actas";
 import type { Area } from "@/types/database";
@@ -38,7 +38,6 @@ const SECCIONES: { campo: keyof BriefInput; etiqueta: string; ayuda: string; fil
 ];
 
 export function FormularioBrief({ brief, clientes, trabajos, inicial }: Props) {
-  const router = useRouter();
   const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
@@ -79,8 +78,7 @@ export function FormularioBrief({ brief, clientes, trabajos, inicial }: Props) {
       toast.success(brief ? "Brief actualizado." : "Brief guardado como borrador.");
       form.reset(datos as BriefInput, { keepValues: true });
       if (panel && brief) panel.cerrar(true);
-      else if (panel) router.replace(`/panel/briefs/${r.data.id}`);
-      else router.push(`/panel/briefs/${r.data.id}`);
+      else abrirCreado(`/panel/briefs/${r.data.id}`);
     }),
   );
 

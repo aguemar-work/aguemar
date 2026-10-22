@@ -165,6 +165,12 @@ async function destinoEmpresa(db: Db, clienteId: string): Promise<Destino | null
   return { correo, nombre: c.nombre, contacto: c.contacto, slug: c.slug, modulos: c.modulos ?? [], conAcceso: Boolean(c.correo_usuario && c.slug) };
 }
 
+/** A qué correo le llegaría un aviso a la empresa (null si no hay Resend, correo, o desactivó los avisos). */
+export async function correoAvisoEmpresa(db: Db, clienteId: string): Promise<string | null> {
+  if (!avisosActivos()) return null;
+  return (await destinoEmpresa(db, clienteId))?.correo ?? null;
+}
+
 const saludo = (d: Destino) => (d.contacto ? `Hola ${d.contacto.split(" ")[0]},` : "Hola,");
 const pieEmpresa = (d: Destino) => pieParaEmpresa(d.nombre);
 

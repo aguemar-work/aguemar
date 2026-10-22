@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -15,6 +14,7 @@ import { useAvisoCambios } from "@/components/formulario/use-aviso-cambios";
 import { usePanelLateral } from "@/components/panel/panel-lateral";
 import { AREAS, ESTADOS_TRABAJO, PRIORIDADES } from "@/lib/areas";
 import { formatearCentimos } from "@/lib/format";
+import { abrirCreado } from "@/lib/navegacion";
 import { trabajoSchema, type TrabajoDatos, type TrabajoInput } from "@/lib/validators/trabajo";
 import type { TrabajoRow } from "@/types/database";
 import { guardarTrabajo } from "./acciones";
@@ -27,7 +27,6 @@ interface Props {
 }
 
 export function FormularioTrabajo({ trabajo, clientes, clienteInicial, areaInicial }: Props) {
-  const router = useRouter();
   const panel = usePanelLateral();
   const [guardando, iniciar] = useTransition();
   const [errorGeneral, setErrorGeneral] = useState<string>();
@@ -63,10 +62,9 @@ export function FormularioTrabajo({ trabajo, clientes, clienteInicial, areaInici
       }
       toast.success(trabajo ? "Trabajo actualizado." : "Trabajo creado.");
       form.reset(datos as TrabajoInput, { keepValues: true });
-      // En el panel lateral, un trabajo nuevo se abre en el mismo panel; al editar, se vuelve al detalle.
+      // Al editar se vuelve al detalle; un trabajo nuevo se abre con una carga normal (B-01).
       if (panel && trabajo) panel.cerrar(true);
-      else if (panel) router.replace(`/panel/trabajos/${r.data.id}`);
-      else router.push(`/panel/trabajos/${r.data.id}`);
+      else abrirCreado(`/panel/trabajos/${r.data.id}`);
     }),
   );
 

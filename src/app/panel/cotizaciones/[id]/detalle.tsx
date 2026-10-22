@@ -62,7 +62,16 @@ export async function DetalleCotizacion({ id }: { id: string }) {
             moneda={c.moneda}
             asunto={c.asunto}
             vence={formatearFecha(vence)}
-            empresa={{ nombre: empresa?.nombre ?? "la empresa", contacto: empresa?.contacto ?? null, telefono: empresa?.telefono ?? null, slug: empresa?.slug ?? null, conWorkspace }}
+            empresa={{
+              nombre: empresa?.nombre ?? "la empresa",
+              contacto: empresa?.contacto ?? null,
+              telefono: empresa?.telefono ?? null,
+              correo: empresa?.correo ?? null,
+              slug: empresa?.slug ?? null,
+              conWorkspace,
+              // Se le puede invitar desde aquí: tiene correo y aún no tiene usuario.
+              invitable: Boolean(empresa?.correo && !empresa.usuario_id),
+            }}
             token={enlace && !enlace.revocado ? enlace.token : null}
             aceptadaEn={estado === "aceptada" ? (aceptacion?.aceptado_en ?? c.aceptada_en ?? null) : null}
             cobrado={cobrado}
