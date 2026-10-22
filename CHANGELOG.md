@@ -41,6 +41,7 @@ Sprint 5 · flujo de la cotización, sin migraciones (decisión D13 del 22/10: q
 
 - **Arreglo de B-01 al crear:** tras crear un trabajo, empresa, cotización, ficha, informe, equipo, brief o acta (y al duplicar una cotización o convertir una solicitud en trabajo), la página del elemento nuevo se abre con una carga normal; en producción el salto sin recarga se quedaba en «Guardando…» (T-36).
 - **Cotización:** la empresa se puede crear desde el mismo formulario con nombre, documento, contacto, WhatsApp y correo (T-37). Al enviar, el diálogo dice a qué correo salió el aviso y permite copiar el enlace, descargar el PDF o abrir WhatsApp (T-38). Desde ese diálogo, y desde el de «Marcar aceptada», se invita a la empresa a su espacio en un clic si tiene correo y aún no tiene usuario; se le activa el módulo Cotizaciones, y Proyectos si ya aceptó (T-39).
+- **PDF de la cotización aceptada:** la sección «Conformidad» con líneas de firma se reemplaza por «Aceptación», con quién, cuándo y cómo la aceptó; las firmas solo salen en una cotización todavía no aceptada.
 
 ## v0.14.5 · 20/10/2026
 

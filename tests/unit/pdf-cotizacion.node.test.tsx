@@ -47,4 +47,11 @@ describe("PDF de cotización", () => {
     // Sin portada: una cotización corta cabe en una hoja.
     expect(paginasPdf(pdf)).toBe(1);
   }, 30_000);
+
+  it("aceptada: lleva el registro de la aceptación en vez de las líneas de firma, y sigue en una hoja", async () => {
+    const pdf = await pdfCotizacion({ ...ejemplo, estado: "aceptada", aceptacion: { nombre: "Ana Pérez", dni: "12345678", aceptado_en: "2026-10-22T15:00:00Z", por: "portal" } });
+    expect(Buffer.from(pdf.slice(0, 5)).toString()).toBe("%PDF-");
+    guardarPdf("cotizacion-aceptada.pdf", pdf);
+    expect(paginasPdf(pdf)).toBe(1);
+  }, 30_000);
 });

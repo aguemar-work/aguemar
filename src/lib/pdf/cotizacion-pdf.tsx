@@ -177,21 +177,26 @@ export function DocumentoCotizacion({ d }: { d: DatosCotizacionPdf }) {
           </View>
         ) : null}
 
-        <Seccion n={sig()} titulo="Conformidad" juntos>
-          {d.aceptacion ? (
+        {d.aceptacion ? (
+          // Ya aceptada: queda el registro de quién, cuándo y cómo. Sin líneas de firma: la aceptación ya ocurrió.
+          <Seccion n={sig()} titulo="Aceptación" juntos>
             <Text style={{ color: C.mintInk }}>
               {textoAceptacion({ nombre: d.aceptacion.nombre, por: d.aceptacion.por ?? "portal" }, formatearFecha(d.aceptacion.aceptado_en))}
               {d.aceptacion.dni ? ` (DNI ${d.aceptacion.dni})` : ""}.
             </Text>
-          ) : null}
-          <Firmas
-            firmas={[
-              [marca?.responsable ?? nombreMarca, marca ? `${marca.cargo} · ${nombreMarca}` : nombreMarca],
-              [d.aceptacion?.nombre ?? d.cliente.contacto ?? "Nombre y firma", d.cliente.nombre],
-            ]}
-            contacto={contactoDe(marca)}
-          />
-        </Seccion>
+            {contactoDe(marca).length ? <Text style={[s.mono, { fontSize: 7.5, color: C.muted, marginTop: 10 }]}>{contactoDe(marca).join("  ·  ")}</Text> : null}
+          </Seccion>
+        ) : (
+          <Seccion n={sig()} titulo="Conformidad" juntos>
+            <Firmas
+              firmas={[
+                [marca?.responsable ?? nombreMarca, marca ? `${marca.cargo} · ${nombreMarca}` : nombreMarca],
+                [d.cliente.contacto ?? "Nombre y firma", d.cliente.nombre],
+              ]}
+              contacto={contactoDe(marca)}
+            />
+          </Seccion>
+        )}
       </Page>
     </Document>
   );
