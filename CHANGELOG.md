@@ -4,6 +4,12 @@ Una entrada por despliegue a producción. Si el despliegue lleva migración, la 
 
 ## Sin publicar
 
+Nada todavía.
+
+## v0.15.0 · 22/10/2026
+
+Sprints 1 a 5 de la actualización post-auditoría en producción. Antes de desplegar, con la CLI en el proyecto principal y respaldo propio de las 13:26 (`_respaldos/aguemar-Project_AGUEMAR-2026-10-22-1326.sql`): reinicio de datos conservando la configuración (`npm run db:reiniciar -- Project_AGUEMAR`, decisión del 22/10) y las **11 migraciones** aplicadas en orden con `npm run db:migrate` (`lead-topes`, `lead-topes-codigos`, `lead-topes-hint`, `ws-modulos`, `comentarios-autor`, `invitacion-cuenta-previa`, `pendiente-unico`, `cotizacion-version`, `anulaciones-estado`, `anulaciones`, `aceptacion-origen`). Despliegue por avance directo de `actualizacion-post-auditoria` a `main`, tag `v0.15.0`. Pendiente: renovar el respaldo manual de InsForge y borrar en Auth → Users los usuarios de empresa antiguos.
+
 Sprint 1 de la actualización post-auditoría (`docs/auditoria/98-tareas.md`). Sin migraciones.
 
 - **Landing:** contraste del formulario de contacto (T-01); imagen al compartir `/en` y datos estructurados sin datos personales (T-02a); de 242 a 164 kB de JavaScript inicial (T-07).
