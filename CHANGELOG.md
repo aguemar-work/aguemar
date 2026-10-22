@@ -6,6 +6,10 @@ Una entrada por despliegue a producción. Si el despliegue lleva migración, la 
 
 Nada todavía.
 
+## v0.16.0 · 22/10/2026
+
+Sin migración. Next 16.4.2 y `eslint-config-next` 16.4.2 (T-27, rama `next-16`): Turbopack también en el build (19 s frente a 66 s), `src/middleware.ts` pasa a `src/proxy.ts` con el mismo matcher, cuatro arreglos de lint que señalaron las reglas nuevas y `npm audit` de producción en 0 vulnerabilidades. Revisado en pantalla el 22/10 (entrar con los dos roles, panel lateral); tipos, lint, 207 unit y build en verde sobre la fusión. Cierra los PR #5 y #6 de Dependabot.
+
 ## v0.15.1 · 22/10/2026
 
 Sin migración. El job `e2e` del CI falló en `main` con v0.15.0: tras eliminar un trabajo desde el panel lateral, volver a la lista con el router tardaba 8–9 s en el build de producción y el CI (5 s por expectativa) lo daba por colgado. `ConfirmarEliminar` vuelve a la lista con una carga normal de página (`irTrasAccion`, misma regla que `abrirCreado` al crear): de 9 s a 4 s en las mismas pruebas.
