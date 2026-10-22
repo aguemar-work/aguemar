@@ -10,6 +10,8 @@ Nada todavía.
 
 Sprint 5 · workspace. **Lleva 2 migraciones**, aplicadas en producción por Alejandro con `npm run db:migrate` antes de fusionar (A-19): `comentarios-cotizacion` y `ws-preferencias`. Despliegue por avance directo de `sprint5-workspace` a `main`, tag `v0.17.0`.
 
+También viajó con esta versión la migración `indices-advisor-2` (22/10/2026, solo base de datos, sin cambio de código): 10 índices `if not exists` que pidió el advisor de InsForge (claves foráneas de `solicitudes`, `fichas`, `leads`, `invitaciones`, `cotizaciones.anulada_por` y `owner_id` de `trabajo_etapas` y las tres tablas de ficha). Probada en staging; los avisos de diseño del advisor (funciones `security definer`, tablas sin política o de solo lectura) quedaron suprimidos con su motivo, objeto por objeto, en staging. Checklist del README: respaldo de producción `_respaldos/aguemar-Project_AGUEMAR-2026-10-22-1819.sql` y respaldo manual de InsForge renovado (`2026-10-22-antes-indices`, 18:20). Aplicada en producción a las 18:20, junto con `comentarios-cotizacion` y `ws-preferencias`; `db:status` coincide con staging. El archivo de la migración se subió a `main` después del despliegue. Pendiente: suprimir en producción los mismos avisos de diseño del advisor.
+
 - **Mi cuenta** en el espacio de la empresa: su correo, cambiar la contraseña con un código al correo y apagar o encender los avisos por correo (T-34).
 - **Dudas sobre la cotización:** la empresa pregunta bajo la cotización antes de aceptar, tú ves la duda en el detalle y en la Bandeja y respondes ahí mismo, en la tarjeta (T-35). Aviso junto a la casilla de conformidad.
 
