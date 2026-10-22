@@ -93,7 +93,7 @@ jobs:
 
       - name: Seguridad contra staging
         if: env.E2E_EMAIL != ''
-        run: npx playwright test tests/e2e/seguridad.spec.ts tests/e2e/db.spec.ts --project escritorio
+        run: npx playwright test tests/e2e/seguridad.spec.ts tests/e2e/db.spec.ts --project=escritorio
 
       - name: Sin secretos de staging
         if: env.E2E_EMAIL == ''
@@ -148,7 +148,7 @@ jobs:
       - name: Flujos de navegador
         if: env.E2E_EMAIL != ''
         run: >
-          npx playwright test --project escritorio
+          npx playwright test --project=escritorio
           tests/e2e/base.spec.ts tests/e2e/fase2.spec.ts tests/e2e/fase3.spec.ts tests/e2e/fase4.spec.ts
           tests/e2e/fase5.spec.ts tests/e2e/fase6.spec.ts tests/e2e/fase7.spec.ts tests/e2e/fase8.spec.ts
           tests/e2e/fase9.spec.ts tests/e2e/fase10.spec.ts
