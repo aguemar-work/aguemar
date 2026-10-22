@@ -91,6 +91,12 @@ npm run staging:cuentas
 npx insforge branch switch --parent; npm run db:migrate; npx insforge branch switch staging
 ```
 
+**Empezar de cero (reinicio de datos).** `npm run db:reiniciar -- <contexto>` vacía todo lo operativo del proyecto al que apunta la CLI (empresas y accesos, trabajos, calendario, documentos, cotizaciones, cobros, aceptaciones, leads, invitaciones, colaboradores) y reinicia la numeración; conserva Mi marca, servicios, plantillas, tu usuario y `ajustes_sistema`. Exige escribir el nombre del contexto (`staging` o el del proyecto principal) y hace un respaldo en `_respaldos/` antes; si el respaldo falla, no borra. Con `--todo` vacía también la configuración (así `npm run staging:cuentas` vuelve a sembrar staging desde cero). No toca `auth.users`: los usuarios de empresa y colaboradores se borran en InsForge → Auth → Users. Para producción:
+
+```bash
+npx insforge branch switch --parent; npm run db:reiniciar -- Project_AGUEMAR; npx insforge branch switch staging
+```
+
 Convenciones de migraciones: se crean con `npx insforge db migrations new <nombre-en-kebab>`, no llevan `BEGIN/COMMIT`, y no usan bloques `DO` con SQL dinámico ni `set_config` (la CLI los rechaza). `npm run db:status` muestra el historial remoto del contexto actual. Si staging queda inservible, `npx insforge branch reset staging` la devuelve al estado inicial y `npm run staging:cuentas` la vuelve a poblar.
 
 La primera migración (`20261013171105_limpiar-esquema-sgtd.sql`) es una limpieza única del sistema anterior (SGTD): todos sus `DROP` llevan `IF EXISTS`, así que en una base nueva no hace nada. Se conserva en la cadena porque ya está registrada como aplicada en staging y producción y moverla desalinearía el historial; no se edita ni se copia.

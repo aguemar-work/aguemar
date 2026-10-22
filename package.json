@@ -17,6 +17,7 @@
     "db:funciones": "node scripts/funciones-vigentes.mjs",
     "db:respaldo": "node scripts/respaldo.mjs",
     "db:seed": "node scripts/seed.mjs",
+    "db:reiniciar": "node scripts/reiniciar-datos.mjs",
     "staging:cuentas": "node scripts/staging.mjs"
   },
   "dependencies": {
