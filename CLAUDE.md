@@ -48,11 +48,12 @@ Módulos activables por empresa (`clientes.modulos text[]`); la navegación del 
 | Módulo | Clave | La empresa ve | Puede |
 |---|---|---|---|
 | Inicio | siempre | próximas actividades, proyectos activos con avance, últimos informes, pendientes de pago, respuestas a sus comentarios | — |
+| Mi cuenta | siempre (`/w/[slug]/cuenta`) | su correo, su contraseña y sus avisos por correo | cambiar la contraseña (código al correo) y encender o apagar los avisos (`ws_preferencias*`) |
 | Calendario | `calendario` | actividades por mes y lista (trabajos planificados, reuniones, publicaciones, mantenimientos, entregas) | comentar |
 | Proyectos | `proyectos` | sus trabajos visibles con estado, etapas, tareas y entregables | comentar |
 | Informes | `informes` | informes de avance publicados, con PDF | comentar |
 | Documentos | `documentos` | fichas técnicas, briefs y actas publicadas, con PDF | aceptar acta |
-| Cotizaciones y cobros | `cotizaciones` | cotizaciones enviadas, cobros y saldo | aceptar cotización |
+| Cotizaciones y cobros | `cotizaciones` | cotizaciones enviadas, cobros y saldo | aceptar cotización y comentarla («¿Tienes dudas?») |
 | Equipos | `equipos` | inventario de sus equipos con historial de fichas | — |
 | Solicitudes | `solicitudes` | sus pedidos de trabajo y su estado | crear solicitud |
 

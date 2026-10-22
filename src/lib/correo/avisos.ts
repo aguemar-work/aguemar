@@ -78,6 +78,7 @@ const RUTA_PANEL: Partial<Record<EntidadComentario, (id: string) => string>> = {
   trabajo: (id) => `/panel/trabajos/${id}#comentarios`,
   actividad: (id) => `/panel/calendario/${id}`,
   informe: (id) => `/panel/informes/${id}#comentarios`,
+  cotizacion: (id) => `/panel/cotizaciones/${id}#comentarios`,
 };
 
 export function avisarComentarioEmpresa(c: { empresa: Diferido<string | null>; entidad: EntidadComentario; entidadId: string; titulo: Diferido<string | null>; texto: string }) {
@@ -265,11 +266,12 @@ export async function avisarCopiaAceptacion(id: string) {
   });
 }
 
-const RUTA_ESPACIO: Partial<Record<EntidadComentario, { modulo: ClaveModulo; ruta: (id: string) => string; tabla: string }>> = {
+const RUTA_ESPACIO: Partial<Record<EntidadComentario, { modulo: ClaveModulo; ruta: (id: string) => string; tabla: string; titulo?: string }>> = {
   trabajo: { modulo: "proyectos", ruta: (id) => `proyectos/${id}`, tabla: "trabajos" },
   // (si responde un colaborador, el título sale de trabajos_equipo: ver avisarRespuestaEmpresa)
   actividad: { modulo: "calendario", ruta: (id) => `calendario/${id}`, tabla: "actividades" },
   informe: { modulo: "informes", ruta: (id) => `informes/${id}`, tabla: "informes" },
+  cotizacion: { modulo: "cotizaciones", ruta: (id) => `cotizaciones/${id}`, tabla: "cotizaciones", titulo: "asunto" },
 };
 
 /** Respondiste un comentario de la empresa. */
@@ -279,9 +281,10 @@ export async function avisarRespuestaEmpresa(entidad: EntidadComentario, entidad
   if (!cfg) return;
   const { db } = await conSesion();
   despues(async () => {
-    let { data } = await db.from(cfg.tabla).select("titulo").eq("id", entidadId).maybeSingle();
+    const campo = cfg.titulo ?? "titulo";
+    let { data } = await db.from(cfg.tabla).select(campo).eq("id", entidadId).maybeSingle();
     if (!data && cfg.tabla === "trabajos") ({ data } = await db.from("trabajos_equipo").select("titulo").eq("id", entidadId).maybeSingle());
-    const titulo = (data as { titulo: string } | null)?.titulo ?? "tu proyecto";
+    const titulo = (data as Record<string, string> | null)?.[campo] ?? (entidad === "cotizacion" ? "tu cotización" : "tu proyecto");
     await aLaEmpresa(db, clienteId, (d) =>
       d.conAcceso && moduloActivo(d.modulos, cfg.modulo)
         ? {

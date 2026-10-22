@@ -82,10 +82,11 @@ export function AceptarDocumento({
               {errores.mensaje}
             </p>
           ) : null}
-          <div className="sm:col-span-2">
+          <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
             <Button type="submit" variant="mint" disabled={pendiente || !conforme}>
               {pendiente ? <Loader2 className="animate-spin" /> : <Check />} {boton}
             </Button>
+            {!conforme ? <p className="text-xs text-muted-foreground">Marca la conformidad para habilitar el botón.</p> : null}
           </div>
         </form>
       </CardContent>

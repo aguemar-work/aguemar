@@ -4,7 +4,10 @@ Una entrada por despliegue a producción. Si el despliegue lleva migración, la 
 
 ## Sin publicar
 
-Nada todavía.
+Sprint 5 · workspace (rama `sprint5-workspace`, aún no fusionada). **Lleva 2 migraciones, solo en staging**: `comentarios-cotizacion` y `ws-preferencias`; en producción se aplican antes de fusionar (A-19).
+
+- **Mi cuenta** en el espacio de la empresa: su correo, cambiar la contraseña con un código al correo y apagar o encender los avisos por correo (T-34).
+- **Dudas sobre la cotización:** la empresa pregunta bajo la cotización antes de aceptar, tú ves la duda en el detalle y en la Bandeja y respondes ahí mismo, en la tarjeta (T-35). Aviso junto a la casilla de conformidad.
 
 ## v0.16.0 · 22/10/2026
 

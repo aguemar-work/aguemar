@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, LogOut, UserRound } from "lucide-react";
+import Link from "next/link";
+import { Menu, LogOut, UserRound, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -43,6 +44,11 @@ export function TopbarWorkspace({ slug, nombreEmpresa, modulos, correo, cerrarSe
         <DropdownMenuContent align="end" className="w-60">
           <DropdownMenuLabel className="truncate font-mono">{correo ?? nombreEmpresa}</DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href={`/w/${slug}/cuenta`}>
+              <Settings2 /> Mi cuenta
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => void cerrarSesion()}>
             <LogOut /> Cerrar sesión
           </DropdownMenuItem>

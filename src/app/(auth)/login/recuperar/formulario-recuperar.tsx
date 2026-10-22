@@ -35,7 +35,11 @@ function Aviso({ texto, tipo }: { texto: string; tipo: "ok" | "error" }) {
   );
 }
 
-export function FormularioRecuperar() {
+/**
+ * Los tres pasos de la contraseña (correo → código → nueva). Dentro de "Mi cuenta" arranca ya en el
+ * código (`inicial`) y termina volviendo a la cuenta (`volver`) en vez de ir al inicio de sesión.
+ */
+export function FormularioRecuperar({ inicial, volver }: { inicial?: EstadoRecuperacion; volver?: { href: string; texto: string } } = {}) {
   const [estado, accion, pendiente] = useActionState<EstadoRecuperacion, FormData>(
     async (previo, formData) => {
       const paso = String(formData.get("paso") ?? previo.paso);
@@ -47,7 +51,7 @@ export function FormularioRecuperar() {
       if (paso === "codigo") return verificarCodigoRecuperacion(previo, formData);
       return enviarCodigoRecuperacion(previo, formData);
     },
-    INICIAL,
+    inicial ?? INICIAL,
   );
 
   if (estado.paso === "listo") {
@@ -61,7 +65,7 @@ export function FormularioRecuperar() {
           <p>{estado.mensaje}</p>
         </div>
         <Button asChild className="w-full">
-          <Link href="/login">Ir a iniciar sesión</Link>
+          <Link href={volver?.href ?? "/login"}>{volver?.texto ?? "Ir a iniciar sesión"}</Link>
         </Button>
       </div>
     );

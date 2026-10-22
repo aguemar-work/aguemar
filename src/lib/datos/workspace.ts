@@ -252,5 +252,6 @@ export const ws = {
   solicitudes: async () => (await rpc<WsSolicitud[]>("ws_solicitudes")) ?? [],
   informes: async () => (await rpc<WsInformeResumen[]>("ws_informes")) ?? [],
   informe: (id: string) => rpc<InformeJson>("ws_informe", { p_id: id }),
+  preferencias: () => rpc<{ avisos_correo: boolean }>("ws_preferencias"),
   comentarios: async (entidad: string, id: string) => (await rpc<WsComentario[]>("ws_comentarios", { p_entidad: entidad, p_id: id })) ?? [],
 };

@@ -49,3 +49,12 @@ export async function titulosDeTrabajos(ids: string[]): Promise<Record<string, s
   if (error) throw error;
   return Object.fromEntries(((data ?? []) as { id: string; titulo: string }[]).map((t) => [t.id, t.titulo]));
 }
+
+/** Número y asunto de las cotizaciones comentadas, para la bandeja (solo las ve el propietario). */
+export async function titulosDeCotizaciones(ids: string[]): Promise<Record<string, string>> {
+  if (ids.length === 0) return {};
+  const { db } = await conSesionPanel();
+  const { data, error } = await db.from("cotizaciones").select("id, numero, asunto").in("id", ids);
+  if (error) throw error;
+  return Object.fromEntries(((data ?? []) as { id: string; numero: string | null; asunto: string }[]).map((c) => [c.id, `${c.numero ?? "Cotización"} · ${c.asunto}`]));
+}

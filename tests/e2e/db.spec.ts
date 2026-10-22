@@ -379,6 +379,72 @@ test("anular una cotización aceptada la saca de las deudas sin tocar la aceptac
   expect((await duenio.database.from("cotizaciones").select("anulada_motivo").eq("id", id).single()).data?.anulada_motivo).toBe("El proyecto se canceló");
 });
 
+test("la empresa comenta su cotización enviada, no un borrador ni la de otra empresa, y elige sus avisos (T-34, T-35)", async () => {
+  test.setTimeout(120_000);
+  const { c: duenio, uid } = await propietario();
+  const empresa = await empresaFija(duenio, uid, "e2e-db-modulos", "90000002");
+  const otra = await empresaFija(duenio, uid, "e2e-db-deuda", "90000001");
+  const correo = "e2e-db-empresa@staging.aguemar.test";
+  const cuenta = await cuentaFija(correo);
+  if (!empresa.usuario_id) {
+    const inv = await duenio.database.from("invitaciones").insert([{ owner_id: uid, tipo: "empresa", correo, cliente_id: empresa.id }]).select("id, token").single();
+    expect(inv.error).toBeNull();
+    expect((await cuenta.database.rpc("invitacion_aceptar", { p_token: inv.data!.token })).error).toBeNull();
+  }
+  const todos = ["proyectos", "calendario", "informes", "documentos", "cotizaciones", "equipos", "solicitudes"];
+  const ajustar = (campos: Record<string, unknown>) => duenio.database.from("clientes").update(campos).eq("id", empresa.id);
+  const asunto = `E2E dudas ${Date.now()}`;
+  const propia = await cotizacion(duenio, uid, empresa.id, `${asunto} propia`);
+  const borrador = await cotizacion(duenio, uid, empresa.id, `${asunto} borrador`, { estado: "borrador" });
+  const ajena = await cotizacion(duenio, uid, otra.id, `${asunto} ajena`);
+  const comentar = (id: string, texto = "¿Incluye el hosting?") => cuenta.database.rpc("ws_comentar", { p_entidad: "cotizacion", p_id: id, p_texto: texto });
+  const hilo = async (id: string) => (await cuenta.database.rpc("ws_comentarios", { p_entidad: "cotizacion", p_id: id })).data as { texto: string; es_propietario: boolean }[];
+  const avisosDe = async (id: string) => ((await duenio.database.from("clientes").select("avisos_correo").eq("id", id).single()).data as { avisos_correo: boolean }).avisos_correo;
+
+  try {
+    await ajustar({ modulos: todos, activa: true, avisos_correo: true });
+
+    // T-35: la enviada de su empresa se comenta, y el hilo la devuelve.
+    const ok = await comentar(propia);
+    expect(ok.error).toBeNull();
+    expect(ok.data).toBeTruthy();
+    expect((await hilo(propia)).map((c) => c.texto)).toEqual(["¿Incluye el hosting?"]);
+    expect((await hilo(propia))[0]?.es_propietario).toBe(false);
+
+    // Un borrador no lo ve la empresa y la cotización de otra empresa tampoco: la base dice lo mismo que de lo que no existe.
+    for (const id of [borrador, ajena]) {
+      const r = await comentar(id);
+      expect(r.error, `comentar ${id}`).not.toBeNull();
+      expect(String(r.error?.message)).toMatch(/No encontramos ese elemento/);
+    }
+
+    // Sin el módulo Cotizaciones, ni se comenta ni se lee el hilo.
+    await ajustar({ modulos: todos.filter((m) => m !== "cotizaciones") });
+    expect(String((await comentar(propia)).error?.message)).toMatch(/No encontramos ese elemento/);
+    expect(await hilo(propia)).toEqual([]);
+    await ajustar({ modulos: todos });
+
+    // T-34: la empresa lee y cambia solo sus avisos por correo.
+    expect((await cuenta.database.rpc("ws_preferencias")).data).toEqual({ avisos_correo: true });
+    const otraAntes = await avisosDe(otra.id);
+    expect((await cuenta.database.rpc("ws_preferencias_guardar", { p_avisos: false })).error).toBeNull();
+    expect(await avisosDe(empresa.id)).toBe(false);
+    expect((await cuenta.database.rpc("ws_preferencias")).data).toEqual({ avisos_correo: false });
+    expect(await avisosDe(otra.id)).toBe(otraAntes);
+    const nulo = await cuenta.database.rpc("ws_preferencias_guardar", { p_avisos: null });
+    expect(String(nulo.error?.message)).toMatch(/Indica si quieres recibir avisos/);
+
+    // Empresa inactiva: no se reconoce a quien llama.
+    await ajustar({ activa: false });
+    expect((await cuenta.database.rpc("ws_preferencias")).data ?? null).toBeNull();
+    expect(String((await cuenta.database.rpc("ws_preferencias_guardar", { p_avisos: true })).error?.message)).toMatch(/No tienes acceso a un workspace/);
+  } finally {
+    await ajustar({ modulos: todos, activa: true, avisos_correo: true });
+    await duenio.database.from("comentarios").delete().in("entidad_id", [propia, borrador, ajena]);
+    await duenio.database.from("cotizaciones").delete().in("id", [propia, borrador, ajena]);
+  }
+});
+
 test("recordatorios de pago: la clave mala no entra y lo ya tomado no se entrega otra vez", async () => {
   test.setTimeout(120_000);
   test.skip(!CRON_SECRET, "Define CRON_SECRET (el de staging, el mismo cuyo hash está en ajustes_sistema).");

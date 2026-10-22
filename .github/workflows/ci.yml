@@ -151,7 +151,7 @@ jobs:
           npx playwright test --project=escritorio
           tests/e2e/base.spec.ts tests/e2e/fase2.spec.ts tests/e2e/fase3.spec.ts tests/e2e/fase4.spec.ts
           tests/e2e/fase5.spec.ts tests/e2e/fase6.spec.ts tests/e2e/fase7.spec.ts tests/e2e/fase8.spec.ts
-          tests/e2e/fase9.spec.ts tests/e2e/fase10.spec.ts
+          tests/e2e/fase9.spec.ts tests/e2e/fase10.spec.ts tests/e2e/fase11.spec.ts
 
       # Con el informe HTML y las trazas se ve qué falló sin repetir la corrida.
       - name: Informe y trazas

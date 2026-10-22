@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { crearClienteServidor } from "@/lib/insforge/server";
-import { exito, fallo, type Resultado, falloDe } from "@/lib/datos/resultado";
+import { crearClienteServidor, obtenerUsuario } from "@/lib/insforge/server";
+import { accion, exito, fallo, type Resultado, falloDe } from "@/lib/datos/resultado";
+import { segundosDeEspera } from "@/lib/insforge/errores";
 import type { EntidadComentario } from "@/types/database";
 import { ws } from "@/lib/datos/workspace";
 import { avisarAceptacion, avisarComentarioEmpresa, avisarSolicitud, avisosActivos } from "@/lib/correo/avisos";
@@ -19,7 +20,9 @@ function tituloDe(entidad: EntidadComentario, id: string): Promise<string | null
         ? ws.actividad(id).then((x) => x?.titulo ?? null)
         : entidad === "informe"
           ? ws.informe(id).then((x) => (x ? `${x.numero} · ${x.titulo}` : null))
-          : Promise.resolve(null);
+          : entidad === "cotizacion"
+            ? ws.cotizacion(id).then((x) => (x ? `${x.numero} · ${x.asunto}` : null))
+            : Promise.resolve(null);
   return t.catch(() => null);
 }
 
@@ -36,6 +39,7 @@ export async function comentarEmpresa(slug: string, entidad: EntidadComentario, 
   if (entidad === "trabajo") revalidatePath(`/w/${slug}/proyectos/${entidadId}`);
   if (entidad === "actividad") revalidatePath(`/w/${slug}/calendario/${entidadId}`);
   if (entidad === "informe") revalidatePath(`/w/${slug}/informes/${entidadId}`);
+  if (entidad === "cotizacion") revalidatePath(`/w/${slug}/cotizaciones/${entidadId}`);
   revalidatePath("/panel", "layout");
   revalidatePath(`/w/${slug}`);
   if (avisosActivos()) avisarComentarioEmpresa({ empresa: nombreEmpresa(), entidad, entidadId, titulo: tituloDe(entidad, entidadId), texto: parsed.data });
@@ -113,4 +117,36 @@ export async function solicitarEmpresa(slug: string, input: z.input<typeof solic
   revalidatePath("/panel", "layout");
   if (avisosActivos()) avisarSolicitud({ empresa: nombreEmpresa(), titulo: d.titulo, descripcion: d.descripcion, prioridad: d.prioridad, fecha_deseada: d.fecha_deseada || null });
   return exito({ id: data as string });
+}
+
+/** "Mi cuenta": la empresa elige si recibe avisos por correo (ws_preferencias_guardar cambia solo su propia empresa). */
+export async function guardarAvisosCuenta(slug: string, avisos: boolean): Promise<Resultado<void>> {
+  const insforge = await crearClienteServidor();
+  if (!insforge) return fallo("Sin sesión.");
+  const { error } = await insforge.database.rpc("ws_preferencias_guardar", { p_avisos: avisos });
+  if (error) return falloDe(error, "workspace.guardarAvisosCuenta");
+  revalidatePath(`/w/${slug}/cuenta`);
+  return exito(undefined);
+}
+
+/**
+ * "Mi cuenta": manda el código de 6 dígitos al correo de la sesión para fijar una contraseña nueva.
+ * El SDK no cambia la contraseña con la actual; el camino es el mismo código de /login/recuperar.
+ */
+export async function pedirCodigoCuenta(): Promise<Resultado<{ correo: string; mensaje: string }>> {
+  return accion("workspace.pedirCodigoCuenta", async () => {
+    const usuario = await obtenerUsuario();
+    const insforge = await crearClienteServidor();
+    if (!usuario?.email || !insforge) return fallo("Sin sesión.");
+    const { error } = await insforge.auth.sendResetPasswordEmail({ email: usuario.email });
+    if (error) {
+      // Un código reciente sigue vigente: se pasa a escribirlo en vez de dar error.
+      const espera = segundosDeEspera(error);
+      if (espera !== null) {
+        return exito({ correo: usuario.email, mensaje: `Ya enviamos un código a ${usuario.email} hace poco y sigue vigente. Escríbelo aquí; si no llegó, podrás pedir otro en ${espera} segundos.` });
+      }
+      throw error;
+    }
+    return exito({ correo: usuario.email, mensaje: `Te enviamos un código de 6 dígitos a ${usuario.email}. Revisa también el spam.` });
+  });
 }

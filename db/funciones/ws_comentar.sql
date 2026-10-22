@@ -1,4 +1,4 @@
--- Vigente según migrations/20261015173256_informes.sql.
+-- Vigente según migrations/20261022230823_comentarios-cotizacion.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.ws_comentar(p_entidad public.entidad_comentario, p_id uuid, p_texto text)
@@ -31,6 +31,9 @@ begin
   elsif p_entidad = 'informe' then
     select i.owner_id into v_owner from public.informes i
     where i.id = p_id and i.cliente_id = v_empresa and i.publicado and public.ws_modulo_activo('informes');
+  elsif p_entidad = 'cotizacion' then
+    select z.owner_id into v_owner from public.cotizaciones z
+    where z.id = p_id and z.cliente_id = v_empresa and z.estado <> 'borrador' and public.ws_modulo_activo('cotizaciones');
   else
     v_owner := null;
   end if;

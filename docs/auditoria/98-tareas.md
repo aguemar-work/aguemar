@@ -70,6 +70,7 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | A-15 | Probar a mano en producción el hallazgo abierto B-01 (abajo): abrir un trabajo en el panel lateral, añadir una etapa y ver si aparece sin recargar; abrir una empresa y encender o apagar un módulo; marcar una cotización como aceptada y ver si aparece «Registrar cobro». Si en producción real todo se actualiza, B-01 es solo de las pruebas; si no, es un defecto de la aplicación | aguemar.com (panel) | Resultado anotado aquí | B-01 |
 | A-16 | Con tu `npm run dev` corriendo, probar a mano el sprint 4 y correr `npx playwright test tests/e2e/fase6.spec.ts` (esa prueba está en cuarentena contra `next start` por B-01 y no pude correrla): crear una cotización, enviarla, editarla (el aviso de «pasará a borrador v2»), reenviarla, aceptarla desde el panel (debe llegar la constancia por correo si Resend está activo), registrar un cobro de más (debe pedir confirmación), anular el cobro y anular la cotización | `npm run dev` + pantalla | Cada paso hace lo que dice la nota del sprint 4; fase6 en verde | T-28 … T-32 |
 | A-17 | Probar en pantalla el flujo de la cotización del sprint 5 (con `npm run dev` contra staging, o en producción tras desplegar): crear una cotización eligiendo «+ Nueva empresa…» (debe abrirse el detalle con la empresa en la cabecera), enviarla (el diálogo dice a qué correo salió el aviso y tiene «Copiar enlace»), pulsar «Invitar a su espacio» (llega el correo de invitación y la empresa queda con el módulo Cotizaciones) y, tras «Marcar aceptada», ver que el mismo botón también activa Proyectos. Repetir A-15 (crear un trabajo) en producción | pantalla | Cada paso hace lo que dice la nota del sprint 5 · flujo; crear un trabajo ya no se queda en «Guardando…» | T-36 … T-39 |
+| A-19 | Antes de fusionar `sprint5-workspace` en `main`: aplicar en producción las 2 migraciones del sprint 5 · workspace (`comentarios-cotizacion` y `ws-preferencias`) con el checklist del README (respaldo, `npm run db:migrate` con la CLI en el proyecto principal, `npm run db:status` igual que staging). El código de la rama llama a `ws_preferencias` y a `ws_comentar` con `cotizacion`; sin la migración, Mi cuenta falla y comentar una cotización devuelve «No encontramos ese elemento» | CLI en el proyecto principal | `db:status` sin pendientes; después fusión y despliegue | T-34, T-35 |
 | A-18 | Empezar de cero en producción (decidido el 22/10: borrar lo operativo y conservar la configuración): con la CLI en el proyecto principal, `npm run db:reiniciar -- Project_AGUEMAR` (hace el respaldo antes), y borrar en InsForge → Auth → Users los usuarios de empresa que ya no se usan. Conviene hacerlo junto con A-12 (las 11 migraciones), en la misma sesión con el contexto en producción | CLI + InsForge → Auth | `/panel` sin empresas ni trabajos; Mi marca y Servicios intactos; la próxima cotización es COT-2026-001 | — |
 
 ## 3. Resumen de tareas del agente
@@ -109,8 +110,8 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | T-31 | Rótulo y correo de copia al aceptar (D5) | PRO-007 | 4 | No | Sí | T-29 | Hecha (`891a705`) · migración `aceptacion-origen`, solo en staging; la constancia por correo solo sale al registrar desde el panel |
 | T-32 | Confirmación de cobro mayor que el pendiente (D2) | QA-008 | 4 | No | Sí | T-28 | Hecha (`b5e1432`) |
 | T-33 | Envoltorio `accion()` que traduce y reporta | COD-001 | 4 | No | No | T-04 | Hecha (`1d69c43` … `f02816a`, un commit por módulo) |
-| T-34 | "Mi cuenta" en el workspace | PRO-008 | 5 | No | Sí | — | Pendiente |
-| T-35 | "Tengo dudas" en la cotización y respuesta en línea en la bandeja | UX-005, PRO-008 | 5 | **Sí** | Sí | T-18, T-29 | Pendiente |
+| T-34 | "Mi cuenta" en el workspace | PRO-008 | 5 | **Sí** | Sí | — | Hecha en la rama `sprint5-workspace` · migración `ws-preferencias`, solo en staging (A-19) |
+| T-35 | "Tengo dudas" en la cotización y respuesta en línea en la bandeja | UX-005, PRO-008 | 5 | **Sí** | Sí | T-18, T-29 | Hecha en la rama `sprint5-workspace` · migración `comentarios-cotizacion`, solo en staging (A-19) |
 | T-36 | Crear con carga normal de página (`abrirCreado`) en los formularios de crear | B-01 | 5 · flujo | No | Sí | A-15 | Hecha (ver notas del sprint 5 · flujo) |
 | T-37 | Empresa nueva desde la cotización | PRO-009 (D13) | 5 · flujo | No | Sí | T-36 | Hecha |
 | T-38 | Diálogo de envío con enlace, correo y PDF a la vista | UX-005 (D13) | 5 · flujo | No | Sí | — | Hecha |
@@ -519,6 +520,8 @@ Decisión D13 (22/10): el sistema no se amplía, se le quitan pasos. La cotizaci
 
 ### Sprint 5 · Workspace listo para los clientes
 
+> Hecho el 22/10/2026 en la rama `sprint5-workspace` (ver «Notas del sprint 5 · workspace» abajo).
+
 **T-34 · Mi cuenta** (PRO-008)
 - Ruta `src/app/w/[slug]/cuenta/page.tsx`:
   - cambiar contraseña, reutilizando el flujo de código de `/login/recuperar`, porque el SDK no expone cambio con la contraseña actual (verificarlo en `node_modules/@insforge/sdk` antes de decidir);
@@ -536,6 +539,14 @@ Decisión D13 (22/10): el sistema no se amplía, se le quitan pasos. La cotizaci
 - Bandeja: caja de respuesta en línea en la tarjeta del comentario, con la misma acción que el hilo.
 - Texto de ayuda junto a la casilla de aceptar: "Marca la conformidad para habilitar el botón".
 - Hecho cuando: e2e de comentar desde el workspace y responder desde la bandeja (T-24).
+
+### Notas del sprint 5 · workspace (22/10/2026)
+
+- **T-34 · Mi cuenta** (`/w/[slug]/cuenta`, enlace «Mi cuenta» en el menú de usuario): correo y empresa, cambio de contraseña y avisos por correo. El SDK de InsForge no cambia la contraseña con la actual (solo `sendResetPasswordEmail` + `exchangeResetPasswordToken` + `resetPassword`, verificado en `node_modules/@insforge/sdk`), así que el botón «Enviarme un código» manda el código al correo de la sesión y los tres pasos de `/login/recuperar` se hacen dentro de la misma pantalla (`FormularioRecuperar` ahora admite `inicial` y `volver`). Los avisos usan `clientes.avisos_correo` por dos funciones nuevas (`ws_preferencias`, `ws_preferencias_guardar`, migración `ws-preferencias`).
+- **T-35 · Dudas sobre la cotización**: migración `comentarios-cotizacion` (`ws_comentar` admite `cotizacion` si es de su empresa, no es borrador y el módulo está activo). La empresa ve el hilo «¿Tienes dudas?» bajo la cotización, con el texto de ayuda junto a la casilla de conformidad; tú lo ves en el detalle de la cotización (`#comentarios`) y en la Bandeja, donde cada tarjeta tiene ahora «Responder» en línea (`RespuestaEnLinea`, la misma `comentarPropietario`) para los cuatro tipos de comentario. Los avisos por correo conocen la cotización (`RUTA_PANEL`, `RUTA_ESPACIO`). El colaborador no ve estos comentarios: sus políticas ya excluían `entidad = 'cotizacion'`.
+- **A-17 en staging, con capturas (contra un build de producción)**: crear la cotización con «+ Nueva empresa…» (la empresa aparece en la cabecera), enviar (el diálogo muestra el aviso de correo, «Copiar enlace», PDF y «Invitar a su espacio»), invitar (invitación creada al correo de la empresa, módulo Cotizaciones activo, Proyectos no), marcar aceptada, y volver a invitar ya aceptada (se revoca la anterior, queda una vigente y se activa Proyectos). Todo bien. **Sin Resend en staging** el diálogo dice «No salió correo…»; con la clave de producción dirá a qué correo salió.
+- **Pruebas.** Nuevas: `db.spec.ts` (comentar enviada / no borrador / no de otra empresa / sin módulo, y preferencias de la empresa A sin tocar a la B) y `fase11.spec.ts` (la empresa pregunta, tú respondes desde la Bandeja, la empresa ve la respuesta y apaga y enciende sus avisos), añadida al job `e2e` del CI. Unit 207 pasan; fase4, fase6 y fase11 pasan contra `next start` con los tiempos del CI.
+- **Para producción**: las 2 migraciones van **antes** de fusionar (A-19). `T-02b` sigue esperando A-09.
 
 ## 5. Después del sprint 5 (por desglosar cuando toque)
 

@@ -12,13 +12,14 @@ import { textoAceptacion } from "@/lib/cotizacion";
 import { formatearFechaHora, formatearMonto } from "@/lib/format";
 import { AceptarDocumento } from "@/components/documentos/aceptar-documento";
 import { VistaCotizacion } from "@/components/documentos/vista-cotizacion";
-import { aceptarCotizacionEmpresa } from "../../acciones";
+import { Hilo } from "@/components/comentarios/hilo";
+import { aceptarCotizacionEmpresa, comentarEmpresa } from "../../acciones";
 
 export const metadata: Metadata = { title: "Cotización" };
 
 export default async function CotizacionWorkspace({ params }: { params: Promise<{ slug: string; id: string }> }) {
   const { slug, id } = await params;
-  const [empresa, c] = await Promise.all([ws.miEmpresa(), ws.cotizacion(id)]);
+  const [empresa, c, comentarios] = await Promise.all([ws.miEmpresa(), ws.cotizacion(id), ws.comentarios("cotizacion", id)]);
   if (!moduloActivo(empresa?.modulos, "cotizaciones") || !c) notFound();
   return (
     <>
@@ -71,6 +72,18 @@ export default async function CotizacionWorkspace({ params }: { params: Promise<
           </>
         }
       />
+
+      <div className="mt-6">
+        <Hilo
+          comentarios={comentarios}
+          vista="empresa"
+          nombrePropietario={empresa?.marca?.responsable ?? "aguemar"}
+          nombreEmpresa={empresa?.nombre ?? "Tú"}
+          enviar={comentarEmpresa.bind(null, slug, "cotizacion", c.id)}
+          titulo="¿Tienes dudas?"
+          descripcion="Escríbenos lo que quieras aclarar antes de aceptar; te respondemos aquí mismo."
+        />
+      </div>
     </>
   );
 }

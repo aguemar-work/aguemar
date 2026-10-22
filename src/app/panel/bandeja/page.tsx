@@ -5,9 +5,10 @@ import { PageHeader } from "@/components/panel/page-header";
 import { EmptyState } from "@/components/panel/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { bandejaComentarios, titulosDeTrabajos } from "@/lib/datos/comentarios";
+import { bandejaComentarios, titulosDeCotizaciones, titulosDeTrabajos } from "@/lib/datos/comentarios";
 import { formatearFechaHora } from "@/lib/format";
 import { BotonLeido } from "./boton-leido";
+import { RespuestaEnLinea } from "./respuesta-en-linea";
 import { TarjetaSolicitud } from "./solicitud";
 import { listarSolicitudes } from "@/lib/datos/calendario";
 import { obtenerRol } from "@/lib/insforge/server";
@@ -20,7 +21,10 @@ export default async function BandejaPage({ searchParams }: { searchParams: Prom
   // El colaborador ve y responde comentarios de sus empresas; las solicitudes (que se vuelven trabajo o cotización) son del propietario.
   const propietario = rol.tipo === "propietario";
   const [comentarios, solicitudes] = await Promise.all([bandejaComentarios(!todos), propietario ? listarSolicitudes(!todos) : Promise.resolve([])]);
-  const titulos = await titulosDeTrabajos(comentarios.filter((c) => c.entidad === "trabajo").map((c) => c.entidad_id));
+  const [titulos, titulosCot] = await Promise.all([
+    titulosDeTrabajos(comentarios.filter((c) => c.entidad === "trabajo").map((c) => c.entidad_id)),
+    titulosDeCotizaciones(comentarios.filter((c) => c.entidad === "cotizacion").map((c) => c.entidad_id)),
+  ]);
 
   return (
     <>
@@ -82,25 +86,17 @@ export default async function BandejaPage({ searchParams }: { searchParams: Prom
                   <Link href={`/panel/informes/${c.entidad_id}`} className="underline-offset-4 hover:underline">
                     Informe de avance
                   </Link>
+                ) : c.entidad === "cotizacion" ? (
+                  <Link href={`/panel/cotizaciones/${c.entidad_id}#comentarios`} className="underline-offset-4 hover:underline">
+                    {titulosCot[c.entidad_id] ?? "Cotización"}
+                  </Link>
                 ) : (
                   <span>{c.entidad}</span>
                 )}
               </div>
               <p className="mt-2 whitespace-pre-line text-sm">{c.texto}</p>
-              <div className="mt-3 flex gap-2">
-                {c.entidad === "trabajo" ? (
-                  <Button asChild size="sm" variant="mint">
-                    <Link href={`/panel/trabajos/${c.entidad_id}#comentarios`}>Responder</Link>
-                  </Button>
-                ) : c.entidad === "actividad" ? (
-                  <Button asChild size="sm" variant="mint">
-                    <Link href={`/panel/calendario/${c.entidad_id}`}>Responder</Link>
-                  </Button>
-                ) : c.entidad === "informe" ? (
-                  <Button asChild size="sm" variant="mint">
-                    <Link href={`/panel/informes/${c.entidad_id}#comentarios`}>Responder</Link>
-                  </Button>
-                ) : null}
+              <div className="mt-3 flex flex-wrap items-start gap-2">
+                <RespuestaEnLinea entidad={c.entidad} entidadId={c.entidad_id} clienteId={c.cliente_id} etiqueta={c.clientes?.nombre ?? "la empresa"} />
                 <BotonLeido id={c.id} leido={c.leido} />
               </div>
             </li>

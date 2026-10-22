@@ -7,6 +7,10 @@ import { EtiquetaCotizacion } from "@/components/panel/etiquetas";
 import { EtiquetaArea, EtiquetaEstadoTrabajo } from "@/components/panel/etiqueta-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { obtenerCotizacion, obtenerDocumentoCotizacion } from "@/lib/datos/cotizaciones";
+import { comentariosDe } from "@/lib/datos/comentarios";
+import { obtenerPerfilMarca } from "@/lib/datos/marca";
+import { Hilo } from "@/components/comentarios/hilo";
+import { comentarPropietario } from "@/app/panel/bandeja/acciones";
 import { enlaceDe } from "@/lib/datos/fichas";
 import { estadoEfectivo, etiquetaVersion, fechaVence, saldo } from "@/lib/cotizacion";
 import { formatearFecha, formatearFechaHora, formatearMonto, hoyLima } from "@/lib/format";
@@ -19,7 +23,13 @@ import { PagoCotizacion } from "./pago";
 
 /** Detalle de una cotización. Se usa en la página completa y en el panel lateral (@modal). */
 export async function DetalleCotizacion({ id }: { id: string }) {
-  const [c, enlace, doc] = await Promise.all([obtenerCotizacion(id), enlaceDe("cotizacion", id), obtenerDocumentoCotizacion(id)]);
+  const [c, enlace, doc, comentarios, marca] = await Promise.all([
+    obtenerCotizacion(id),
+    enlaceDe("cotizacion", id),
+    obtenerDocumentoCotizacion(id),
+    comentariosDe("cotizacion", id),
+    obtenerPerfilMarca(),
+  ]);
   if (!c) notFound();
   const hoy = hoyLima();
   const estado = estadoEfectivo(c, hoy);
@@ -161,6 +171,20 @@ export async function DetalleCotizacion({ id }: { id: string }) {
                 ) : null}
               </CardContent>
             </Card>
+          ) : null}
+
+          {/* Las dudas de la empresa llegan aquí; un borrador no lo ve la empresa, así que no tiene hilo. */}
+          {c.estado !== "borrador" && c.cliente_id ? (
+            <div id="comentarios">
+              <Hilo
+                comentarios={comentarios}
+                vista="propietario"
+                nombrePropietario={marca?.responsable ?? "Tú"}
+                nombreEmpresa={empresa?.nombre ?? "Empresa"}
+                enviar={comentarPropietario.bind(null, "cotizacion", c.id, c.cliente_id)}
+                descripcion="Las dudas de la empresa sobre esta cotización. Lo que escribas aquí lo ve en su espacio."
+              />
+            </div>
           ) : null}
         </div>
 
