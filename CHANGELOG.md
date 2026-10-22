@@ -6,6 +6,10 @@ Una entrada por despliegue a producción. Si el despliegue lleva migración, la 
 
 Nada todavía.
 
+## v0.15.1 · 22/10/2026
+
+Sin migración. El job `e2e` del CI falló en `main` con v0.15.0: tras eliminar un trabajo desde el panel lateral, volver a la lista con el router tardaba 8–9 s en el build de producción y el CI (5 s por expectativa) lo daba por colgado. `ConfirmarEliminar` vuelve a la lista con una carga normal de página (`irTrasAccion`, misma regla que `abrirCreado` al crear): de 9 s a 4 s en las mismas pruebas.
+
 ## v0.15.0 · 22/10/2026
 
 Sprints 1 a 5 de la actualización post-auditoría en producción. Antes de desplegar, con la CLI en el proyecto principal y respaldo propio de las 13:26 (`_respaldos/aguemar-Project_AGUEMAR-2026-10-22-1326.sql`): reinicio de datos conservando la configuración (`npm run db:reiniciar -- Project_AGUEMAR`, decisión del 22/10) y las **11 migraciones** aplicadas en orden con `npm run db:migrate` (`lead-topes`, `lead-topes-codigos`, `lead-topes-hint`, `ws-modulos`, `comentarios-autor`, `invitacion-cuenta-previa`, `pendiente-unico`, `cotizacion-version`, `anulaciones-estado`, `anulaciones`, `aceptacion-origen`). Despliegue por avance directo de `actualizacion-post-auditoria` a `main`, tag `v0.15.0`. Pendiente: renovar el respaldo manual de InsForge y borrar en Auth → Users los usuarios de empresa antiguos.

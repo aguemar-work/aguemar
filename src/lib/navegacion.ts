@@ -11,3 +11,9 @@
 export function abrirCreado(href: string) {
   window.location.assign(href);
 }
+
+/**
+ * Misma idea para cualquier salto a otra página justo después de una acción que revalida (p. ej. volver a
+ * la lista tras eliminar): con el router tardaba 8–9 s en el build de producción y el CI lo daba por colgado.
+ */
+export const irTrasAccion = abrirCreado;

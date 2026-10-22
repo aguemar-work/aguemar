@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { avisoError } from "@/lib/avisos";
 import { Loader2, Trash2 } from "lucide-react";
@@ -16,13 +15,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { Resultado } from "@/lib/datos/resultado";
+import { irTrasAccion } from "@/lib/navegacion";
 
 interface ConfirmarEliminarProps {
   titulo: string;
   descripcion: string;
   /** Server Action que ejecuta el borrado. */
   accion: () => Promise<Resultado<unknown>>;
-  /** Ruta a la que ir si el borrado fue exitoso. */
+  /** Ruta a la que ir si el borrado fue exitoso (carga normal de página, ver `irTrasAccion`). */
   irA?: string;
   textoExito?: string;
   children?: ReactNode;
@@ -42,7 +42,6 @@ export function ConfirmarEliminar({
 }: ConfirmarEliminarProps) {
   const [abierto, setAbierto] = useState(false);
   const [pendiente, iniciar] = useTransition();
-  const router = useRouter();
 
   const confirmar = () =>
     iniciar(async () => {
@@ -53,7 +52,7 @@ export function ConfirmarEliminar({
       }
       toast.success(textoExito);
       setAbierto(false);
-      if (irA) router.push(irA);
+      if (irA) irTrasAccion(irA);
     });
 
   return (
