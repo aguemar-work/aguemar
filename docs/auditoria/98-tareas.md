@@ -110,8 +110,8 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | T-31 | Rótulo y correo de copia al aceptar (D5) | PRO-007 | 4 | No | Sí | T-29 | Hecha (`891a705`) · migración `aceptacion-origen`, solo en staging; la constancia por correo solo sale al registrar desde el panel |
 | T-32 | Confirmación de cobro mayor que el pendiente (D2) | QA-008 | 4 | No | Sí | T-28 | Hecha (`b5e1432`) |
 | T-33 | Envoltorio `accion()` que traduce y reporta | COD-001 | 4 | No | No | T-04 | Hecha (`1d69c43` … `f02816a`, un commit por módulo) |
-| T-34 | "Mi cuenta" en el workspace | PRO-008 | 5 | **Sí** | Sí | — | Hecha en la rama `sprint5-workspace` · migración `ws-preferencias`, solo en staging (A-19) |
-| T-35 | "Tengo dudas" en la cotización y respuesta en línea en la bandeja | UX-005, PRO-008 | 5 | **Sí** | Sí | T-18, T-29 | Hecha en la rama `sprint5-workspace` · migración `comentarios-cotizacion`, solo en staging (A-19) |
+| T-34 | "Mi cuenta" en el workspace | PRO-008 | 5 | **Sí** | Sí | — | Hecha · en producción desde v0.17.0 (22/10) con la migración `ws-preferencias` |
+| T-35 | "Tengo dudas" en la cotización y respuesta en línea en la bandeja | UX-005, PRO-008 | 5 | **Sí** | Sí | T-18, T-29 | Hecha · en producción desde v0.17.0 (22/10) con la migración `comentarios-cotizacion` |
 | T-36 | Crear con carga normal de página (`abrirCreado`) en los formularios de crear | B-01 | 5 · flujo | No | Sí | A-15 | Hecha (ver notas del sprint 5 · flujo) |
 | T-37 | Empresa nueva desde la cotización | PRO-009 (D13) | 5 · flujo | No | Sí | T-36 | Hecha |
 | T-38 | Diálogo de envío con enlace, correo y PDF a la vista | UX-005 (D13) | 5 · flujo | No | Sí | — | Hecha |
@@ -520,7 +520,7 @@ Decisión D13 (22/10): el sistema no se amplía, se le quitan pasos. La cotizaci
 
 ### Sprint 5 · Workspace listo para los clientes
 
-> Hecho el 22/10/2026 en la rama `sprint5-workspace` (ver «Notas del sprint 5 · workspace» abajo).
+> Hecho y en producción el 22/10/2026 (v0.17.0; ver «Notas del sprint 5 · workspace» abajo).
 
 **T-34 · Mi cuenta** (PRO-008)
 - Ruta `src/app/w/[slug]/cuenta/page.tsx`:
@@ -546,7 +546,7 @@ Decisión D13 (22/10): el sistema no se amplía, se le quitan pasos. La cotizaci
 - **T-35 · Dudas sobre la cotización**: migración `comentarios-cotizacion` (`ws_comentar` admite `cotizacion` si es de su empresa, no es borrador y el módulo está activo). La empresa ve el hilo «¿Tienes dudas?» bajo la cotización, con el texto de ayuda junto a la casilla de conformidad; tú lo ves en el detalle de la cotización (`#comentarios`) y en la Bandeja, donde cada tarjeta tiene ahora «Responder» en línea (`RespuestaEnLinea`, la misma `comentarPropietario`) para los cuatro tipos de comentario. Los avisos por correo conocen la cotización (`RUTA_PANEL`, `RUTA_ESPACIO`). El colaborador no ve estos comentarios: sus políticas ya excluían `entidad = 'cotizacion'`.
 - **A-17 en staging, con capturas (contra un build de producción)**: crear la cotización con «+ Nueva empresa…» (la empresa aparece en la cabecera), enviar (el diálogo muestra el aviso de correo, «Copiar enlace», PDF y «Invitar a su espacio»), invitar (invitación creada al correo de la empresa, módulo Cotizaciones activo, Proyectos no), marcar aceptada, y volver a invitar ya aceptada (se revoca la anterior, queda una vigente y se activa Proyectos). Todo bien. **Sin Resend en staging** el diálogo dice «No salió correo…»; con la clave de producción dirá a qué correo salió.
 - **Pruebas.** Nuevas: `db.spec.ts` (comentar enviada / no borrador / no de otra empresa / sin módulo, y preferencias de la empresa A sin tocar a la B) y `fase11.spec.ts` (la empresa pregunta, tú respondes desde la Bandeja, la empresa ve la respuesta y apaga y enciende sus avisos), añadida al job `e2e` del CI. Unit 207 pasan; fase4, fase6 y fase11 pasan contra `next start` con los tiempos del CI.
-- **Para producción**: las 2 migraciones van **antes** de fusionar (A-19). `T-02b` sigue esperando A-09.
+- **Producción (22/10)**: Alejandro aplicó las 2 migraciones (A-19, hecha) y se fusionó como v0.17.0. `T-02b` sigue esperando A-09.
 
 ## 5. Después del sprint 5 (por desglosar cuando toque)
 
