@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 import { actualizarSesion } from "@/lib/insforge/middleware";
 
-export async function middleware(request: NextRequest) {
+/**
+ * Next 16 renombró "middleware" a "proxy" (mismo matcher y misma función; corre en Node).
+ * La lógica sigue en src/lib/insforge/middleware.ts.
+ */
+export async function proxy(request: NextRequest) {
   return actualizarSesion(request);
 }
 

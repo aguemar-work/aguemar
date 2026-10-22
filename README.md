@@ -4,7 +4,7 @@ Sistema de **aguemar** (Alejandro Fritz Guevara Martínez, Perú) para sus tres 
 
 ## Stack
 
-Next.js 15 (App Router) · TypeScript estricto · Tailwind CSS v4 · InsForge (Postgres, Auth con correo y contraseña, Storage, RLS) · `@react-pdf/renderer` · Zod + React Hook Form · Resend (opcional) · Vitest + Playwright · Vercel.
+Next.js 16 (App Router) · TypeScript estricto · Tailwind CSS v4 · InsForge (Postgres, Auth con correo y contraseña, Storage, RLS) · `@react-pdf/renderer` · Zod + React Hook Form · Resend (opcional) · Vitest + Playwright · Vercel.
 
 ## Instalación
 
