@@ -22,8 +22,9 @@ Checklist del README (Base de datos, paso 5):
 - [x] Migrar con el contexto en producción: `npm run db:migrate` (23/10/2026, 11:02).
 - [x] `npm run db:status` muestra lo mismo que en staging; en producción existen las 3 funciones y las filas previas no cambian (0 solicitudes).
 - [x] Volver a staging: `npx insforge branch switch staging`.
-- [ ] Desplegar el código que usa la migración (fusionar a `main`). Pendiente: la rama `ajustes-marca-y-cotizacion` también lleva v0.17.1 y los cambios del login, que aún no están en producción.
-- [ ] Probar en producción `/`, `/login` y un `/d/<token>` de prueba, y pedir una reunión con una empresa real.
+- [x] Desplegar el código que usa la migración: avance directo `5b6d1be` → `4310af8` en `main` y tag `v0.18.0` subido el 23/10/2026. Con él viajaron v0.17.1 y los cambios del login.
+- [x] Probado en producción el 23/10/2026: `/`, `/en`, `/login` y `/privacidad` responden 200, `/login` ya trae el ojo de contraseña (despliegue confirmado) y un `/d/<token>` inexistente muestra «Enlace no válido» con noindex.
+- [ ] Pendiente a mano: pedir y confirmar una reunión con una empresa real (necesita sesión; no se probó con cuentas reales).
 - [x] Nota en `CHANGELOG.md` con la migración, la fecha, el respaldo y el tag `v0.18.0`.
 
 ## v0.17.1 · 23/10/2026
