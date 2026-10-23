@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { PantallaCarga } from "@/components/brand/pantalla-carga";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { abrirCreado } from "@/lib/navegacion";
 import { iniciarSesion, type EstadoLogin } from "../acciones";
 
 const INICIAL: EstadoLogin = { ok: true };
@@ -13,11 +15,17 @@ const INICIAL: EstadoLogin = { ok: true };
 export function FormularioLogin({ siguiente }: { siguiente: string }) {
   const [estado, accion, pendiente] = useActionState<EstadoLogin, FormData>(iniciarSesion, INICIAL);
   const [visible, setVisible] = useState(false);
+  // Con sesión iniciada, se mantiene la pantalla de carga hasta que la página nueva reemplaza a esta.
+  const entrando = pendiente || Boolean(estado.destino);
+  useEffect(() => {
+    if (estado.destino) abrirCreado(estado.destino);
+  }, [estado.destino]);
   const error = !estado.ok ? estado.mensaje : undefined;
   const errorEn = (campo: "correo" | "contrasena") => (error && (estado.campo ?? "contrasena") === campo ? error : undefined);
 
   return (
     <form action={accion} className="space-y-4" noValidate>
+      {entrando ? <PantallaCarga /> : null}
       <input type="hidden" name="siguiente" value={siguiente} />
       <div className="space-y-2">
         <Label htmlFor="correo">Correo</Label>
@@ -72,9 +80,9 @@ export function FormularioLogin({ siguiente }: { siguiente: string }) {
           </p>
         ) : null}
       </div>
-      <Button type="submit" className="w-full" disabled={pendiente}>
-        {pendiente ? <Loader2 className="animate-spin" aria-hidden /> : null}
-        {pendiente ? "Entrando…" : "Entrar"}
+      <Button type="submit" className="w-full" disabled={entrando}>
+        {entrando ? <Loader2 className="animate-spin" aria-hidden /> : null}
+        {entrando ? "Entrando…" : "Entrar"}
       </Button>
     </form>
   );

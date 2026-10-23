@@ -26,6 +26,8 @@ export interface EstadoLogin {
   ok: boolean;
   mensaje?: string;
   campo?: "correo" | "contrasena";
+  /** Ruta a la que entrar tras iniciar sesión; el cliente la abre con una carga normal (B-01). */
+  destino?: string;
 }
 
 export async function iniciarSesion(_: EstadoLogin, formData: FormData): Promise<EstadoLogin> {
@@ -48,7 +50,7 @@ export async function iniciarSesion(_: EstadoLogin, formData: FormData): Promise
       return {
         ok: false,
         campo: "contrasena",
-        mensaje: "Correo o contraseña incorrectos. Si aún no tienes contraseña, créala desde el enlace de abajo.",
+        mensaje: "Correo o contraseña incorrectos. Si la olvidaste, usa «¿Olvidaste tu contraseña?».",
       };
     }
     return { ok: false, mensaje: `No pudimos iniciar tu sesión. ${mensajeInesperado(reportarInesperado(error, "login"))}` };
@@ -62,7 +64,9 @@ export async function iniciarSesion(_: EstadoLogin, formData: FormData): Promise
     ((rol.tipo === "propietario" || rol.tipo === "colaborador") && pedida.startsWith("/panel")) ||
     (rol.tipo === "empresa" && pedida.startsWith(`/w/${rol.slug}`)) ||
     pedida.startsWith("/invitacion/");
-  redirect(permitida ? pedida : inicio);
+  // No `redirect()`: la respuesta de la acción traería la página de destino entera (panel o workspace) y la
+  // navegación del router se quedaba colgada hasta refrescar. Se devuelve la ruta y el cliente la abre.
+  return { ok: true, destino: permitida ? pedida : inicio };
 }
 
 export async function cerrarSesion() {

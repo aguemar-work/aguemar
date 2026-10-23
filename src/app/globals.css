@@ -144,6 +144,41 @@
   }
 }
 
+/* ---------- Pantalla de carga del ingreso ----------
+   El logo respira y un brillo mint lo recorre: `.logo-carga-brillo` es una capa con el propio logo
+   como máscara, así la luz solo se ve sobre las letras. Quieto si piden "reducir movimiento". */
+.logo-carga-brillo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.95) 50%, transparent 65%) 150% 0 / 250% 100% no-repeat;
+  mask: url("/logo-light.svg") center / contain no-repeat;
+  -webkit-mask: url("/logo-light.svg") center / contain no-repeat;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes carga-respirar {
+    0%, 100% { opacity: 0.55; scale: 0.97; }
+    50% { opacity: 1; scale: 1; }
+  }
+  @keyframes carga-brillo {
+    from { background-position: 150% 0; }
+    to { background-position: -50% 0; }
+  }
+  @keyframes carga-entrada {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .pantalla-carga {
+    animation: carga-entrada 0.2s ease-out;
+  }
+  .logo-carga {
+    animation: carga-respirar 1.8s ease-in-out infinite;
+  }
+  .logo-carga-brillo {
+    animation: carga-brillo 1.8s ease-in-out infinite;
+  }
+}
+
 /* ---------- Animaciones sutiles de la landing ----------
    Solo si el sistema no pide "reducir movimiento". Son animaciones (no transiciones) para no pisar
    el atenuado en hover de las filas, y con `backwards` para que al terminar no bloqueen el hover.
