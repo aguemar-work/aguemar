@@ -27,7 +27,7 @@ test.skip(!/\.test$/.test(EMAIL ?? ""), "Estos flujos solo corren con las cuenta
 async function iniciarSesion(page: Page, correo: string, contrasena: string) {
   await abrir(page, "/login");
   await page.getByLabel("Correo").fill(correo);
-  await page.getByLabel("Contraseña").fill(contrasena);
+  await page.getByLabel("Contraseña", { exact: true }).fill(contrasena);
   await page.getByRole("button", { name: /^entrar$/i }).click();
   await expect(page).not.toHaveURL(/\/login/, { timeout: ESPERA_LOGIN });
   await listo(page);

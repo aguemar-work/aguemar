@@ -21,6 +21,16 @@ const cabecerasSeguridad = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Caché del router en el navegador para las páginas dinámicas (por defecto 0 s): volver a una
+    // página vista en el último minuto es instantáneo y la precarga al pasar el cursor sirve de algo.
+    // Las Server Actions con revalidatePath lo vacían, así que tras guardar nunca se ve algo viejo.
+    staleTimes: { dynamic: 60 },
+    // Habilita `unstable_dynamicOnHover` en los enlaces de los menús (Enlace, precargaAlPasar): en pantalla
+    // se precarga solo el árbol de la ruta y, al pasar el cursor, la página con sus datos. Sin este flag
+    // Next ignora la prop (process.env.__NEXT_DYNAMIC_ON_HOVER).
+    dynamicOnHover: true,
+  },
   async headers() {
     const sinIndexar = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
     return [

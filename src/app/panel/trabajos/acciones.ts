@@ -85,7 +85,10 @@ export async function eliminarTrabajo(id: string): Promise<Resultado<void>> {
     const { db } = await conSesion();
     const { data, error } = await db.from("trabajos").delete().eq("id", id).select("cliente_id").maybeSingle();
     if (error) throw error;
-    revalidar(undefined, (data as { cliente_id: string | null } | null)?.cliente_id);
+    void data;
+    // Sin revalidar: tras borrar, la pantalla hace una carga completa (irTrasAccion). Si se revalida, Next vuelve a
+    // pedir la ruta actual (el detalle recién borrado), recibe 404 y hace una navegación completa a esa URL, que
+    // cancela la carga de la lista; pasaba al eliminar desde el panel lateral en producción (src/lib/navegacion.ts).
     return exito(undefined);
   });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/panel/enlace";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
@@ -42,6 +42,9 @@ export function NavWorkspace({ slug, nombreEmpresa, modulos, onNavegar, classNam
               <Link
                 href={href}
                 onClick={onNavegar}
+                // Armazón en pantalla y página completa al pasar el cursor (ver Sidebar del panel).
+                prefetch="auto"
+                precargaAlPasar
                 aria-current={activo ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white",

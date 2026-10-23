@@ -222,3 +222,30 @@
     animation-delay: calc(var(--retraso, 0ms) + 140ms + var(--j, 0) * 45ms);
   }
 }
+
+/* ---------- Barra de progreso de navegación (src/components/barra-progreso.tsx) ----------
+   Línea mint fija arriba mientras llega la página siguiente. Aparece con retraso para no parpadear
+   cuando la navegación es instantánea (caché del router); sin movimiento, queda una línea quieta. */
+.barra-progreso {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--color-mint);
+  transition: opacity 0.15s ease 0.12s;
+}
+.barra-progreso.activa {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes barra-avanza {
+    from { background-position: -100% 0; }
+    to { background-position: 200% 0; }
+  }
+  .barra-progreso.activa {
+    background: linear-gradient(90deg, transparent, var(--color-mint) 35%, var(--color-mint) 65%, transparent) -100% 0 / 60% 100% no-repeat;
+    animation: barra-avanza 1.2s ease-in-out infinite;
+  }
+}

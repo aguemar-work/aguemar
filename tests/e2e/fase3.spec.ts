@@ -20,7 +20,7 @@ test.afterAll(() => limpiarSufijo(SUFIJO));
 async function iniciarSesion(page: Page) {
   await abrir(page, "/login");
   await page.getByLabel("Correo").fill(EMAIL!);
-  await page.getByLabel("Contraseña").fill(PASSWORD!);
+  await page.getByLabel("Contraseña", { exact: true }).fill(PASSWORD!);
   await page.getByRole("button", { name: /^entrar$/i }).click();
   await expect(page).toHaveURL(/\/panel/, { timeout: ESPERA_LOGIN });
   await listo(page);

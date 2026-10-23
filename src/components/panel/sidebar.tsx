@@ -42,6 +42,10 @@ export function Sidebar({ onNavegar, className, rol = "propietario" }: SidebarPr
                       <Link
                         href={href}
                         onClick={onNavegar}
+                        // Los enlaces del menú no abren el panel lateral (B-01): en pantalla se precarga solo el
+                        // armazón y, al pasar el cursor, la página completa; con staleTimes el clic ya la encuentra.
+                        prefetch="auto"
+                        precargaAlPasar
                         aria-current={activo ? "page" : undefined}
                         className={cn(
                           "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",

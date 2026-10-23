@@ -20,7 +20,7 @@ test("la pantalla de login valida el correo antes de entrar", async ({ page }) =
   const correo = page.getByLabel("Correo");
   await expect(correo).toBeVisible();
   await correo.fill("no-es-un-correo");
-  await page.getByLabel("Contraseña").fill("cualquiera");
+  await page.getByLabel("Contraseña", { exact: true }).fill("cualquiera");
   await page.getByRole("button", { name: /^entrar$/i }).click();
   await expect(page.locator("#correo-error")).toContainText(/correo/i);
 });

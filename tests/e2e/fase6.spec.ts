@@ -20,7 +20,7 @@ test.afterAll(() => limpiarSufijo(SUFIJO));
 async function iniciarSesion(page: Page) {
   await abrir(page, "/login");
   await page.getByLabel("Correo").fill(EMAIL!);
-  await page.getByLabel("Contraseña").fill(PASSWORD!);
+  await page.getByLabel("Contraseña", { exact: true }).fill(PASSWORD!);
   await page.getByRole("button", { name: /^entrar$/i }).click();
   await expect(page).toHaveURL(/\/panel/, { timeout: ESPERA_LOGIN });
   await listo(page);
@@ -84,10 +84,14 @@ test("envía, acepta (crea el trabajo) y registra un cobro parcial", async ({ pa
   await page.getByLabel("Quién acepta").fill("Persona de prueba");
   await page.getByRole("button", { name: /aceptar y crear trabajo/i }).click();
   await expect(page.getByText("Trabajo creado")).toBeVisible();
+  // Tras aceptar se abre el diálogo de confirmación por WhatsApp (sprint 5): cerrarlo, como el de «Enviar».
+  await expect(page.getByRole("dialog", { name: /confirmar a/i })).toBeVisible();
+  await page.keyboard.press("Escape");
   await page.getByRole("button", { name: /registrar cobro/i }).click();
   await page.getByLabel("Monto").fill("500");
   await page.getByRole("button", { name: /^registrar$/i }).click();
-  await expect(page.getByText("S/ 680,00")).toBeVisible(); // saldo 1180 − 500
+  // El pendiente sale en el documento y en el bloque de cobros (sprint 4): basta con que aparezca.
+  await expect(page.getByText("S/ 680,00").first()).toBeVisible(); // saldo 1180 − 500
 });
 
 test("limpieza: anula el cobro y elimina el trabajo de prueba (la cotización aceptada y el cobro anulado quedan como registro)", async ({ page }) => {

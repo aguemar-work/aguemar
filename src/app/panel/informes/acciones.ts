@@ -71,7 +71,9 @@ export async function eliminarInforme(id: string): Promise<Resultado<void>> {
     ]);
     const { error } = await db.from("informes").delete().eq("id", id);
     if (error) throw error;
-    revalidar();
+    // Sin revalidar: tras borrar, la pantalla hace una carga completa (irTrasAccion). Si se revalida, Next vuelve a
+    // pedir la ruta actual (el detalle recién borrado), recibe 404 y hace una navegación completa a esa URL, que
+    // cancela la carga de la lista; pasaba al eliminar desde el panel lateral en producción (src/lib/navegacion.ts).
     return exito(undefined);
   });
 }
