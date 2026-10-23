@@ -119,6 +119,11 @@
   html.dark {
     color-scheme: dark;
   }
+  /* Barras de desplazamiento finas y discretas, en los tonos de la marca (en vez de las del sistema). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "ss01", "cv11";
