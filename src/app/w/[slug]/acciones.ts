@@ -7,7 +7,7 @@ import { accion, exito, fallo, type Resultado, falloDe } from "@/lib/datos/resul
 import { segundosDeEspera } from "@/lib/insforge/errores";
 import type { EntidadComentario } from "@/types/database";
 import { ws } from "@/lib/datos/workspace";
-import { avisarAceptacion, avisarComentarioEmpresa, avisarSolicitud, avisosActivos } from "@/lib/correo/avisos";
+import { avisarAceptacion, avisarComentarioEmpresa, avisarReunionPedida, avisarSolicitud, avisosActivos } from "@/lib/correo/avisos";
 
 /** Nombre de mi empresa, para los avisos (se resuelve después de responder). */
 const nombreEmpresa = () => ws.miEmpresa().then((e) => e?.nombre ?? null, () => null);
@@ -116,6 +116,38 @@ export async function solicitarEmpresa(slug: string, input: z.input<typeof solic
   revalidatePath(`/w/${slug}`, "layout");
   revalidatePath("/panel", "layout");
   if (avisosActivos()) avisarSolicitud({ empresa: nombreEmpresa(), titulo: d.titulo, descripcion: d.descripcion, prioridad: d.prioridad, fecha_deseada: d.fecha_deseada || null });
+  return exito({ id: data as string });
+}
+
+const reunionEmpresaSchema = z.object({
+  tema: z.string().trim().min(3, "Cuéntanos de qué quieres hablar.").max(200),
+  detalle: z.string().trim().max(4000).optional(),
+  fecha: z.string().min(1, "Elige el día que prefieres."),
+  hora: z.string().optional(),
+  modalidad: z.enum(["virtual", "presencial"]),
+});
+
+/** La empresa pide una reunión; no entra al calendario hasta que el propietario la confirma (ws_pedir_reunion valida módulo, fecha y tope). */
+export async function pedirReunion(slug: string, input: z.input<typeof reunionEmpresaSchema>): Promise<Resultado<{ id: string }>> {
+  const parsed = reunionEmpresaSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return fallo(issue?.message ?? "Revisa los datos.", issue?.path[0]?.toString());
+  }
+  const insforge = await crearClienteServidor();
+  if (!insforge) return fallo("Sin sesión.");
+  const d = parsed.data;
+  const { data, error } = await insforge.database.rpc("ws_pedir_reunion", {
+    p_tema: d.tema,
+    p_detalle: d.detalle || null,
+    p_fecha: d.fecha,
+    p_hora: d.hora || null,
+    p_modalidad: d.modalidad,
+  });
+  if (error) return falloDe(error, "workspace.pedirReunion");
+  revalidatePath(`/w/${slug}`, "layout");
+  revalidatePath("/panel", "layout");
+  if (avisosActivos()) avisarReunionPedida({ empresa: nombreEmpresa(), tema: d.tema, detalle: d.detalle, fecha: d.fecha, hora: d.hora || null, modalidad: d.modalidad });
   return exito({ id: data as string });
 }
 

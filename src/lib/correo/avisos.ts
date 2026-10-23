@@ -112,6 +112,24 @@ export function avisarSolicitud(s: { empresa: Diferido<string | null>; titulo: s
   });
 }
 
+/** La empresa pidió una reunión desde su Calendario: llega a la Bandeja y por correo al propietario. */
+export function avisarReunionPedida(r: { empresa: Diferido<string | null>; tema: string; detalle?: string | null; fecha: string; hora?: string | null; modalidad: string }) {
+  despues(async () => {
+    const empresa = (await r.empresa) ?? "Una empresa";
+    await alPropietario({
+      asunto: `${empresa} pidió una reunión: ${r.tema}`,
+      rotulo: "// reunión",
+      titulo: r.tema,
+      parrafos: [
+        `${empresa} prefiere el ${r.fecha.split("-").reverse().join("/")}${r.hora ? ` a las ${r.hora}` : ""}, ${r.modalidad === "presencial" ? "presencial" : "virtual"}.`,
+        "Desde la Bandeja puedes confirmarla (se agenda y la empresa la ve en su calendario) o proponerle otra hora.",
+      ],
+      cita: r.detalle || null,
+      boton: { texto: "Abrir la Bandeja", url: url("/panel/bandeja") },
+    });
+  });
+}
+
 export function avisarAceptacion(a: { tipo: "cotizacion" | "acta"; numero: string | null; nombre: string; empresa?: Diferido<string | null>; via: "workspace" | "enlace" }) {
   const doc = a.tipo === "cotizacion" ? "cotización" : "acta de entrega";
   despues(async () => {
@@ -307,9 +325,34 @@ export async function avisarSolicitudRespondida(solicitudId: string) {
   if (!envServidor().RESEND_API_KEY) return;
   const { db } = await conSesion();
   despues(async () => {
-    const { data } = await db.from("solicitudes").select("cliente_id, titulo, estado, respuesta").eq("id", solicitudId).maybeSingle();
-    const s = data as { cliente_id: string; titulo: string; estado: string; respuesta: string | null } | null;
+    const { data } = await db
+      .from("solicitudes")
+      .select("cliente_id, titulo, estado, respuesta, tipo, actividades(fecha, hora_inicio, lugar)")
+      .eq("id", solicitudId)
+      .maybeSingle();
+    const s = data as { cliente_id: string; titulo: string; estado: string; respuesta: string | null; tipo: string; actividades: { fecha: string; hora_inicio: string | null; lugar: string | null } | null } | null;
     if (!s) return;
+    if (s.tipo === "reunion") {
+      // La reunión se responde desde el Calendario: confirmada (con día, hora y lugar) o con otra propuesta.
+      const a = s.actividades;
+      const cuando = a ? `${a.fecha.split("-").reverse().join("/")}${a.hora_inicio ? ` a las ${a.hora_inicio.slice(0, 5)}` : ""}` : null;
+      await aLaEmpresa(db, s.cliente_id, (d) =>
+        d.conAcceso && moduloActivo(d.modulos, "calendario")
+          ? {
+              asunto: s.estado === "aceptada" ? `Reunión confirmada: ${s.titulo}` : `Sobre tu pedido de reunión: ${s.titulo}`,
+              rotulo: "// reunión",
+              titulo: s.titulo,
+              parrafos: [
+                saludo(d),
+                s.estado === "aceptada" ? `Confirmamos tu reunión${cuando ? ` para el ${cuando}` : ""}${a?.lugar ? ` (${a.lugar})` : ""}.` : s.estado === "rechazada" ? "Por ahora no podemos atender ese horario." : "Revisamos tu pedido de reunión.",
+              ],
+              cita: s.respuesta,
+              boton: { texto: "Ver mi calendario", url: url(`/w/${d.slug}/calendario`) },
+            }
+          : null,
+      );
+      return;
+    }
     await aLaEmpresa(db, s.cliente_id, (d) =>
       d.conAcceso && moduloActivo(d.modulos, "solicitudes")
         ? {

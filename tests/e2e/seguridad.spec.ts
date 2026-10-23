@@ -111,6 +111,29 @@ test("la empresa A no ve nada de la empresa B, ni pidiéndolo por id", async () 
   expect(comentarios.error !== null || ((comentarios.data ?? []) as unknown[]).length === 0).toBe(true);
 });
 
+test("el pedido de reunión de la empresa A no lo ve la B, y la empresa no agenda por su cuenta", async () => {
+  const { c: sesionA } = await sesion(EMPRESA_A);
+  const { c: sesionB } = await sesion(EMPRESA_B);
+  const { c: duenio } = await sesion(PROPIETARIO);
+  const marca = `E2E seg reunión ${Date.now()}`;
+  const manana = new Date(Date.now() + 86_400_000 - 5 * 3_600_000).toISOString().slice(0, 10);
+  const pedido = await sesionA.database.rpc("ws_pedir_reunion", { p_tema: marca, p_detalle: null, p_fecha: manana, p_hora: null, p_modalidad: "virtual" });
+  try {
+    expect(pedido.error, "la empresa A de staging necesita el módulo Calendario (npm run staging:cuentas)").toBeNull();
+    const deA = ((await sesionA.database.rpc("ws_reuniones_pedidas")).data ?? []) as { id: string }[];
+    expect(deA.map((r) => r.id)).toContain(pedido.data);
+    const deB = ((await sesionB.database.rpc("ws_reuniones_pedidas")).data ?? []) as { id: string }[];
+    expect(deB.map((r) => r.id)).not.toContain(pedido.data);
+    // Tampoco la ve por las tablas, ni crea la actividad por su cuenta.
+    const directo = await sesionA.database.from("solicitudes").select("id").eq("id", pedido.data as string);
+    expect(directo.error ? [] : directo.data).toEqual([]);
+    const agenda = await sesionA.database.from("actividades").insert([{ titulo: marca, tipo: "reunion", fecha: manana }]).select("id");
+    expect(bloqueado(agenda)).toBe(true);
+  } finally {
+    if (pedido.data) await duenio.database.from("solicitudes").delete().eq("id", pedido.data as string);
+  }
+});
+
 test("una empresa no puede hacerse dueña de la landing ni crear empresas (SEG-01)", async () => {
   const { c, uid } = await sesion(EMPRESA_A);
   const perfil = await c.database

@@ -1,4 +1,4 @@
--- Vigente según migrations/20261015162658_calendario-solicitudes.sql.
+-- Vigente según migrations/20261023151851_reunion-solicitudes.sql.
 -- Generado con `npm run db:funciones`: no se edita a mano; los cambios van en una migración nueva.
 
 create or replace function public.ws_solicitudes()
@@ -14,5 +14,5 @@ as $$
            'trabajo', (select jsonb_build_object('id', t.id, 'titulo', t.titulo) from public.trabajos t where t.id = s.trabajo_id and t.visible_empresa)
          ) order by s.created_at desc), '[]'::jsonb)
   from public.solicitudes s
-  where s.cliente_id = public.ws_empresa_id() and public.ws_modulo_activo('solicitudes');
+  where s.cliente_id = public.ws_empresa_id() and s.tipo = 'trabajo' and public.ws_modulo_activo('solicitudes');
 $$;

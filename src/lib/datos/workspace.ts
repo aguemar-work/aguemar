@@ -213,6 +213,20 @@ export interface WsSolicitud {
   trabajo: { id: string; titulo: string } | null;
 }
 
+/** Un pedido de reunión de mi empresa; `actividad` aparece cuando el propietario la confirmó. */
+export interface WsReunionPedida {
+  id: string;
+  titulo: string;
+  descripcion: string | null;
+  fecha_deseada: string;
+  hora_deseada: string | null;
+  modalidad: "virtual" | "presencial" | null;
+  estado: "nueva" | "en_revision" | "aceptada" | "rechazada";
+  respuesta: string | null;
+  created_at: string;
+  actividad: { id: string; fecha: string; hora_inicio: string | null; hora_fin: string | null; lugar: string | null } | null;
+}
+
 async function rpc<T>(nombre: string, args?: Record<string, unknown>): Promise<T | null> {
   const insforge = await crearClienteServidor();
   if (!insforge) throw new SinSesionError();
@@ -250,6 +264,7 @@ export const ws = {
   calendario: async (desde: string, hasta: string) => (await rpc<ItemCalendario[]>("ws_calendario", { p_desde: desde, p_hasta: hasta })) ?? [],
   actividad: (id: string) => rpc<WsActividad>("ws_actividad", { p_id: id }),
   solicitudes: async () => (await rpc<WsSolicitud[]>("ws_solicitudes")) ?? [],
+  reunionesPedidas: async () => (await rpc<WsReunionPedida[]>("ws_reuniones_pedidas")) ?? [],
   informes: async () => (await rpc<WsInformeResumen[]>("ws_informes")) ?? [],
   informe: (id: string) => rpc<InformeJson>("ws_informe", { p_id: id }),
   preferencias: () => rpc<{ avisos_correo: boolean }>("ws_preferencias"),

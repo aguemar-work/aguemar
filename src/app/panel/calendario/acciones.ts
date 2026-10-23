@@ -171,6 +171,67 @@ export async function convertirEnCotizacion(id: string): Promise<Resultado<{ cot
   });
 }
 
+const confirmarReunionSchema = z
+  .object({
+    fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Elige la fecha."),
+    hora_inicio: z.string().regex(/^\d{2}:\d{2}$/, "Elige la hora de inicio."),
+    hora_fin: z.string().regex(/^\d{2}:\d{2}$/, "Hora inválida.").or(z.literal("")).optional(),
+    lugar: z.string().trim().max(300).optional(),
+    mensaje: z.string().trim().max(2000).optional(),
+  })
+  .refine((v) => !v.hora_fin || v.hora_fin >= v.hora_inicio, { message: "La hora de fin debe ser posterior al inicio.", path: ["hora_fin"] });
+
+export type ConfirmarReunionInput = z.input<typeof confirmarReunionSchema>;
+
+/** Confirma el pedido de reunión: crea la actividad `reunion` visible para la empresa y responde la solicitud. */
+export async function confirmarReunion(id: string, input: ConfirmarReunionInput): Promise<Resultado<{ actividadId: string }>> {
+  const parsed = confirmarReunionSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return fallo(issue?.message ?? "Revisa los datos.", issue?.path.map(String).join("."));
+  }
+  const d = parsed.data;
+  return accion("calendario.confirmarReunion", async () => {
+    const { db, usuario } = await conSesion();
+    const { data: sol } = await db.from("solicitudes").select("id, cliente_id, titulo, descripcion, tipo, actividad_id").eq("id", id).maybeSingle();
+    const s = sol as { id: string; cliente_id: string; titulo: string; descripcion: string | null; tipo: string; actividad_id: string | null } | null;
+    if (!s || s.tipo !== "reunion") return fallo("No encontramos el pedido de reunión.");
+    if (s.actividad_id) return fallo("Esta reunión ya está confirmada.");
+    const { data, error } = await db
+      .from("actividades")
+      .insert([
+        {
+          owner_id: usuario.id,
+          cliente_id: s.cliente_id,
+          titulo: s.titulo,
+          descripcion: s.descripcion,
+          tipo: "reunion",
+          fecha: d.fecha,
+          hora_inicio: d.hora_inicio,
+          hora_fin: d.hora_fin || null,
+          lugar: d.lugar || null,
+          visible_empresa: true,
+        },
+      ])
+      .select("id")
+      .single();
+    if (error) throw error;
+    const actividadId = (data as { id: string }).id;
+    const r = await db
+      .from("solicitudes")
+      .update({ estado: "aceptada", actividad_id: actividadId, respuesta: d.mensaje || "Reunión confirmada: ya está en tu calendario." })
+      .eq("id", id);
+    if (r.error) {
+      // Sin la solicitud actualizada la reunión quedaría suelta y repetible: se retira.
+      await db.from("actividades").delete().eq("id", actividadId);
+      throw r.error;
+    }
+    revalidar();
+    await avisarSolicitudRespondida(id);
+    return exito({ actividadId });
+  });
+}
+
 export async function eliminarSolicitud(id: string): Promise<Resultado<void>> {
   return accion("calendario.eliminarSolicitud", async () => {
     const { db } = await conSesion();

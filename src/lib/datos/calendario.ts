@@ -50,6 +50,11 @@ export interface SolicitudFila {
   respuesta: string | null;
   trabajo_id: string | null;
   cotizacion_id: string | null;
+  /** `reunion`: la empresa pidió una reunión (fecha, hora y modalidad que prefiere); se confirma creando la actividad. */
+  tipo: "trabajo" | "reunion";
+  hora_deseada: string | null;
+  modalidad: "virtual" | "presencial" | null;
+  actividad_id: string | null;
   created_at: string;
   clientes: { id: string; nombre: string } | null;
 }

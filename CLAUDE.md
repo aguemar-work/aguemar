@@ -49,7 +49,7 @@ Módulos activables por empresa (`clientes.modulos text[]`); la navegación del 
 |---|---|---|---|
 | Inicio | siempre | próximas actividades, proyectos activos con avance, últimos informes, pendientes de pago, respuestas a sus comentarios | — |
 | Mi cuenta | siempre (`/w/[slug]/cuenta`) | su correo, su contraseña y sus avisos por correo | cambiar la contraseña (código al correo) y encender o apagar los avisos (`ws_preferencias*`) |
-| Calendario | `calendario` | actividades por mes y lista (trabajos planificados, reuniones, publicaciones, mantenimientos, entregas) | comentar |
+| Calendario | `calendario` | actividades por mes y lista (trabajos planificados, reuniones, publicaciones, mantenimientos, entregas) y sus reuniones pedidas | comentar y pedir una reunión (`ws_pedir_reunion`: fila de `solicitudes` con `tipo = 'reunion'`; el propietario la confirma en la Bandeja y recién entonces se crea la actividad visible) |
 | Proyectos | `proyectos` | sus trabajos visibles con estado, etapas, tareas y entregables | comentar |
 | Informes | `informes` | informes de avance publicados, con PDF | comentar |
 | Documentos | `documentos` | fichas técnicas, briefs y actas publicadas, con PDF | aceptar acta |

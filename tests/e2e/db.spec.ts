@@ -591,6 +591,74 @@ test("con el módulo Solicitudes desactivado o la empresa inactiva, la base no a
   }
 });
 
+test("pedir una reunión: exige el módulo Calendario, valida la fecha, pone tope y la confirma el propietario", async () => {
+  test.setTimeout(120_000);
+  const { c: duenio, uid } = await propietario();
+  const empresa = await empresaFija(duenio, uid, "e2e-db-modulos", "90000002");
+  const correo = "e2e-db-empresa@staging.aguemar.test";
+  const cuenta = await cuentaFija(correo);
+  if (!empresa.usuario_id) {
+    const inv = await duenio.database.from("invitaciones").insert([{ owner_id: uid, tipo: "empresa", correo, cliente_id: empresa.id }]).select("id, token").single();
+    expect(inv.error).toBeNull();
+    expect((await cuenta.database.rpc("invitacion_aceptar", { p_token: inv.data!.token })).error).toBeNull();
+  }
+  const todos = ["proyectos", "calendario", "informes", "documentos", "cotizaciones", "equipos", "solicitudes"];
+  const ajustar = (campos: Record<string, unknown>) => duenio.database.from("clientes").update(campos).eq("id", empresa.id);
+  const marca = `E2E reunión ${Date.now()}`;
+  const manana = new Date(Date.now() + 86_400_000 - 5 * 3_600_000).toISOString().slice(0, 10);
+  const ayer = new Date(Date.now() - 86_400_000 - 5 * 3_600_000).toISOString().slice(0, 10);
+  const pedir = (extra: Record<string, unknown> = {}) =>
+    cuenta.database.rpc("ws_pedir_reunion", { p_tema: marca, p_detalle: "Prueba", p_fecha: manana, p_hora: "10:00", p_modalidad: "virtual", ...extra });
+  let actividadId: string | null = null;
+
+  try {
+    await ajustar({ modulos: todos, activa: true });
+    await duenio.database.from("solicitudes").delete().eq("cliente_id", empresa.id).eq("tipo", "reunion");
+
+    // Con el módulo: se crea, la ve en su lista de reuniones y no en la de trabajos.
+    const ok = await pedir();
+    expect(ok.error).toBeNull();
+    const pedidas = (await cuenta.database.rpc("ws_reuniones_pedidas")).data as { id: string; titulo: string; estado: string; hora_deseada: string; actividad: unknown }[];
+    expect(pedidas.find((r) => r.id === ok.data)).toMatchObject({ titulo: marca, estado: "nueva", hora_deseada: "10:00", actividad: null });
+    expect(((await cuenta.database.rpc("ws_solicitudes")).data as { id: string }[]).some((s) => s.id === ok.data)).toBe(false);
+
+    // Fecha pasada, modalidad inválida y tema vacío se rechazan en la base.
+    expect(String((await pedir({ p_fecha: ayer })).error?.message)).toMatch(/pasada/);
+    expect(String((await pedir({ p_modalidad: "telepatia" })).error?.message)).toMatch(/virtual o presencial/);
+    expect(String((await pedir({ p_tema: " " })).error?.message)).toMatch(/de qué quieres hablar/);
+
+    // El propietario la confirma: la actividad visible aparece en la lista de la empresa.
+    const act = await duenio.database
+      .from("actividades")
+      .insert([{ owner_id: uid, cliente_id: empresa.id, titulo: marca, tipo: "reunion", fecha: manana, hora_inicio: "10:00", hora_fin: "10:30", lugar: "https://meet.example.test/e2e", visible_empresa: true }])
+      .select("id")
+      .single();
+    expect(act.error).toBeNull();
+    actividadId = act.data!.id as string;
+    const conf = await duenio.database.from("solicitudes").update({ estado: "aceptada", actividad_id: actividadId, respuesta: "Confirmada." }).eq("id", ok.data as string);
+    expect(conf.error).toBeNull();
+    const luego = (await cuenta.database.rpc("ws_reuniones_pedidas")).data as { id: string; estado: string; actividad: { id: string; hora_inicio: string } | null }[];
+    expect(luego.find((r) => r.id === ok.data)).toMatchObject({ estado: "aceptada", actividad: { id: actividadId, hora_inicio: "10:00" } });
+
+    // Tope: 5 pedidos por día y empresa (ya hay 1).
+    for (let i = 0; i < 4; i++) expect((await pedir()).error).toBeNull();
+    expect(String((await pedir()).error?.message)).toMatch(/límite de pedidos de reunión/);
+
+    // Sin el módulo Calendario la base no atiende, ni al pedir ni al listar.
+    await ajustar({ modulos: todos.filter((m) => m !== "calendario") });
+    expect(String((await pedir()).error?.message)).toMatch(/No tienes acceso al calendario/);
+    expect((await cuenta.database.rpc("ws_reuniones_pedidas")).data).toEqual([]);
+
+    // Empresa inactiva: tampoco.
+    await ajustar({ modulos: todos, activa: false });
+    expect((await pedir()).error).not.toBeNull();
+  } finally {
+    await ajustar({ modulos: todos, activa: true });
+    await duenio.database.from("solicitudes").delete().eq("cliente_id", empresa.id).eq("tipo", "reunion");
+    if (actividadId) await duenio.database.from("actividades").delete().eq("id", actividadId);
+  }
+});
+
 test("los triggers de la base dan los mismos totales que el cálculo de TypeScript (tests/fixtures/cotizaciones.json)", async () => {
   test.setTimeout(120_000);
   const { c: duenio, uid } = await propietario();

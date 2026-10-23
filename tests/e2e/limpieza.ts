@@ -33,6 +33,7 @@ async function duenio() {
 /** Tablas y columna donde cada prueba pone su nombre, en el orden en que se pueden borrar (lo que depende, primero). */
 const OBJETIVOS: { tabla: string; columna: string; prefijo: string }[] = [
   { tabla: "fichas", columna: "titular", prefijo: "Ficha" },
+  { tabla: "solicitudes", columna: "titulo", prefijo: "Reunión" },
   { tabla: "actividades", columna: "titulo", prefijo: "Reunión" },
   { tabla: "informes", columna: "titulo", prefijo: "Informe" },
   { tabla: "trabajos", columna: "titulo", prefijo: "Trabajo" },
