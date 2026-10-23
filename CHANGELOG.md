@@ -4,7 +4,11 @@ Una entrada por despliegue a producción. Si el despliegue lleva migración, la 
 
 ## Sin publicar
 
-Textos y claridad (sin migración):
+Nada todavía.
+
+## v0.17.1 · 23/10/2026
+
+Textos y claridad (sin migración, solo código):
 
 - **Landing:** el título de la página nombra el servicio y el país, en ≤ 60 caracteres: «Desarrollo web y soporte técnico en Perú | aguemar» y «Web development and IT support in Peru | aguemar» (T-02b; no se publica ciudad ni dirección).
 - **Mi marca:** los textos de ayuda ya no hablan de portada ni de tarjeta oscura (los PDF van sin portada); un guion suelto en un campo ("-") se guarda como vacío.
