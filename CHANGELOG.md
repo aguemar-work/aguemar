@@ -6,6 +6,26 @@ Una entrada por despliegue a producción. Si el despliegue lleva migración, la 
 
 Nada todavía.
 
+## v0.18.0 · 23/10/2026
+
+**Lleva 1 migración** (`reunion-solicitudes`, aditiva: el código publicado sigue funcionando). La empresa pide una reunión desde su Calendario y tú la confirmas en la Bandeja.
+
+- **Workspace:** botón «Pedir una reunión» (tema, día, hora, modalidad) y lista «Tus reuniones pedidas» con su estado. Exige el módulo Calendario; tope de 5 pedidos por día y empresa; no acepta fechas pasadas.
+- **Panel:** el pedido llega a la Bandeja y por correo; «Confirmar reunión» crea la actividad visible para la empresa (día, hora, lugar y mensaje editables) y le avisa; «Responder» propone otra hora o dice que no. Las reuniones no se convierten en trabajo ni cotización.
+- **Base:** `solicitudes.tipo / hora_deseada / modalidad / actividad_id`, funciones `ws_pedir_reunion` y `ws_reuniones_pedidas`; `ws_solicitudes` ahora solo devuelve pedidos de trabajo.
+- Probada en staging (`db.spec`, `seguridad.spec`, `fase8.spec` en escritorio y móvil; 210 unit en verde).
+
+Checklist del README (Base de datos, paso 5):
+
+- [x] La migración pasó en staging, `npm run db:funciones` no deja diff y los tests están en verde (CI no se corrió: la rama no se ha subido).
+- [x] Respaldo de producción: `_respaldos/aguemar-Project_AGUEMAR-2026-10-23-1101.sql` (33 tablas, 9 filas) y respaldo manual de InsForge renovado (`2026-10-23-antes-reuniones`).
+- [x] Migrar con el contexto en producción: `npm run db:migrate` (23/10/2026, 11:02).
+- [x] `npm run db:status` muestra lo mismo que en staging; en producción existen las 3 funciones y las filas previas no cambian (0 solicitudes).
+- [x] Volver a staging: `npx insforge branch switch staging`.
+- [ ] Desplegar el código que usa la migración (fusionar a `main`). Pendiente: la rama `ajustes-marca-y-cotizacion` también lleva v0.17.1 y los cambios del login, que aún no están en producción.
+- [ ] Probar en producción `/`, `/login` y un `/d/<token>` de prueba, y pedir una reunión con una empresa real.
+- [x] Nota en `CHANGELOG.md` con la migración, la fecha, el respaldo y el tag `v0.18.0`.
+
 ## v0.17.1 · 23/10/2026
 
 Textos y claridad (sin migración, solo código):
