@@ -97,7 +97,7 @@ export function FormularioMarca({ perfil }: Props) {
         <Card id="identidad" className="scroll-mt-20">
           <CardHeader>
             <CardTitle>Identidad</CardTitle>
-            <CardDescription>Aparece en la portada, la firma y el pie de los documentos.</CardDescription>
+            <CardDescription>Aparece en la cabecera, la firma y el pie de los documentos.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             {campo("nombre_comercial", "Nombre comercial", { requerido: true })}
@@ -110,7 +110,7 @@ export function FormularioMarca({ perfil }: Props) {
         <Card id="contacto" className="scroll-mt-20">
           <CardHeader>
             <CardTitle>Contacto</CardTitle>
-            <CardDescription>Va en la tarjeta oscura al final de cada documento y en la landing.</CardDescription>
+            <CardDescription>Va en la línea de contacto bajo las firmas de cada documento. La dirección es opcional: déjala vacía si no quieres publicarla.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             {campo("telefono", "Teléfono / WhatsApp", { placeholder: "+51 9XX XXX XXX" })}

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { estadoPago, etiquetaVersion } from "@/lib/cotizacion";
+import { estadoPago, etiquetaVersion, notaPrecios } from "@/lib/cotizacion";
 import { formatearFecha, formatearMonto, hoyLima } from "@/lib/format";
 import type { WsCotizacion } from "@/lib/datos/workspace";
 
@@ -70,6 +70,7 @@ export function VistaCotizacion({ c, arriba }: { c: WsCotizacion; arriba?: React
                 <dd className="font-mono tabular">{formatearMonto(c.total, c.moneda)}</dd>
               </div>
             </dl>
+            <p className="ml-auto mt-2 max-w-xs text-xs text-muted-foreground">{notaPrecios(c.moneda, c.igv_modo)}</p>
           </CardContent>
         </Card>
 

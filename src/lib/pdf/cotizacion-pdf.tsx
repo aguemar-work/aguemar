@@ -1,7 +1,7 @@
 import { Document, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { C, Cabecera, Encabezado, Firmas, Pie, Seccion, TONO, contactoDe, registrarFuentes, s, type Tono } from "./base";
 import { formatearFecha, formatearMonto, type Moneda } from "@/lib/format";
-import { etiquetaVersion, textoAceptacion, type OrigenAceptacion } from "@/lib/cotizacion";
+import { etiquetaVersion, notaPrecios, textoAceptacion, type OrigenAceptacion } from "@/lib/cotizacion";
 import { rotuloArea } from "@/lib/areas";
 import type { Area, EstadoCotizacion, IgvModo } from "@/types/database";
 
@@ -144,6 +144,7 @@ export function DocumentoCotizacion({ d }: { d: DatosCotizacionPdf }) {
               <Text style={{ fontWeight: 600 }}>Total</Text>
               <Text style={[s.mono, { fontWeight: 600, fontSize: 10.5 }]}>{formatearMonto(d.total, d.moneda)}</Text>
             </View>
+            <Text style={{ color: C.muted, fontSize: 7.5, marginTop: 4 }}>{notaPrecios(d.moneda, d.igv_modo)}</Text>
           </View>
         </Seccion>
 

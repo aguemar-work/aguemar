@@ -6,6 +6,12 @@
 import type { EstadoCotizacion, IgvModo } from "@/types/database";
 import { diasHasta } from "@/lib/trabajos-util";
 
+/** Aclara, bajo los totales, en qué moneda están los importes y si los precios unitarios llevan IGV. */
+export function notaPrecios(moneda: "PEN" | "USD", igvModo: IgvModo): string {
+  const monedaTexto = moneda === "USD" ? "dólares (US$)" : "soles (S/)";
+  return `Importes en ${monedaTexto}. Los precios unitarios ${igvModo === "incluido" ? "incluyen" : "no incluyen"} IGV; el total sí.`;
+}
+
 /** Redondeo a entero, mitad hacia arriba (igual que round() de Postgres para positivos). */
 function redondear(n: number): number {
   return Math.round(n + Number.EPSILON * Math.sign(n));

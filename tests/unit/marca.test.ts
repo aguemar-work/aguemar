@@ -35,3 +35,16 @@ describe("Mi marca", () => {
     expect(marcaIncompleta({ responsable: "Alejandro", telefono: "924262338", correo: null, ruc: "20123456789" })).toEqual([]);
   });
 });
+
+describe("Mi marca · campos en blanco", () => {
+  it("un guion suelto cuenta como campo vacío", () => {
+    const r = marcaSchema.safeParse({ ...base, direccion: "-", web: " – " });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.direccion).toBeNull();
+      expect(r.data.web).toBeNull();
+    }
+    const con = marcaSchema.safeParse({ ...base, direccion: "Av. Ejemplo 123 - Lima" });
+    expect(con.success && con.data.direccion).toBe("Av. Ejemplo 123 - Lima");
+  });
+});

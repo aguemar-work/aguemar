@@ -7,7 +7,8 @@ const texto = (max = 200) =>
     .string()
     .trim()
     .max(max)
-    .transform((v) => (v === "" ? null : v))
+    // Un guion suelto ("-") era la forma de dejar un campo en blanco: se guarda como vacío.
+    .transform((v) => (v === "" || /^[-–—]+$/.test(v) ? null : v))
     .nullable()
     .optional();
 

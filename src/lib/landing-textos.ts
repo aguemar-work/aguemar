@@ -14,7 +14,7 @@ export const RUTA_IDIOMA: Record<Idioma, string> = { es: "/", en: "/en" };
 const ES = {
   codigo: "es-PE",
   meta: {
-    titulo: "Alejandro Guevara M. · Especialista TI y Desarrollador Frontend | aguemar",
+    titulo: "Desarrollo web y soporte técnico en Perú | aguemar",
     tituloCorto: "aguemar · Especialista TI y Desarrollador Frontend",
     descripcion:
       "Alejandro Guevara M., especialista TI y desarrollador frontend en Perú. Simplifico procesos, ideas e interfaces: webs, sistemas y soporte técnico para empresas.",
@@ -107,7 +107,7 @@ export type TextosLanding = typeof ES;
 const EN: TextosLanding = {
   codigo: "en",
   meta: {
-    titulo: "Alejandro Guevara M. · IT Specialist and Frontend Developer | aguemar",
+    titulo: "Web development and IT support in Peru | aguemar",
     tituloCorto: "aguemar · IT Specialist and Frontend Developer",
     descripcion:
       "Alejandro Guevara M., IT specialist and frontend developer in Peru. I simplify processes, ideas and interfaces: websites, systems and IT support for companies.",

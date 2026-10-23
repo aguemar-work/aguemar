@@ -78,7 +78,7 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
 | ID | Título | Hallazgos | Sprint | Migración | Pantalla | Depende de | Estado |
 |---|---|---|---|---|---|---|---|
 | T-01 | Contraste del formulario de contacto | A11Y-001 | 1 | No | Sí | — | Hecha · falta pantalla (`6edb6c4`) |
-| T-02 | Metadatos de la landing: imagen en `/en`, JSON-LD limpio, título con ciudad | SEO-001, SEO-003, SEO-002 (etapa 1) | 1 | No | No | A-09 (solo 2b) | 2a hecha (`dddb62a`) · 2b bloqueada por A-09 |
+| T-02 | Metadatos de la landing: imagen en `/en`, JSON-LD limpio, título con ciudad | SEO-001, SEO-003, SEO-002 (etapa 1) | 1 | No | No | A-09 (solo 2b) | 2a hecha (`dddb62a`) · 2b hecha (23/10, sin ciudad por decisión de A-09) |
 | T-03 | Sin `[PENDIENTE]` en PDF, `/privacidad` y servicios; validador estricto; aviso de Mi marca | UX-001, COD-008 | 1 | No | Sí | — | Hecha · falta pantalla (`b5e88d9`) |
 | T-04 | Mensajes de error genéricos con referencia y detalle a Sentry | COD-002, UX-009, SEC-004 | 1 | No | No | — | Hecha (`1975d13`) |
 | T-05 | Cron y PDF reportan a Sentry | DEV-003, DEV-005 | 1 | No | No | — | Hecha (`98abd7b`) |
@@ -140,9 +140,9 @@ Resuelven lo que la auditoría dejó abierto o se contradecía. Si Alejandro cam
     - quitar `founder`;
     - incluir `email` solo si `marca.correo` termina en `@aguemar.com`.
   - Motivo del JSON-LD: `CLAUDE.md` fija que la landing no muestra datos personales del responsable.
-- **2b, bloqueada por A-09.**
-  - `src/lib/landing-textos.ts`: `meta.titulo` en ES y EN de ≤ 60 caracteres, con la ciudad y la intención. Ejemplo: "Desarrollo web y soporte técnico en {ciudad} | aguemar".
-  - JSON-LD: `areaServed` con `City` y `Country`.
+- **2b, hecha (23/10).** A-09 respondió que no se publica dirección ni ciudad, así que el lugar es el país.
+  - `src/lib/landing-textos.ts`: `meta.titulo` en ES y EN de ≤ 60 caracteres: "Desarrollo web y soporte técnico en Perú | aguemar" / "Web development and IT support in Peru | aguemar". Un test lo comprueba.
+  - JSON-LD: `areaServed` ya era `Country` (Perú); sin `City`.
 - Hecho cuando:
   - en el build de `.next-verify`, `server/app/en.html` contiene `og:image`;
   - el JSON-LD de `index.html` no tiene `inLanguage` ni `founder`;

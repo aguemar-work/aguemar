@@ -30,7 +30,7 @@ begin
   values (v_owner, 'aguemar', 'Alejandro Fritz Guevara Martínez', 'Soporte técnico',
           '[PENDIENTE: RUC]', '[PENDIENTE: teléfono]', '[PENDIENTE: correo]', '[PENDIENTE: web]', '[PENDIENTE: dirección]',
           1800, 'PEN', 15,
-          E'Precios expresados en soles. Validez según la fecha indicada.\nEl servicio incluye la ficha técnica del trabajo realizado.\nForma de pago: 50 % al aceptar y 50 % al entregar, salvo acuerdo distinto.',
+          E'Validez según la fecha indicada.\nForma de pago: 50 % al aceptar y 50 % al entregar, salvo acuerdo distinto.',
           '[PENDIENTE: cuenta]', '[PENDIENTE: CCI]', '[PENDIENTE: Yape]', '[PENDIENTE: Plin]');
 
   -- ---------- Propietario del estudio (Fase 13): sin esta fila no entra al panel ----------

@@ -4,13 +4,17 @@ Una entrada por despliegue a producción. Si el despliegue lleva migración, la 
 
 ## Sin publicar
 
-Nada todavía.
+Textos y claridad (sin migración):
+
+- **Landing:** el título de la página nombra el servicio y el país, en ≤ 60 caracteres: «Desarrollo web y soporte técnico en Perú | aguemar» y «Web development and IT support in Peru | aguemar» (T-02b; no se publica ciudad ni dirección).
+- **Mi marca:** los textos de ayuda ya no hablan de portada ni de tarjeta oscura (los PDF van sin portada); un guion suelto en un campo ("-") se guarda como vacío.
+- **Cotización:** bajo los totales, una nota dice en qué moneda están los importes y si los precios unitarios llevan IGV; sale de la moneda y del modo de la cotización, así que ya no hace falta «Precios expresados en soles» en las condiciones. El seed ya no trae esa línea ni la de la ficha técnica.
 
 ## v0.17.0 · 22/10/2026
 
 Sprint 5 · workspace. **Lleva 2 migraciones**, aplicadas en producción por Alejandro con `npm run db:migrate` antes de fusionar (A-19): `comentarios-cotizacion` y `ws-preferencias`. Despliegue por avance directo de `sprint5-workspace` a `main`, tag `v0.17.0`.
 
-También viajó con esta versión la migración `indices-advisor-2` (22/10/2026, solo base de datos, sin cambio de código): 10 índices `if not exists` que pidió el advisor de InsForge (claves foráneas de `solicitudes`, `fichas`, `leads`, `invitaciones`, `cotizaciones.anulada_por` y `owner_id` de `trabajo_etapas` y las tres tablas de ficha). Probada en staging; los avisos de diseño del advisor (funciones `security definer`, tablas sin política o de solo lectura) quedaron suprimidos con su motivo, objeto por objeto, en staging. Checklist del README: respaldo de producción `_respaldos/aguemar-Project_AGUEMAR-2026-10-22-1819.sql` y respaldo manual de InsForge renovado (`2026-10-22-antes-indices`, 18:20). Aplicada en producción a las 18:20, junto con `comentarios-cotizacion` y `ws-preferencias`; `db:status` coincide con staging. El archivo de la migración se subió a `main` después del despliegue. Pendiente: suprimir en producción los mismos avisos de diseño del advisor.
+También viajó con esta versión la migración `indices-advisor-2` (22/10/2026, solo base de datos, sin cambio de código): 10 índices `if not exists` que pidió el advisor de InsForge (claves foráneas de `solicitudes`, `fichas`, `leads`, `invitaciones`, `cotizaciones.anulada_por` y `owner_id` de `trabajo_etapas` y las tres tablas de ficha). Probada en staging; los avisos de diseño del advisor (funciones `security definer`, tablas sin política o de solo lectura) quedaron suprimidos con su motivo, objeto por objeto, en staging. Checklist del README: respaldo de producción `_respaldos/aguemar-Project_AGUEMAR-2026-10-22-1819.sql` y respaldo manual de InsForge renovado (`2026-10-22-antes-indices`, 18:20). Aplicada en producción a las 18:20, junto con `comentarios-cotizacion` y `ws-preferencias`; `db:status` coincide con staging. El archivo de la migración se subió a `main` después del despliegue. Los mismos avisos de diseño quedaron suprimidos también en producción el 22/10 (74 hallazgos → 1 informativo).
 
 - **Mi cuenta** en el espacio de la empresa: su correo, cambiar la contraseña con un código al correo y apagar o encender los avisos por correo (T-34).
 - **Dudas sobre la cotización:** la empresa pregunta bajo la cotización antes de aceptar, tú ves la duda en el detalle y en la Bandeja y respondes ahí mismo, en la tarjeta (T-35). Aviso junto a la casilla de conformidad.

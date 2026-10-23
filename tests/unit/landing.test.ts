@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { enlaceWhatsApp, numeroWhatsApp, serviciosPorArea, telefonoLegible, textoPrecio, type ServicioLanding } from "@/lib/landing";
 import { leadSchema, mensajeLead } from "@/lib/validators/lead";
+import { TEXTOS } from "@/lib/landing-textos";
 
 describe("utilidades de la landing", () => {
   it("normaliza números para WhatsApp", () => {
@@ -85,5 +86,15 @@ describe("robots.txt", () => {
     expect(disallow).toEqual(expect.arrayContaining(["/panel", "/w/", "/api/"]));
     expect(disallow).not.toContain("/d/");
     expect(disallow).not.toContain("/login");
+  });
+});
+
+describe("títulos de la landing", () => {
+  it("caben en un resultado de búsqueda (60 caracteres) y nombran el lugar", () => {
+    for (const idioma of ["es", "en"] as const) {
+      const titulo = TEXTOS[idioma].meta.titulo;
+      expect(titulo.length).toBeLessThanOrEqual(60);
+      expect(titulo).toMatch(/Per[úu]/);
+    }
   });
 });

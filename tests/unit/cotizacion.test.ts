@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, etiquetaVersion, excesoDeCobro, textoAceptacion, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
+import { aCantidad, calcularTotales, estadoEfectivo, estadoPago, etiquetaVersion, excesoDeCobro, notaPrecios, textoAceptacion, fechaVence, importeLinea, nombreArchivo, saldo } from "@/lib/cotizacion";
 import { NUEVA_EMPRESA, cotizacionSchema, pagoCotizacionSchema } from "@/lib/validators/cotizacion";
 
 describe("importeLinea", () => {
@@ -183,5 +183,12 @@ describe("textoAceptacion", () => {
     expect(textoAceptacion({ ...a, por: "empresa" }, "21/10/2026")).toBe("Aceptada por Ana Pérez el 21/10/2026 · desde su espacio");
     expect(textoAceptacion({ ...a, por: "portal" }, "21/10/2026")).toBe("Aceptada por Ana Pérez el 21/10/2026 · por enlace");
     expect(textoAceptacion({ ...a, por: "propietario" }, "21/10/2026")).toBe("Aceptada por Ana Pérez el 21/10/2026 · registrada por aguemar");
+  });
+});
+
+describe("notaPrecios", () => {
+  it("dice la moneda y si los precios unitarios llevan IGV, sin fijar 'soles' en las condiciones", () => {
+    expect(notaPrecios("PEN", "sumar")).toBe("Importes en soles (S/). Los precios unitarios no incluyen IGV; el total sí.");
+    expect(notaPrecios("USD", "incluido")).toBe("Importes en dólares (US$). Los precios unitarios incluyen IGV; el total sí.");
   });
 });
