@@ -61,7 +61,9 @@ export async function eliminarActividad(id: string): Promise<Resultado<void>> {
     await db.from("comentarios").delete().eq("entidad", "actividad").eq("entidad_id", id);
     const { error } = await db.from("actividades").delete().eq("id", id);
     if (error) throw error;
-    revalidar();
+    // Sin revalidar: tras borrar, la pantalla hace una carga completa (irTrasAccion). Si se revalida, Next vuelve a
+    // pedir la ruta actual (el detalle recién borrado), recibe 404 y hace una navegación completa a esa URL, que
+    // cancela la carga de la lista; pasaba al eliminar desde el panel lateral en producción (src/lib/navegacion.ts).
     return exito(undefined);
   });
 }

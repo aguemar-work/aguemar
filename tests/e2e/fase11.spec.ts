@@ -60,7 +60,7 @@ test.afterAll(async () => {
 async function entrar(page: Page, correo: string, contrasena: string) {
   await abrir(page, "/login");
   await page.getByLabel("Correo").fill(correo);
-  await page.getByLabel("Contraseña").fill(contrasena);
+  await page.getByLabel("Contraseña", { exact: true }).fill(contrasena);
   await page.getByRole("button", { name: /^entrar$/i }).click();
   await expect(page).not.toHaveURL(/\/login/, { timeout: ESPERA_LOGIN });
   await listo(page);

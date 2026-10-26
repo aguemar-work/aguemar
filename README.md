@@ -200,6 +200,16 @@ Los errores 500 del servidor (Server Components, Server Actions, Route Handlers,
 4. **Redeploy** del último despliegue: las variables nuevas solo entran en un build nuevo.
 5. En Sentry → Alerts, deja activa la regla por defecto "nuevo issue → correo". Llega en uno o dos minutos.
 
+### Monitor de uptime y función caliente
+
+En Vercel la función se duerme tras unos minutos sin visitas y la siguiente página paga el arranque en frío (medido el 23/10/2026: 2–4 s en `/login`, frente a 0,5 s en caliente). Con un solo usuario, casi cada visita empezaba fría. El monitor de uptime resuelve las dos cosas: avisa si el sitio cae y, al pasar cada 5 minutos, mantiene la función despierta.
+
+1. Crea una cuenta gratuita en UptimeRobot o Better Stack y agrega tres monitores HTTP con intervalo de **5 minutos**: `https://aguemar.com/api/salud` (debe responder 200 con `{"ok":true,…}`; también hace una petición breve a InsForge para mantener viva esa conexión), `https://aguemar.com/login` y un `https://aguemar.com/d/<token>` de prueba.
+2. Activa el aviso por correo (o WhatsApp/Telegram si el servicio lo ofrece). Pruébalo revocando el enlace de prueba: debe llegar el aviso.
+3. En Vercel → Settings → Functions, anota si **Fluid Compute** está activo (reduce los arranques en frío) y la región (`iad1` confirmada el 23/10/2026 por la cabecera `X-Vercel-Id`).
+
+`/api/salud` (`src/app/api/salud/route.ts`) no exige sesión ni toca datos; responde 503 si InsForge no contesta en 5 s. El plan Hobby de Vercel solo admite crons diarios, por eso el calor lo da el monitor externo y no `vercel.json`.
+
 ### Analítica sin cookies
 
 - **Visitas y procedencia:** Vercel Web Analytics (`<Analytics />` solo en la landing). Actívalo en Vercel → Analytics → Enable; no usa cookies ni guarda la IP. En el plan Hobby no admite eventos propios, por eso los clics se cuentan aparte.

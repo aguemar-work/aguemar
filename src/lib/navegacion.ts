@@ -17,3 +17,11 @@ export function abrirCreado(href: string) {
  * la lista tras eliminar): con el router tardaba 8–9 s en el build de producción y el CI lo daba por colgado.
  */
 export const irTrasAccion = abrirCreado;
+
+/*
+ * La acción que precede a `irTrasAccion` no debe revalidar rutas (ver los `eliminarX` de cada módulo). Si
+ * revalida, Next refresca la ruta actual; cuando esa ruta es el detalle recién borrado abierto en el panel
+ * lateral, el refresco de ese segmento responde 404 y el router hace una navegación completa a esa URL
+ * (`fetch-server-response`: una respuesta que no es 200 se trata como navegación MPA), que cancela la carga
+ * de la lista iniciada aquí. Medido contra `next start` el 23/10/2026. La carga completa ya deja todo fresco.
+ */

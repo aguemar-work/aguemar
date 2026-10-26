@@ -4,7 +4,13 @@ Una entrada por despliegue a producción. Si el despliegue lleva migración, la 
 
 ## Sin publicar
 
-Nada todavía.
+**Sin migración.** Navegación más fluida en el panel y el workspace, a partir de la medición del 23/10/2026 (en producción las consultas cuestan milisegundos porque la función corre en `iad1` junto a InsForge; lo lento era el arranque en frío de la función, el viaje Perú→Virginia en cada clic y el esqueleto que borraba la página).
+
+- **Barra de progreso en vez de esqueleto:** fuera los `loading.tsx` de página del panel y del workspace; la página anterior sigue visible y una línea mint arriba (`BarraProgreso`) marca que se navega. Los esqueletos del panel lateral (`@modal`) se quedan.
+- **Caché del router:** `experimental.staleTimes.dynamic = 60`; volver a una página vista en el último minuto es instantáneo. Las acciones que revalidan lo vacían.
+- **Precarga al pasar el cursor** en los enlaces de los menús (`Enlace` con `prefetch="auto"` y `precargaAlPasar`, que requiere `experimental.dynamicOnHover` en `next.config.ts`): en pantalla solo el árbol de la ruta, al pasar el cursor la página con sus datos; medido contra `next start`, el clic después de pasar el cursor cambia de página en 40–60 ms frente a 300–450 ms. Los enlaces que abren el panel lateral siguen sin precarga (B-01). En `npm run dev` Next no precarga al pasar el cursor.
+- **Eliminar desde el panel lateral ya vuelve a la lista** en producción: las acciones `eliminarX` ya no revalidan rutas, porque la pantalla hace una carga completa después (`irTrasAccion`). Con la revalidación, Next volvía a pedir el detalle recién borrado, recibía 404 y hacía una navegación completa a esa URL que cancelaba la carga de la lista (traza de Playwright contra `next start`: la petición del detalle borrado responde 404 y `fetch-server-response` de Next trata cualquier respuesta que no sea 200 como navegación completa; solo pasa con el panel lateral abierto, porque es el refresco de los segmentos paralelos el que vuelve a pedir ese detalle; reproducido también con el código anterior compilado aparte, así que no lo causaron estos cambios). Pruebas `fase6` (`exact: true` en «Contraseña», cerrar el diálogo de WhatsApp tras aceptar, pendiente repetido) y `base`, `fase2`–`fase11` con el selector corregido.
+- **`/api/salud`** para el monitor de uptime (A-04), que además mantiene caliente la función de Vercel y la conexión con InsForge. Pasos en el README.
 
 ## v0.18.0 · 23/10/2026
 

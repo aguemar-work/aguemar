@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SaltarContenido } from "@/components/ui/saltar-contenido";
 import { Avisos } from "@/components/avisos";
+import { Suspense } from "react";
+import { BarraProgreso } from "@/components/barra-progreso";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/panel/sidebar";
 import { Topbar } from "@/components/panel/topbar";
@@ -31,6 +33,10 @@ export default async function PanelLayout({ children, modal }: { children: React
       <div className="flex min-h-dvh">
         <SaltarContenido />
         <Avisos />
+        {/* Sin loading.tsx de página: la página anterior sigue visible y esta línea marca que se está navegando. */}
+        <Suspense>
+          <BarraProgreso />
+        </Suspense>
         <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 md:block">
           <Sidebar rol={rolPanel} />
         </aside>

@@ -114,14 +114,16 @@ async function publicar_(tabla: "briefs" | "actas_entrega", tipo: "brief" | "act
 }
 
 async function eliminar_(tabla: "briefs" | "actas_entrega", tipo: "brief" | "acta", id: string): Promise<Resultado<void>> {
-  return accion("documentos.aceptarActa", async () => {
+  return accion(`documentos.eliminar${tipo === "brief" ? "Brief" : "Acta"}`, async () => {
     // Solo el propietario (el colaborador no borra ni reorganiza): mensaje claro en vez de un falso éxito.
     await exigirPropietario();
     const { db } = await conSesion();
     await db.from("enlaces_publicos").delete().eq("tipo", tipo).eq("documento_id", id);
     const { error } = await db.from(tabla).delete().eq("id", id);
     if (error) throw error;
-    revalidar();
+    // Sin revalidar: tras borrar, la pantalla hace una carga completa (irTrasAccion). Si se revalida, Next vuelve a
+    // pedir la ruta actual (el detalle recién borrado), recibe 404 y hace una navegación completa a esa URL, que
+    // cancela la carga de la lista; pasaba al eliminar desde el panel lateral en producción (src/lib/navegacion.ts).
     return exito(undefined);
   });
 }
