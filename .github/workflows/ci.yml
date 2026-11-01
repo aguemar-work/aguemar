@@ -48,7 +48,7 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
       # Caché de compilación de Next: el build tarda ~1 min; con la caché, bastante menos.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .next/cache
           key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**') }}
@@ -130,7 +130,7 @@ jobs:
       - run: npm ci --ignore-scripts
         if: env.E2E_EMAIL != ''
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         if: env.E2E_EMAIL != ''
         with:
           path: .next/cache
